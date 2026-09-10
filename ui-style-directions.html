@@ -1,0 +1,878 @@
+<div id="ui-style-lab" aria-label="私有知识库产品的三套冷色系界面方向">
+  <style>
+    #ui-style-lab {
+      width: 100%;
+      color: var(--foreground);
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", ui-sans-serif, system-ui, sans-serif;
+    }
+
+    #ui-style-lab * {
+      box-sizing: border-box;
+    }
+
+    #ui-style-lab .lab-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    #ui-style-lab .lab-kicker {
+      margin: 0 0 4px;
+      color: var(--muted-foreground);
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    #ui-style-lab .lab-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 500;
+    }
+
+    #ui-style-lab .scene-switch {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    #ui-style-lab .concept-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+
+    #ui-style-lab .concept {
+      min-width: 0;
+    }
+
+    #ui-style-lab .concept-heading {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 92px;
+      margin-bottom: 10px;
+    }
+
+    #ui-style-lab .concept-index {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted-foreground);
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    #ui-style-lab .concept-title {
+      margin: 0 0 4px;
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    #ui-style-lab .concept-summary {
+      margin: 0;
+      color: var(--muted-foreground);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    #ui-style-lab .swatches {
+      display: flex;
+      gap: 5px;
+      padding-top: 4px;
+      flex: 0 0 auto;
+    }
+
+    #ui-style-lab .swatch {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px rgba(127, 127, 127, .22);
+    }
+
+    #ui-style-lab .concept-window {
+      --kn-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      min-height: 470px;
+      border: 1px solid var(--kn-line);
+      border-radius: var(--kn-radius);
+      background: var(--kn-bg);
+      color: var(--kn-text);
+      box-shadow: var(--kn-shadow);
+      isolation: isolate;
+    }
+
+    #ui-style-lab .concept-window::before {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: var(--kn-atmosphere);
+      content: "";
+      pointer-events: none;
+    }
+
+    #ui-style-lab .polar {
+      --kn-bg: #f3f7fd;
+      --kn-surface: #ffffff;
+      --kn-surface-2: #eaf1fb;
+      --kn-nav: #0d213d;
+      --kn-nav-text: #dbeafe;
+      --kn-text: #10233f;
+      --kn-muted: #718198;
+      --kn-line: #d7e2f0;
+      --kn-accent: #2f6fed;
+      --kn-on-accent: #ffffff;
+      --kn-good: #0f9f8f;
+      --kn-warning: #d18b28;
+      --kn-shadow: 0 16px 38px rgba(42, 79, 126, .12);
+      --kn-atmosphere: radial-gradient(circle at 78% 3%, rgba(47, 111, 237, .13), transparent 35%);
+    }
+
+    #ui-style-lab .abyss {
+      --kn-bg: #07111e;
+      --kn-surface: #0d1a2a;
+      --kn-surface-2: #122338;
+      --kn-nav: #050c16;
+      --kn-nav-text: #a8c7e8;
+      --kn-text: #edf7ff;
+      --kn-muted: #8da6c1;
+      --kn-line: #1e3851;
+      --kn-accent: #2dd4bf;
+      --kn-on-accent: #05211f;
+      --kn-good: #2dd4bf;
+      --kn-warning: #f0b45d;
+      --kn-shadow: 0 18px 46px rgba(0, 8, 18, .42);
+      --kn-atmosphere: radial-gradient(circle at 85% 5%, rgba(45, 212, 191, .18), transparent 32%), radial-gradient(circle at 8% 84%, rgba(79, 70, 229, .17), transparent 36%);
+    }
+
+    #ui-style-lab .glacier {
+      --kn-bg: #e9eff5;
+      --kn-surface: #f7fafc;
+      --kn-surface-2: #dfe7ef;
+      --kn-nav: #dbe5ef;
+      --kn-nav-text: #22384f;
+      --kn-text: #16283b;
+      --kn-muted: #627487;
+      --kn-line: #c8d4df;
+      --kn-accent: #176b9b;
+      --kn-on-accent: #ffffff;
+      --kn-good: #167c79;
+      --kn-warning: #a46c1b;
+      --kn-shadow: 0 10px 24px rgba(53, 74, 96, .1);
+      --kn-atmosphere: linear-gradient(145deg, rgba(255, 255, 255, .6), transparent 48%);
+    }
+
+    #ui-style-lab .product-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      min-height: 46px;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--kn-line);
+      background: color-mix(in srgb, var(--kn-surface) 90%, transparent);
+    }
+
+    #ui-style-lab .brand-lockup,
+    #ui-style-lab .top-actions,
+    #ui-style-lab .inline-row,
+    #ui-style-lab .row-actions,
+    #ui-style-lab .doc-main,
+    #ui-style-lab .citation-line {
+      display: flex;
+      align-items: center;
+    }
+
+    #ui-style-lab .brand-lockup {
+      gap: 7px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    #ui-style-lab .brand-glyph {
+      display: grid;
+      width: 25px;
+      height: 25px;
+      place-items: center;
+      border-radius: calc(var(--kn-radius) * .42);
+      background: var(--kn-accent);
+      color: var(--kn-on-accent);
+    }
+
+    #ui-style-lab .brand-glyph i,
+    #ui-style-lab .side-link i,
+    #ui-style-lab .mini-button i,
+    #ui-style-lab .input-bar i,
+    #ui-style-lab .doc-icon i {
+      width: 14px;
+      height: 14px;
+    }
+
+    #ui-style-lab .top-actions {
+      gap: 6px;
+    }
+
+    #ui-style-lab .privacy-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--kn-good);
+    }
+
+    #ui-style-lab .top-status {
+      color: var(--kn-muted);
+      font-size: 11px;
+    }
+
+    #ui-style-lab .avatar {
+      display: grid;
+      width: 26px;
+      height: 26px;
+      place-items: center;
+      border: 1px solid var(--kn-line);
+      border-radius: 50%;
+      background: var(--kn-surface-2);
+      color: var(--kn-text);
+      font-size: 11px;
+    }
+
+    #ui-style-lab .product-body {
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1fr);
+      min-height: 423px;
+    }
+
+    #ui-style-lab .product-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding: 10px 7px;
+      background: var(--kn-nav);
+      color: var(--kn-nav-text);
+    }
+
+    #ui-style-lab .side-link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      min-height: 48px;
+      border-radius: calc(var(--kn-radius) * .5);
+      color: inherit;
+      font-size: 10px;
+      opacity: .7;
+    }
+
+    #ui-style-lab .side-link.is-active {
+      background: color-mix(in srgb, var(--kn-accent) 24%, transparent);
+      color: color-mix(in srgb, var(--kn-nav-text) 85%, var(--kn-accent));
+      opacity: 1;
+    }
+
+    #ui-style-lab .product-main {
+      min-width: 0;
+      padding: 13px;
+    }
+
+    #ui-style-lab .scene[hidden] {
+      display: none;
+    }
+
+    #ui-style-lab .scene-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 13px;
+    }
+
+    #ui-style-lab .scene-eyebrow {
+      margin: 0 0 3px;
+      color: var(--kn-muted);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    #ui-style-lab .scene-title {
+      margin: 0;
+      color: var(--kn-text);
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.25;
+    }
+
+    #ui-style-lab .status-chip,
+    #ui-style-lab .citation-chip,
+    #ui-style-lab .category-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 999px;
+      white-space: nowrap;
+      font-size: 10px;
+    }
+
+    #ui-style-lab .status-chip {
+      padding: 4px 7px;
+      background: color-mix(in srgb, var(--kn-good) 14%, var(--kn-surface));
+      color: var(--kn-good);
+    }
+
+    #ui-style-lab .mini-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      min-height: 28px;
+      padding: 5px 8px;
+      border: 0;
+      border-radius: calc(var(--kn-radius) * .48);
+      background: var(--kn-accent);
+      color: var(--kn-on-accent);
+      font: inherit;
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    #ui-style-lab .mini-button.secondary {
+      border: 1px solid var(--kn-line);
+      background: var(--kn-surface);
+      color: var(--kn-text);
+    }
+
+    #ui-style-lab .metrics-strip {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px;
+      margin-bottom: 11px;
+    }
+
+    #ui-style-lab .metric-cell {
+      padding: 8px;
+      border: 1px solid var(--kn-line);
+      border-radius: calc(var(--kn-radius) * .58);
+      background: color-mix(in srgb, var(--kn-surface) 92%, transparent);
+    }
+
+    #ui-style-lab .metric-value {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--kn-text);
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    #ui-style-lab .metric-label {
+      color: var(--kn-muted);
+      font-size: 9px;
+    }
+
+    #ui-style-lab .section-label {
+      margin: 11px 0 7px;
+      color: var(--kn-muted);
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    #ui-style-lab .category-list,
+    #ui-style-lab .document-list,
+    #ui-style-lab .chat-thread {
+      display: grid;
+      gap: 7px;
+    }
+
+    #ui-style-lab .category-row,
+    #ui-style-lab .doc-row,
+    #ui-style-lab .assistant-message,
+    #ui-style-lab .guest-hero {
+      border: 1px solid var(--kn-line);
+      background: color-mix(in srgb, var(--kn-surface) 94%, transparent);
+    }
+
+    #ui-style-lab .category-row,
+    #ui-style-lab .doc-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 42px;
+      padding: 7px 8px;
+      border-radius: calc(var(--kn-radius) * .55);
+    }
+
+    #ui-style-lab .category-chip {
+      padding: 3px 6px;
+      background: color-mix(in srgb, var(--kn-accent) 12%, var(--kn-surface));
+      color: var(--kn-accent);
+    }
+
+    #ui-style-lab .row-title {
+      color: var(--kn-text);
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    #ui-style-lab .row-subtitle {
+      margin-top: 2px;
+      color: var(--kn-muted);
+      font-size: 9px;
+    }
+
+    #ui-style-lab .doc-main {
+      min-width: 0;
+      gap: 7px;
+    }
+
+    #ui-style-lab .doc-icon {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: calc(var(--kn-radius) * .38);
+      background: var(--kn-surface-2);
+      color: var(--kn-accent);
+    }
+
+    #ui-style-lab .doc-copy {
+      min-width: 0;
+    }
+
+    #ui-style-lab .doc-copy .row-title {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    #ui-style-lab .processing {
+      color: var(--kn-warning);
+      font-size: 9px;
+    }
+
+    #ui-style-lab .ready {
+      color: var(--kn-good);
+      font-size: 9px;
+    }
+
+    #ui-style-lab .user-message {
+      justify-self: end;
+      max-width: 88%;
+      padding: 8px 10px;
+      border-radius: calc(var(--kn-radius) * .7) calc(var(--kn-radius) * .7) 4px calc(var(--kn-radius) * .7);
+      background: var(--kn-accent);
+      color: var(--kn-on-accent);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    #ui-style-lab .assistant-message {
+      padding: 10px;
+      border-radius: 4px calc(var(--kn-radius) * .7) calc(var(--kn-radius) * .7) calc(var(--kn-radius) * .7);
+    }
+
+    #ui-style-lab .answer-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 6px;
+      color: var(--kn-accent);
+      font-size: 10px;
+      font-weight: 500;
+    }
+
+    #ui-style-lab .answer-copy {
+      margin: 0;
+      color: var(--kn-text);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    #ui-style-lab .citation-line {
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 8px;
+    }
+
+    #ui-style-lab .citation-chip {
+      padding: 4px 6px;
+      border: 1px solid var(--kn-line);
+      background: var(--kn-surface-2);
+      color: var(--kn-muted);
+    }
+
+    #ui-style-lab .input-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 9px;
+      padding: 6px 7px 6px 9px;
+      border: 1px solid var(--kn-line);
+      border-radius: calc(var(--kn-radius) * .62);
+      background: var(--kn-surface);
+      color: var(--kn-muted);
+      font-size: 10px;
+    }
+
+    #ui-style-lab .input-placeholder {
+      flex: 1;
+      min-width: 0;
+    }
+
+    #ui-style-lab .send-control {
+      display: grid;
+      width: 26px;
+      height: 26px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: calc(var(--kn-radius) * .4);
+      background: var(--kn-accent);
+      color: var(--kn-on-accent);
+    }
+
+    #ui-style-lab .guest-hero {
+      padding: 13px;
+      border-radius: calc(var(--kn-radius) * .7);
+      text-align: center;
+    }
+
+    #ui-style-lab .guest-symbol {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      margin: 2px auto 8px;
+      place-items: center;
+      border-radius: calc(var(--kn-radius) * .8);
+      background: color-mix(in srgb, var(--kn-accent) 14%, var(--kn-surface));
+      color: var(--kn-accent);
+    }
+
+    #ui-style-lab .guest-symbol i {
+      width: 19px;
+      height: 19px;
+    }
+
+    #ui-style-lab .guest-hero p {
+      margin: 5px 0 0;
+      color: var(--kn-muted);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    #ui-style-lab .scope-note {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 9px 0;
+      color: var(--kn-muted);
+      font-size: 9px;
+    }
+
+    #ui-style-lab .scope-note i {
+      width: 12px;
+      height: 12px;
+      color: var(--kn-good);
+    }
+
+    #ui-style-lab .concept-traits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    #ui-style-lab .trait {
+      padding: 4px 7px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--muted-foreground);
+      font-size: 11px;
+    }
+
+    #ui-style-lab .concept[data-compact="true"] .product-main {
+      padding: 9px;
+    }
+
+    #ui-style-lab .concept[data-compact="true"] .category-list,
+    #ui-style-lab .concept[data-compact="true"] .document-list,
+    #ui-style-lab .concept[data-compact="true"] .chat-thread {
+      gap: 4px;
+    }
+
+    #ui-style-lab .concept[data-compact="true"] .category-row,
+    #ui-style-lab .concept[data-compact="true"] .doc-row {
+      min-height: 35px;
+      padding: 5px 7px;
+    }
+
+    @media (max-width: 899px) {
+      #ui-style-lab .concept-grid {
+        grid-template-columns: 1fr;
+      }
+
+      #ui-style-lab .concept-heading {
+        min-height: 0;
+      }
+    }
+
+    @media (max-width: 620px) {
+      #ui-style-lab .lab-heading {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      #ui-style-lab .scene-switch {
+        justify-content: flex-start;
+      }
+
+      #ui-style-lab .product-body {
+        grid-template-columns: 50px minmax(0, 1fr);
+      }
+
+      #ui-style-lab .product-sidebar {
+        padding-inline: 5px;
+      }
+
+      #ui-style-lab .side-link span {
+        display: none;
+      }
+    }
+  </style>
+
+  <div class="lab-heading">
+    <div>
+      <p class="lab-kicker">Direction study · owner + guest</p>
+      <h2 class="lab-title">冷色系 UI 方向草图</h2>
+    </div>
+    <div class="scene-switch" role="group" aria-label="选择原型预览场景">
+      <button class="btn" type="button" data-scene-button="library" aria-pressed="false">空间总览</button>
+      <button class="btn" type="button" data-scene-button="chat" aria-pressed="true">可信问答</button>
+      <button class="btn" type="button" data-scene-button="guest" aria-pressed="false">访客页面</button>
+    </div>
+  </div>
+
+  <div class="concept-grid">
+    <article class="concept polar" id="concept-polar" aria-label="方向 A 极昼蓝">
+      <div class="concept-heading">
+        <div>
+          <span class="concept-index">Direction A · 推荐基线</span>
+          <h3 class="concept-title">极昼蓝 Polar Clarity</h3>
+          <p class="concept-summary">明亮、可信、低学习成本；兼顾个人与轻企业场景。</p>
+        </div>
+        <div class="swatches" aria-label="极昼蓝色板">
+          <span class="swatch" style="background:#0d213d"></span>
+          <span class="swatch" style="background:#2f6fed"></span>
+          <span class="swatch" style="background:#dbeafe"></span>
+        </div>
+      </div>
+
+      <div class="concept-window">
+        <div class="product-topbar">
+          <div class="brand-lockup"><span class="brand-glyph"><i data-lucide="layers-3" aria-hidden="true"></i></span><span>知识工作台</span></div>
+          <div class="top-actions"><span class="privacy-dot"></span><span class="top-status">连接安全</span><span class="avatar">林</span></div>
+        </div>
+        <div class="product-body">
+          <nav class="product-sidebar" aria-label="主导航">
+            <div class="side-link"><i data-lucide="layout-grid" aria-hidden="true"></i><span>空间</span></div>
+            <div class="side-link is-active"><i data-lucide="message-square-text" aria-hidden="true"></i><span>问答</span></div>
+            <div class="side-link"><i data-lucide="files" aria-hidden="true"></i><span>资料</span></div>
+            <div class="side-link"><i data-lucide="chart-no-axes-column" aria-hidden="true"></i><span>评测</span></div>
+          </nav>
+          <main class="product-main">
+            <section class="scene" data-scene-panel="library" hidden>
+              <div class="scene-header">
+                <div><p class="scene-eyebrow">个人空间</p><h4 class="scene-title">项目知识库</h4></div>
+                <button class="mini-button" type="button"><i data-lucide="upload" aria-hidden="true"></i>上传</button>
+              </div>
+              <div class="metrics-strip"><div class="metric-cell"><span class="metric-value">12</span><span class="metric-label">可用文档</span></div><div class="metric-cell"><span class="metric-value">3</span><span class="metric-label">开放分类</span></div><div class="metric-cell"><span class="metric-value">86%</span><span class="metric-label">有效引用</span></div></div>
+              <p class="section-label">公开范围</p>
+              <div class="category-list"><div class="category-row"><div><div class="row-title">项目经验</div><div class="row-subtitle">5 份文档</div></div><span class="category-chip">已开放</span></div><div class="category-row"><div><div class="row-title">产品说明</div><div class="row-subtitle">4 份文档</div></div><span class="category-chip">已开放</span></div></div>
+              <p class="section-label">最近资料</p>
+              <div class="document-list"><div class="doc-row"><div class="doc-main"><span class="doc-icon"><i data-lucide="file-text" aria-hidden="true"></i></span><div class="doc-copy"><span class="row-title">产品说明.pdf</span><div class="row-subtitle">2.4 MB · 刚刚更新</div></div></div><span class="ready">可用</span></div><div class="doc-row"><div class="doc-main"><span class="doc-icon"><i data-lucide="file-type-2" aria-hidden="true"></i></span><div class="doc-copy"><span class="row-title">项目复盘.docx</span><div class="row-subtitle">正在生成索引</div></div></div><span class="processing">72%</span></div></div>
+            </section>
+
+            <section class="scene" data-scene-panel="chat">
+              <div class="scene-header"><div><p class="scene-eyebrow">所有者模式</p><h4 class="scene-title">项目知识库</h4></div><span class="status-chip"><i data-lucide="lock-keyhole" aria-hidden="true"></i>私密</span></div>
+              <div class="chat-thread"><div class="user-message">这个产品主要解决什么问题？</div><div class="assistant-message"><div class="answer-label"><i data-lucide="sparkles" aria-hidden="true"></i>基于 2 条证据</div><p class="answer-copy">它把分散文档转化为可验证的问答，并在证据不足时明确拒答，减少查找成本与无依据回答。</p><div class="citation-line"><span class="citation-chip">[1] 产品说明 · P.12</span><span class="citation-chip">[2] 需求文档 · P.3</span></div></div></div>
+              <div class="input-bar"><i data-lucide="paperclip" aria-hidden="true"></i><span class="input-placeholder">继续追问当前知识空间…</span><span class="send-control"><i data-lucide="arrow-up" aria-hidden="true"></i></span></div>
+            </section>
+
+            <section class="scene" data-scene-panel="guest" hidden>
+              <div class="guest-hero"><span class="guest-symbol"><i data-lucide="book-open-check" aria-hidden="true"></i></span><h4 class="scene-title">了解我的项目经历</h4><p>你可以询问已公开的项目经验和产品介绍。</p></div>
+              <div class="scope-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>回答仅基于 2 个已开放分类，不展示原始资料</span></div>
+              <div class="chat-thread"><div class="user-message">你在项目里负责了哪些工作？</div><div class="assistant-message"><div class="answer-label"><i data-lucide="sparkles" aria-hidden="true"></i>知识库回答</div><p class="answer-copy">主要负责需求拆解、RAG 检索边界设计，以及桌面和移动网页的体验规划。</p></div></div>
+              <div class="input-bar"><span class="input-placeholder">围绕公开内容提问…</span><span class="send-control"><i data-lucide="arrow-up" aria-hidden="true"></i></span></div>
+            </section>
+          </main>
+        </div>
+      </div>
+      <div class="concept-traits"><span class="trait">高可读</span><span class="trait">中等密度</span><span class="trait">可信企业感</span></div>
+    </article>
+
+    <article class="concept abyss" id="concept-abyss" aria-label="方向 B 深海青">
+      <div class="concept-heading">
+        <div>
+          <span class="concept-index">Direction B · AI native</span>
+          <h3 class="concept-title">深海青 Abyss Signal</h3>
+          <p class="concept-summary">沉浸、技术感、对话优先；更像一款 AI 原生工作台。</p>
+        </div>
+        <div class="swatches" aria-label="深海青色板">
+          <span class="swatch" style="background:#07111e"></span>
+          <span class="swatch" style="background:#2dd4bf"></span>
+          <span class="swatch" style="background:#4f46e5"></span>
+        </div>
+      </div>
+
+      <div class="concept-window">
+        <div class="product-topbar">
+          <div class="brand-lockup"><span class="brand-glyph"><i data-lucide="orbit" aria-hidden="true"></i></span><span>知识工作台</span></div>
+          <div class="top-actions"><span class="privacy-dot"></span><span class="top-status">隐私空间</span><span class="avatar">林</span></div>
+        </div>
+        <div class="product-body">
+          <nav class="product-sidebar" aria-label="主导航">
+            <div class="side-link"><i data-lucide="layout-grid" aria-hidden="true"></i><span>空间</span></div>
+            <div class="side-link is-active"><i data-lucide="message-square-text" aria-hidden="true"></i><span>问答</span></div>
+            <div class="side-link"><i data-lucide="files" aria-hidden="true"></i><span>资料</span></div>
+            <div class="side-link"><i data-lucide="chart-no-axes-column" aria-hidden="true"></i><span>评测</span></div>
+          </nav>
+          <main class="product-main">
+            <section class="scene" data-scene-panel="library" hidden>
+              <div class="scene-header"><div><p class="scene-eyebrow">个人空间</p><h4 class="scene-title">项目知识库</h4></div><button class="mini-button" type="button"><i data-lucide="upload" aria-hidden="true"></i>上传</button></div>
+              <div class="metrics-strip"><div class="metric-cell"><span class="metric-value">12</span><span class="metric-label">可用文档</span></div><div class="metric-cell"><span class="metric-value">3</span><span class="metric-label">开放分类</span></div><div class="metric-cell"><span class="metric-value">86%</span><span class="metric-label">有效引用</span></div></div>
+              <p class="section-label">公开范围</p>
+              <div class="category-list"><div class="category-row"><div><div class="row-title">项目经验</div><div class="row-subtitle">5 份文档</div></div><span class="category-chip">已开放</span></div><div class="category-row"><div><div class="row-title">产品说明</div><div class="row-subtitle">4 份文档</div></div><span class="category-chip">已开放</span></div></div>
+              <p class="section-label">最近资料</p>
+              <div class="document-list"><div class="doc-row"><div class="doc-main"><span class="doc-icon"><i data-lucide="file-text" aria-hidden="true"></i></span><div class="doc-copy"><span class="row-title">产品说明.pdf</span><div class="row-subtitle">2.4 MB · 刚刚更新</div></div></div><span class="ready">可用</span></div><div class="doc-row"><div class="doc-main"><span class="doc-icon"><i data-lucide="file-type-2" aria-hidden="true"></i></span><div class="doc-copy"><span class="row-title">项目复盘.docx</span><div class="row-subtitle">正在生成索引</div></div></div><span class="processing">72%</span></div></div>
+            </section>
+
+            <section class="scene" data-scene-panel="chat">
+              <div class="scene-header"><div><p class="scene-eyebrow">所有者模式</p><h4 class="scene-title">项目知识库</h4></div><span class="status-chip"><i data-lucide="lock-keyhole" aria-hidden="true"></i>私密</span></div>
+              <div class="chat-thread"><div class="user-message">这个产品主要解决什么问题？</div><div class="assistant-message"><div class="answer-label"><i data-lucide="sparkles" aria-hidden="true"></i>基于 2 条证据</div><p class="answer-copy">它把分散文档转化为可验证的问答，并在证据不足时明确拒答，减少查找成本与无依据回答。</p><div class="citation-line"><span class="citation-chip">[1] 产品说明 · P.12</span><span class="citation-chip">[2] 需求文档 · P.3</span></div></div></div>
+              <div class="input-bar"><i data-lucide="paperclip" aria-hidden="true"></i><span class="input-placeholder">继续追问当前知识空间…</span><span class="send-control"><i data-lucide="arrow-up" aria-hidden="true"></i></span></div>
+            </section>
+
+            <section class="scene" data-scene-panel="guest" hidden>
+              <div class="guest-hero"><span class="guest-symbol"><i data-lucide="book-open-check" aria-hidden="true"></i></span><h4 class="scene-title">了解我的项目经历</h4><p>你可以询问已公开的项目经验和产品介绍。</p></div>
+              <div class="scope-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>回答仅基于 2 个已开放分类，不展示原始资料</span></div>
+              <div class="chat-thread"><div class="user-message">你在项目里负责了哪些工作？</div><div class="assistant-message"><div class="answer-label"><i data-lucide="sparkles" aria-hidden="true"></i>知识库回答</div><p class="answer-copy">主要负责需求拆解、RAG 检索边界设计，以及桌面和移动网页的体验规划。</p></div></div>
+              <div class="input-bar"><span class="input-placeholder">围绕公开内容提问…</span><span class="send-control"><i data-lucide="arrow-up" aria-hidden="true"></i></span></div>
+            </section>
+          </main>
+        </div>
+      </div>
+      <div class="concept-traits"><span class="trait">深色沉浸</span><span class="trait">中高密度</span><span class="trait">AI 技术感</span></div>
+    </article>
+
+    <article class="concept glacier" id="concept-glacier" aria-label="方向 C 冰川灰">
+      <div class="concept-heading">
+        <div>
+          <span class="concept-index">Direction C · editorial</span>
+          <h3 class="concept-title">冰川灰 Glacier Index</h3>
+          <p class="concept-summary">克制、清醒、文档优先；强调资料状态和证据秩序。</p>
+        </div>
+        <div class="swatches" aria-label="冰川灰色板">
+          <span class="swatch" style="background:#e9eff5"></span>
+          <span class="swatch" style="background:#176b9b"></span>
+          <span class="swatch" style="background:#22384f"></span>
+        </div>
+      </div>
+
+      <div class="concept-window">
+        <div class="product-topbar">
+          <div class="brand-lockup"><span class="brand-glyph"><i data-lucide="library" aria-hidden="true"></i></span><span>知识工作台</span></div>
+          <div class="top-actions"><span class="privacy-dot"></span><span class="top-status">资料受控</span><span class="avatar">林</span></div>
+        </div>
+        <div class="product-body">
+          <nav class="product-sidebar" aria-label="主导航">
+            <div class="side-link"><i data-lucide="layout-grid" aria-hidden="true"></i><span>空间</span></div>
+            <div class="side-link is-active"><i data-lucide="message-square-text" aria-hidden="true"></i><span>问答</span></div>
+            <div class="side-link"><i data-lucide="files" aria-hidden="true"></i><span>资料</span></div>
+            <div class="side-link"><i data-lucide="chart-no-axes-column" aria-hidden="true"></i><span>评测</span></div>
+          </nav>
+          <main class="product-main">
+            <section class="scene" data-scene-panel="library" hidden>
+              <div class="scene-header"><div><p class="scene-eyebrow">个人空间</p><h4 class="scene-title">项目知识库</h4></div><button class="mini-button" type="button"><i data-lucide="upload" aria-hidden="true"></i>上传</button></div>
+              <div class="metrics-strip"><div class="metric-cell"><span class="metric-value">12</span><span class="metric-label">可用文档</span></div><div class="metric-cell"><span class="metric-value">3</span><span class="metric-label">开放分类</span></div><div class="metric-cell"><span class="metric-value">86%</span><span class="metric-label">有效引用</span></div></div>
+              <p class="section-label">公开范围</p>
+              <div class="category-list"><div class="category-row"><div><div class="row-title">项目经验</div><div class="row-subtitle">5 份文档</div></div><span class="category-chip">已开放</span></div><div class="category-row"><div><div class="row-title">产品说明</div><div class="row-subtitle">4 份文档</div></div><span class="category-chip">已开放</span></div></div>
+              <p class="section-label">最近资料</p>
+              <div class="document-list"><div class="doc-row"><div class="doc-main"><span class="doc-icon"><i data-lucide="file-text" aria-hidden="true"></i></span><div class="doc-copy"><span class="row-title">产品说明.pdf</span><div class="row-subtitle">2.4 MB · 刚刚更新</div></div></div><span class="ready">可用</span></div><div class="doc-row"><div class="doc-main"><span class="doc-icon"><i data-lucide="file-type-2" aria-hidden="true"></i></span><div class="doc-copy"><span class="row-title">项目复盘.docx</span><div class="row-subtitle">正在生成索引</div></div></div><span class="processing">72%</span></div></div>
+            </section>
+
+            <section class="scene" data-scene-panel="chat">
+              <div class="scene-header"><div><p class="scene-eyebrow">所有者模式</p><h4 class="scene-title">项目知识库</h4></div><span class="status-chip"><i data-lucide="lock-keyhole" aria-hidden="true"></i>私密</span></div>
+              <div class="chat-thread"><div class="user-message">这个产品主要解决什么问题？</div><div class="assistant-message"><div class="answer-label"><i data-lucide="sparkles" aria-hidden="true"></i>基于 2 条证据</div><p class="answer-copy">它把分散文档转化为可验证的问答，并在证据不足时明确拒答，减少查找成本与无依据回答。</p><div class="citation-line"><span class="citation-chip">[1] 产品说明 · P.12</span><span class="citation-chip">[2] 需求文档 · P.3</span></div></div></div>
+              <div class="input-bar"><i data-lucide="paperclip" aria-hidden="true"></i><span class="input-placeholder">继续追问当前知识空间…</span><span class="send-control"><i data-lucide="arrow-up" aria-hidden="true"></i></span></div>
+            </section>
+
+            <section class="scene" data-scene-panel="guest" hidden>
+              <div class="guest-hero"><span class="guest-symbol"><i data-lucide="book-open-check" aria-hidden="true"></i></span><h4 class="scene-title">了解我的项目经历</h4><p>你可以询问已公开的项目经验和产品介绍。</p></div>
+              <div class="scope-note"><i data-lucide="shield-check" aria-hidden="true"></i><span>回答仅基于 2 个已开放分类，不展示原始资料</span></div>
+              <div class="chat-thread"><div class="user-message">你在项目里负责了哪些工作？</div><div class="assistant-message"><div class="answer-label"><i data-lucide="sparkles" aria-hidden="true"></i>知识库回答</div><p class="answer-copy">主要负责需求拆解、RAG 检索边界设计，以及桌面和移动网页的体验规划。</p></div></div>
+              <div class="input-bar"><span class="input-placeholder">围绕公开内容提问…</span><span class="send-control"><i data-lucide="arrow-up" aria-hidden="true"></i></span></div>
+            </section>
+          </main>
+        </div>
+      </div>
+      <div class="concept-traits"><span class="trait">文档优先</span><span class="trait">紧凑理性</span><span class="trait">专业克制</span></div>
+    </article>
+  </div>
+
+  <script>
+    (() => {
+      const root = document.getElementById('ui-style-lab');
+      if (!root) return;
+
+      const sceneButtons = [...root.querySelectorAll('[data-scene-button]')];
+      const scenes = [...root.querySelectorAll('[data-scene-panel]')];
+
+      function showScene(sceneName) {
+        sceneButtons.forEach((button) => {
+          button.setAttribute('aria-pressed', String(button.dataset.sceneButton === sceneName));
+        });
+        scenes.forEach((scene) => {
+          scene.hidden = scene.dataset.scenePanel !== sceneName;
+        });
+      }
+
+      sceneButtons.forEach((button) => {
+        button.addEventListener('click', () => showScene(button.dataset.sceneButton));
+      });
+
+      const concepts = [
+        { id: 'concept-polar', state: { accent: '#2f6fed', radius: 16, compact: false }, label: '极昼蓝' },
+        { id: 'concept-abyss', state: { accent: '#2dd4bf', radius: 18, compact: false }, label: '深海青' },
+        { id: 'concept-glacier', state: { accent: '#176b9b', radius: 8, compact: true }, label: '冰川灰' }
+      ];
+
+      concepts.forEach(({ id, state, label }) => {
+        const concept = document.getElementById(id);
+        if (!concept) return;
+
+        const render = () => {
+          concept.style.setProperty('--kn-accent', state.accent);
+          concept.style.setProperty('--kn-radius', `${state.radius}px`);
+          concept.dataset.compact = String(state.compact);
+        };
+
+        render();
+
+        if (globalThis.Tweak) {
+          const tweak = new Tweak({ container: concept, onChange: render });
+          tweak.addColorPicker(state, 'accent', { label: `${label}强调色`, reference: '--kn-accent' });
+          tweak.addSlider(state, 'radius', { label: `${label}圆角`, min: 2, max: 24, unit: 'px', reference: '--kn-radius' });
+          tweak.addToggle(state, 'compact', { label: `${label}紧凑布局`, reference: 'layout.compact' });
+        }
+      });
+    })();
+  </script>
+</div>
