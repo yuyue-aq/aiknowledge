@@ -52,10 +52,35 @@ async def test_deepseek_client_uses_the_current_flash_model_and_openai_compatibl
         "stream": False,
         "temperature": 0.2,
         "max_tokens": 1200,
+        "thinking": {"type": "disabled"},
     }
     assert result.content == "基于证据的回答"
     assert result.model == "deepseek-v4-flash"
     assert result.usage.total_tokens == 18
+    await http_client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_deepseek_client_explicitly_enables_thinking_when_configured() -> None:
+    observed_request: dict[str, object] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        observed_request["payload"] = json.loads(request.content)
+        return httpx.Response(
+            200,
+            json={"model": "deepseek-flash", "choices": [{"message": {"content": "回答"}}]},
+        )
+
+    http_client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    client = DeepSeekChatClient(
+        api_key="test-key",
+        thinking_enabled=True,
+        http_client=http_client,
+    )
+
+    await client.generate([ChatMessage(role="user", content="测试")])
+
+    assert observed_request["payload"]["thinking"] == {"type": "enabled"}  # type: ignore[index]
     await http_client.aclose()
 
 
@@ -80,4 +105,36 @@ async def test_deepseek_client_does_not_return_the_upstream_body_in_errors() -> 
         await client.generate([ChatMessage(role="user", content="测试")])
 
     assert "sensitive upstream payload" not in str(error.value)
+    await http_client.aclose()
+
+
+@pytest.mark.asyncio
+async def test_deepseek_client_retries_transient_status_with_a_bounded_attempt_count() -> None:
+    attempts = 0
+
+    def handler(_: httpx.Request) -> httpx.Response:
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return httpx.Response(503, text="temporary upstream failure")
+        return httpx.Response(
+            200,
+            json={
+                "model": "deepseek-v4-flash",
+                "choices": [{"message": {"content": "重试后回答"}}],
+            },
+        )
+
+    http_client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    client = DeepSeekChatClient(
+        api_key="test-key",
+        http_client=http_client,
+        max_retries=1,
+        retry_backoff_seconds=0,
+    )
+
+    result = await client.generate([ChatMessage(role="user", content="重试测试")])
+
+    assert result.content == "重试后回答"
+    assert attempts == 2
     await http_client.aclose()

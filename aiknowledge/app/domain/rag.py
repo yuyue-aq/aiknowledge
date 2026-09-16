@@ -30,6 +30,14 @@ class SourceChunk:
 
 
 @dataclass(frozen=True, slots=True)
+class RankedSourceChunk:
+    """An already-authorized evidence chunk scored by server-side retrieval."""
+
+    source: SourceChunk
+    score: float
+
+
+@dataclass(frozen=True, slots=True)
 class Citation:
     source_chunk_id: str
     title: str

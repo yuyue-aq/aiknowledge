@@ -1,0 +1,157 @@
+name: aiknowledge
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg17-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aiknowledge}
+      POSTGRES_USER: ${POSTGRES_USER:-aiknowledge}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aiknowledge}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aiknowledge} -d ${POSTGRES_DB:-aiknowledge}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [aiknowledge_dev]
+
+  redis:
+    image: redis:7.4.11-alpine3.21
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks: [aiknowledge_dev]
+
+  minio:
+    # Docker Hub is denied by some local registry mirrors. This Quay digest is
+    # the MinIO RELEASE.2025-09-07T16-13-09Z image and is kept immutable.
+    image: quay.io/minio/minio@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-aiknowledge}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-aiknowledge-local-dev-secret}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    networks: [aiknowledge_dev]
+
+  api:
+    build:
+      context: ./aiknowledge
+      dockerfile: Dockerfile
+    command:
+      [
+        "sh",
+        "-c",
+        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000",
+      ]
+    environment: &app_environment
+      AIKNOWLEDGE_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiknowledge}:${POSTGRES_PASSWORD:-aiknowledge}@postgres:5432/${POSTGRES_DB:-aiknowledge}
+      AIKNOWLEDGE_REDIS_URL: redis://redis:6379/0
+      AIKNOWLEDGE_MINIO_ENDPOINT: minio:9000
+      AIKNOWLEDGE_MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-aiknowledge}
+      AIKNOWLEDGE_MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-aiknowledge-local-dev-secret}
+      AIKNOWLEDGE_MINIO_BUCKET: aiknowledge-private
+      AIKNOWLEDGE_MINIO_SECURE: "false"
+      AIKNOWLEDGE_BGE_MODEL_NAME: /models/bge-large-zh-v1.5
+      AIKNOWLEDGE_BGE_EMBEDDING_DIMENSION: "1024"
+      AIKNOWLEDGE_BGE_USE_FP16: "false"
+      AIKNOWLEDGE_BGE_BATCH_SIZE: ${AIKNOWLEDGE_BGE_BATCH_SIZE:-8}
+      AIKNOWLEDGE_BGE_TIMEOUT_SECONDS: ${AIKNOWLEDGE_BGE_TIMEOUT_SECONDS:-600}
+      AIKNOWLEDGE_BGE_MAX_RETRIES: ${AIKNOWLEDGE_BGE_MAX_RETRIES:-1}
+      AIKNOWLEDGE_DEEPSEEK_BASE_URL: ${AIKNOWLEDGE_DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      AIKNOWLEDGE_DEEPSEEK_MODEL: ${AIKNOWLEDGE_DEEPSEEK_MODEL:-deepseek-flash}
+      AIKNOWLEDGE_DEEPSEEK_THINKING_ENABLED: ${AIKNOWLEDGE_DEEPSEEK_THINKING_ENABLED:-false}
+      AIKNOWLEDGE_DEEPSEEK_MAX_RETRIES: ${AIKNOWLEDGE_DEEPSEEK_MAX_RETRIES:-1}
+      AIKNOWLEDGE_DEEPSEEK_API_KEY: ${AIKNOWLEDGE_DEEPSEEK_API_KEY:-}
+      AIKNOWLEDGE_SHARE_TOKEN_PEPPER: ${AIKNOWLEDGE_SHARE_TOKEN_PEPPER:-aiknowledge-local-share-token-pepper}
+      AIKNOWLEDGE_PUBLIC_SESSION_SECRET: ${AIKNOWLEDGE_PUBLIC_SESSION_SECRET:-aiknowledge-local-public-session-secret}
+      AIKNOWLEDGE_PUBLIC_SESSION_TTL_SECONDS: ${AIKNOWLEDGE_PUBLIC_SESSION_TTL_SECONDS:-3600}
+      AIKNOWLEDGE_PUBLIC_SESSION_COOKIE_SECURE: ${AIKNOWLEDGE_PUBLIC_SESSION_COOKIE_SECURE:-false}
+      AIKNOWLEDGE_PUBLIC_RATE_LIMIT_WINDOW_SECONDS: ${AIKNOWLEDGE_PUBLIC_RATE_LIMIT_WINDOW_SECONDS:-60}
+      AIKNOWLEDGE_PUBLIC_SESSION_RATE_LIMIT: ${AIKNOWLEDGE_PUBLIC_SESSION_RATE_LIMIT:-20}
+      AIKNOWLEDGE_PUBLIC_QUESTION_RATE_LIMIT: ${AIKNOWLEDGE_PUBLIC_QUESTION_RATE_LIMIT:-60}
+      AIKNOWLEDGE_CORS_ALLOWED_ORIGINS: ${AIKNOWLEDGE_CORS_ALLOWED_ORIGINS:-http://localhost:10086,http://127.0.0.1:10086}
+    volumes:
+      - ./models/embedding/bge-large-zh-v1.5:/models/bge-large-zh-v1.5:ro
+    ports:
+      - "${API_PORT:-8000}:8000"
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks: [aiknowledge_dev]
+
+  worker:
+    build:
+      context: ./aiknowledge
+      dockerfile: Dockerfile
+    command: ["celery", "-A", "app.workers.celery_app:celery_app", "worker", "--loglevel=INFO"]
+    environment: *app_environment
+    volumes:
+      - ./models/embedding/bge-large-zh-v1.5:/models/bge-large-zh-v1.5:ro
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    networks: [aiknowledge_dev]
+
+  frontend:
+    build:
+      context: ./aiknowledge_frontend
+      dockerfile: Dockerfile
+      args:
+        TARO_APP_API_BASE: ${TARO_APP_API_BASE:-http://localhost:8000/api/v1}
+    ports:
+      - "${FRONTEND_PORT:-10086}:80"
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [aiknowledge_dev]
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+
+networks:
+  aiknowledge_dev:
+    name: aiknowledge_dev

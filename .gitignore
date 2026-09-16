@@ -1,0 +1,9 @@
+# Local model weights are runtime assets and must not be committed.
+/models/
+
+# Local test and package-manager caches.
+/.uv-cache/
+/aiknowledge/.pytest_cache/
+/aiknowledge/.uv-cache/
+/aiknowledge/.venv-local/
+/aiknowledge/runtime-logs/

@@ -71,3 +71,44 @@ async def test_bge_client_reports_a_missing_optional_backend() -> None:
 
     with pytest.raises(EmbeddingBackendUnavailable, match="local-embeddings"):
         await client.embed_documents(["测试"])
+
+
+@pytest.mark.asyncio
+async def test_bge_client_shards_document_batches() -> None:
+    fake_model = FakeFlagModel()
+    client = BgeEmbeddingClient(
+        model_name="BAAI/bge-large-zh-v1.5",
+        expected_dimension=3,
+        batch_size=1,
+        model_factory=lambda **_: fake_model,
+    )
+
+    vectors = await client.embed_documents(["第一段", "第二段"])
+
+    assert len(vectors) == 2
+    assert fake_model.corpus_calls == [["第一段"], ["第二段"]]
+
+
+@pytest.mark.asyncio
+async def test_bge_client_retries_a_transient_encoder_failure() -> None:
+    class FlakyModel(FakeFlagModel):
+        def __init__(self) -> None:
+            super().__init__()
+            self.attempts = 0
+
+        def encode_corpus(self, texts: list[str]) -> list[list[float]]:
+            self.attempts += 1
+            if self.attempts == 1:
+                raise RuntimeError("temporary encoder failure")
+            return super().encode_corpus(texts)
+
+    model = FlakyModel()
+    client = BgeEmbeddingClient(
+        model_name="BAAI/bge-large-zh-v1.5",
+        expected_dimension=3,
+        max_retries=1,
+        model_factory=lambda **_: model,
+    )
+
+    assert await client.embed_documents(["可重试文本"]) == [[0.1, 0.6, 0.7]]
+    assert model.attempts == 2

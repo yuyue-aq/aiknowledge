@@ -31,14 +31,26 @@ class BgeEmbeddingClient:
         model_name: str,
         expected_dimension: int,
         use_fp16: bool = False,
+        batch_size: int = 8,
+        timeout_seconds: float = 600.0,
+        max_retries: int = 1,
         model_factory: ModelFactory | None = None,
     ) -> None:
         if expected_dimension <= 0:
             raise ValueError("expected_dimension must be positive")
+        if batch_size <= 0:
+            raise ValueError("batch_size must be positive")
+        if timeout_seconds <= 0:
+            raise ValueError("timeout_seconds must be positive")
+        if max_retries < 0:
+            raise ValueError("max_retries must not be negative")
 
         self._model_name = model_name
         self._expected_dimension = expected_dimension
         self._use_fp16 = use_fp16
+        self._batch_size = batch_size
+        self._timeout_seconds = timeout_seconds
+        self._max_retries = max_retries
         self._model_factory = model_factory or self._default_model_factory
         self._model: object | None = None
         self._initialization_lock = asyncio.Lock()
@@ -63,8 +75,34 @@ class BgeEmbeddingClient:
                 f"The configured BGE backend does not provide {encoder_name}."
             )
 
-        raw_vectors = await asyncio.to_thread(encoder, normalized_texts)
-        return self._coerce_and_validate_vectors(raw_vectors)
+        vectors: list[list[float]] = []
+        for start in range(0, len(normalized_texts), self._batch_size):
+            batch = normalized_texts[start : start + self._batch_size]
+            raw_vectors = await self._encode_batch_with_retry(encoder, batch)
+            vectors.extend(self._coerce_and_validate_vectors(raw_vectors))
+        return vectors
+
+    async def _encode_batch_with_retry(
+        self, encoder: Callable[[Sequence[str]], Any], batch: Sequence[str]
+    ) -> Any:
+        for attempt in range(self._max_retries + 1):
+            try:
+                return await asyncio.wait_for(
+                    asyncio.to_thread(encoder, batch), timeout=self._timeout_seconds
+                )
+            except asyncio.TimeoutError as exc:
+                if attempt >= self._max_retries:
+                    raise EmbeddingBackendUnavailable(
+                        "本地向量模型处理超时，请稍后重试。"
+                    ) from exc
+            except (RuntimeError, OSError) as exc:
+                if attempt >= self._max_retries:
+                    raise EmbeddingBackendUnavailable(
+                        "本地向量模型暂时不可用，请稍后重试。"
+                    ) from exc
+            if attempt < self._max_retries:
+                await asyncio.sleep(min(2**attempt, 4))
+        raise AssertionError("embedding retry loop must return or raise")
 
     async def _get_model(self) -> object:
         if self._model is not None:
