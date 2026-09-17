@@ -97,6 +97,7 @@ def create_app(
     membership_service_factory: Callable[[AsyncSession], object] | None = None,
     tag_service_factory: Callable[[AsyncSession], object] | None = None,
     usage_service_factory: Callable[[AsyncSession], object] | None = None,
+    public_question_limit_service_factory: Callable[[AsyncSession], object] | None = None,
     public_analytics_service_factory: Callable[[AsyncSession], object] | None = None,
     source_service_factory: Callable[[AsyncSession], object] | None = None,
 ) -> FastAPI:
@@ -251,7 +252,7 @@ def create_app(
         secret=settings.public_session_secret.get_secret_value(),
         ttl_seconds=settings.public_session_ttl_seconds,
     )
-    app.state.public_question_limit_service_factory = (
+    app.state.public_question_limit_service_factory = public_question_limit_service_factory or (
         lambda session: PublicQuestionLimitService(
             repository=SqlAlchemyPublicQuestionLogRepository(session),
             usage_service=app.state.usage_service_factory(session),

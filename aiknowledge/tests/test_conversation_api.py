@@ -166,6 +166,11 @@ class FakePublicSpaceService:
         return [self.category]
 
 
+class FakePublicQuestionLimitService:
+    async def check_and_record(self, **_: object) -> None:
+        return None
+
+
 @pytest.mark.asyncio
 async def test_owner_api_returns_source_citations_but_public_api_never_serializes_them() -> None:
     spaces = FakePublicSpaceService()
@@ -174,6 +179,7 @@ async def test_owner_api_returns_source_citations_but_public_api_never_serialize
         rag_service=object(),
         space_service_factory=lambda _: spaces,
         conversation_service_factory=lambda _: conversations,
+        public_question_limit_service_factory=lambda _: FakePublicQuestionLimitService(),
     )
 
     async with httpx.AsyncClient(
@@ -219,16 +225,12 @@ async def test_public_query_endpoint_accepts_share_token_without_browser_cookie(
     spaces = FakePublicSpaceService()
     conversations = FakeConversationService(spaces.space.id, spaces.link_id)
 
-    class FakeLimit:
-        async def check_and_record(self, **_: object) -> None:
-            return None
-
     app = create_app(
         rag_service=object(),
         space_service_factory=lambda _: spaces,
         conversation_service_factory=lambda _: conversations,
+        public_question_limit_service_factory=lambda _: FakePublicQuestionLimitService(),
     )
-    app.state.public_question_limit_service_factory = lambda _: FakeLimit()
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://testserver"
     ) as client:
@@ -363,6 +365,7 @@ async def test_streaming_public_answer_keeps_source_fields_out_of_every_event() 
         rag_service=object(),
         space_service_factory=lambda _: spaces,
         conversation_service_factory=lambda _: conversations,
+        public_question_limit_service_factory=lambda _: FakePublicQuestionLimitService(),
     )
 
     async with httpx.AsyncClient(
