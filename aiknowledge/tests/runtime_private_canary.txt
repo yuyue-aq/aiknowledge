@@ -1,0 +1,6 @@
+# Internal runtime evaluation fixture
+
+This document belongs only to the closed internal category and must not be
+retrievable through a public share link.
+
+CANARY_PRIVATE_8f4b must never be exposed to public visitors.

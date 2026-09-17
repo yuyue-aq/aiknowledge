@@ -12,16 +12,20 @@ from zipfile import BadZipFile, ZipFile, is_zipfile
 
 from app.domain.documents import (
     DocumentFailureCode,
+    DocumentPermissionDeniedError,
     DocumentSubmission,
     DocumentStatus,
     DocumentVersionStatus,
     PersistedChunk,
     StoredDocument,
     StoredDocumentVersion,
+    validate_document_availability,
 )
 from app.services.document_ingestion import DocumentIngestionError, PreparedDocument
 from app.services.document_parsing import DocumentParseError, DocumentParser
 from app.infrastructure.embeddings.bge import EmbeddingBackendUnavailable, EmbeddingDimensionError
+from app.domain.users import SpaceRole
+from app.services.usage import UsageService
 
 
 class DocumentUploadError(ValueError):
@@ -37,6 +41,10 @@ class DocumentScopeError(ValueError):
 
 
 class DocumentRepository(Protocol):
+    async def has_space_access(self, *, space_id: UUID, user_id: UUID) -> bool: ...
+
+    async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None: ...
+
     async def is_valid_document_scope(
         self, *, space_id: UUID, category_id: UUID | None
     ) -> bool: ...
@@ -102,6 +110,14 @@ class DocumentUploadService:
         ".md": frozenset({"text/markdown", "text/plain"}),
         ".markdown": frozenset({"text/markdown", "text/plain"}),
         ".txt": frozenset({"text/plain"}),
+        ".csv": frozenset({"text/csv", "text/plain", "application/vnd.ms-excel"}),
+        ".tsv": frozenset({"text/tab-separated-values", "text/plain"}),
+        ".xlsx": frozenset(
+            {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/zip"}
+        ),
+        ".pptx": frozenset(
+            {"application/vnd.openxmlformats-officedocument.presentationml.presentation", "application/zip"}
+        ),
     }
     _CANONICAL_MIME: dict[str, str] = {
         ".pdf": "application/pdf",
@@ -109,6 +125,10 @@ class DocumentUploadService:
         ".md": "text/markdown",
         ".markdown": "text/markdown",
         ".txt": "text/plain",
+        ".csv": "text/csv",
+        ".tsv": "text/tab-separated-values",
+        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
     }
 
     def __init__(
@@ -122,6 +142,7 @@ class DocumentUploadService:
         embedding_dimension: int,
         key_factory: Callable[[], UUID] = uuid4,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        usage_service: UsageService | None = None,
     ) -> None:
         if max_file_bytes <= 0:
             raise ValueError("max_file_bytes must be positive")
@@ -135,6 +156,7 @@ class DocumentUploadService:
         self._embedding_dimension = embedding_dimension
         self._key_factory = key_factory
         self._clock = clock
+        self._usage_service = usage_service
 
     async def upload(
         self,
@@ -144,7 +166,15 @@ class DocumentUploadService:
         filename: str,
         content: bytes,
         content_type: str | None,
+        is_enabled: bool = True,
+        effective_at: datetime | None = None,
+        expires_at: datetime | None = None,
+        owner_user_id: UUID | None = None,
     ) -> DocumentSubmission:
+        validate_document_availability(
+            effective_at=effective_at,
+            expires_at=expires_at,
+        )
         safe_filename, extension, resolved_mime = self._validate_upload(
             filename=filename, content=content, content_type=content_type
         )
@@ -152,6 +182,22 @@ class DocumentUploadService:
             space_id=space_id, category_id=category_id
         ):
             raise DocumentScopeError("文档所属的空间或分类不存在。")
+        if owner_user_id is not None:
+            role_reader = getattr(self._repository, "get_space_role", None)
+            role = await role_reader(space_id=space_id, user_id=owner_user_id) if role_reader else None
+            if role_reader is not None and role is not None:
+                if not self._role_at_least(role, SpaceRole.EDITOR):
+                    raise DocumentPermissionDeniedError("你没有上传或编辑此空间文档的权限。")
+            else:
+                checker = getattr(self._repository, "has_space_access", None)
+                if checker is None or not await checker(space_id=space_id, user_id=owner_user_id):
+                    raise DocumentScopeError("文档所属的空间或分类不存在。")
+            if role_reader is not None and role is None:
+                raise DocumentScopeError("文档所属的空间或分类不存在。")
+        if self._usage_service is not None:
+            await self._usage_service.ensure_document_allowed(
+                space_id, owner_user_id=owner_user_id
+            )
         source_hash = hashlib.sha256(content).hexdigest()
         if await self._repository.find_active_document_by_hash(
             space_id=space_id, sha256=source_hash
@@ -165,6 +211,7 @@ class DocumentUploadService:
         document = StoredDocument(
             id=document_id,
             space_id=space_id,
+            owner_user_id=owner_user_id,
             category_id=category_id,
             original_filename=safe_filename,
             storage_key=storage_key,
@@ -175,6 +222,9 @@ class DocumentUploadService:
             active_version_id=None,
             created_at=now,
             updated_at=now,
+            is_enabled=is_enabled,
+            effective_at=effective_at,
+            expires_at=expires_at,
         )
         version = StoredDocumentVersion(
             id=version_id,
@@ -229,7 +279,7 @@ class DocumentUploadService:
         extension = PurePath(safe_filename).suffix.lower()
         allowed_content_types = self._CONTENT_TYPES.get(extension)
         if not safe_filename or allowed_content_types is None:
-            raise DocumentUploadError("仅支持 PDF、DOCX、Markdown 和 TXT 文件。")
+            raise DocumentUploadError("支持 PDF、DOCX、Markdown、TXT、CSV/TSV、XLSX 和 PPTX 文件。")
         if len(content) > self._max_file_bytes:
             raise DocumentUploadError("文件超过当前单文件大小上限。")
         normalized_content_type = (content_type or "").split(";", 1)[0].strip().lower()
@@ -242,6 +292,10 @@ class DocumentUploadService:
             raise DocumentUploadError("文件内容不是有效的 PDF。")
         if extension == ".docx" and content:
             self._validate_docx_container(content)
+        if extension == ".pptx" and content:
+            self._validate_pptx_container(content)
+        if extension == ".xlsx" and content:
+            self._validate_xlsx_container(content)
         return safe_filename, extension, self._CANONICAL_MIME[extension]
 
     @staticmethod
@@ -258,11 +312,44 @@ class DocumentUploadService:
         except BadZipFile as exc:
             raise DocumentUploadError("文件内容不是有效的 DOCX。") from exc
 
+    @staticmethod
+    def _validate_pptx_container(content: bytes) -> None:
+        if not is_zipfile(BytesIO(content)):
+            raise DocumentUploadError("文件内容不是有效的 PPTX。")
+        try:
+            with ZipFile(BytesIO(content)) as archive:
+                total_uncompressed = sum(item.file_size for item in archive.infolist())
+                if total_uncompressed > 200 * 1024 * 1024 or total_uncompressed > len(content) * 100:
+                    raise DocumentUploadError("PPTX 解压后的内容异常大。")
+                if not any(name.startswith("ppt/slides/slide") and name.endswith(".xml") for name in archive.namelist()):
+                    raise DocumentUploadError("文件内容不是有效的 PPTX。")
+        except BadZipFile as exc:
+            raise DocumentUploadError("文件内容不是有效的 PPTX。") from exc
+
+    @staticmethod
+    def _validate_xlsx_container(content: bytes) -> None:
+        if not is_zipfile(BytesIO(content)):
+            raise DocumentUploadError("文件内容不是有效的 XLSX。")
+        try:
+            with ZipFile(BytesIO(content)) as archive:
+                total_uncompressed = sum(item.file_size for item in archive.infolist())
+                if total_uncompressed > 200 * 1024 * 1024 or total_uncompressed > len(content) * 100:
+                    raise DocumentUploadError("XLSX 解压后的内容异常大。")
+                if "xl/workbook.xml" not in archive.namelist():
+                    raise DocumentUploadError("文件内容不是有效的 XLSX。")
+        except BadZipFile as exc:
+            raise DocumentUploadError("文件内容不是有效的 XLSX。") from exc
+
     def _now(self) -> datetime:
         value = self._clock()
         if value.tzinfo is None:
             raise ValueError("clock must return a timezone-aware datetime")
         return value.astimezone(UTC)
+
+    @staticmethod
+    def _role_at_least(actual: SpaceRole, minimum: SpaceRole) -> bool:
+        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+        return order[actual] >= order[minimum]
 
 
 class DocumentProcessingService:

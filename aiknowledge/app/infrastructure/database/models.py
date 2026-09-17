@@ -31,11 +31,14 @@ from app.domain.conversations import (
     EvalRunStatus,
     FeedbackRating,
     FeedbackReason,
+    FeedbackReviewStatus,
     MessageRole,
 )
 from app.domain.documents import DocumentFailureCode, DocumentStatus, DocumentVersionStatus
 from app.domain.rag import AnswerStatus
-from app.domain.spaces import ShareLinkStatus, SpaceVisibility
+from app.domain.spaces import ShareLinkStatus, SpacePlan, SpaceVisibility
+from app.domain.sources import SourceKind, SourceStatus
+from app.domain.users import SpaceRole, UserStatus
 
 
 class AsyncpgVector(VECTOR):
@@ -80,10 +83,53 @@ class Base(DeclarativeBase):
     pass
 
 
+class UserRecord(Base):
+    __tablename__ = "users"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    email: Mapped[str] = mapped_column(String(320), nullable=False, unique=True)
+    display_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[UserStatus] = mapped_column(
+        _enum_column(UserStatus, "user_status"),
+        nullable=False,
+        default=UserStatus.ACTIVE,
+        server_default=UserStatus.ACTIVE.value,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    __table_args__ = (Index("ix_users_status", "status"),)
+
+
+class RefreshTokenRecord(Base):
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    user_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    token_hash: Mapped[str] = mapped_column(String(128), nullable=False, unique=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (Index("ix_refresh_tokens_user_active", "user_id", "revoked_at"),)
+
+
 class KnowledgeSpaceRecord(Base):
     __tablename__ = "knowledge_spaces"
 
     id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    owner_user_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+    )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     visibility: Mapped[SpaceVisibility] = mapped_column(
@@ -93,6 +139,12 @@ class KnowledgeSpaceRecord(Base):
     )
     guest_feedback_enabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
+    )
+    plan: Mapped[SpacePlan] = mapped_column(
+        _enum_column(SpacePlan, "space_plan"),
+        nullable=False,
+        default=SpacePlan.FREE,
+        server_default=SpacePlan.FREE.value,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
@@ -104,6 +156,28 @@ class KnowledgeSpaceRecord(Base):
 
     __table_args__ = (
         Index("ix_knowledge_spaces_active", "visibility", postgresql_where=text("deleted_at IS NULL")),
+        Index("ix_knowledge_spaces_owner_active", "owner_user_id", "updated_at"),
+    )
+
+
+class SpaceMembershipRecord(Base):
+    __tablename__ = "space_memberships"
+
+    space_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("knowledge_spaces.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
+    role: Mapped[SpaceRole] = mapped_column(
+        _enum_column(SpaceRole, "space_role"), nullable=False, default=SpaceRole.MEMBER
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        Index("ix_space_memberships_user", "user_id", "role"),
     )
 
 
@@ -118,10 +192,15 @@ class CategoryRecord(Base):
     )
     name: Mapped[str] = mapped_column(String(120), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    display_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    display_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_open: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
     )
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    is_default: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -156,8 +235,98 @@ class ShareLinkRecord(Base):
     )
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    password_hash: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    visitor_question_limit: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    allowed_origins: Mapped[list[str]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb")
+    )
 
     __table_args__ = (Index("ix_share_links_active", "space_id", "status"),)
+
+
+class PublicQuestionLogRecord(Base):
+    __tablename__ = "public_question_logs"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    share_link_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("share_links.id", ondelete="CASCADE"), nullable=False
+    )
+    visitor_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    conversation_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("conversations.id", ondelete="SET NULL"), nullable=True
+    )
+    question_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    is_hidden: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    moderation_note: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    moderated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        Index("ix_public_question_logs_visitor", "share_link_id", "visitor_id", "created_at"),
+        Index("ix_public_question_logs_moderation", "share_link_id", "is_hidden", "created_at"),
+    )
+
+
+class PublicAccessEventRecord(Base):
+    __tablename__ = "public_access_events"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    space_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("knowledge_spaces.id", ondelete="CASCADE"), nullable=False
+    )
+    share_link_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("share_links.id", ondelete="CASCADE"), nullable=False
+    )
+    visitor_id: Mapped[str] = mapped_column(String(128), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(32), nullable=False)
+    origin: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        Index("ix_public_access_events_space_created", "space_id", "created_at"),
+        Index("ix_public_access_events_link_type", "share_link_id", "event_type", "created_at"),
+    )
+
+
+class KnowledgeSourceRecord(Base):
+    """An external source registered for manual, auditable synchronization."""
+
+    __tablename__ = "knowledge_sources"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    space_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("knowledge_spaces.id", ondelete="CASCADE"), nullable=False
+    )
+    kind: Mapped[SourceKind] = mapped_column(
+        _enum_column(SourceKind, "source_kind"), nullable=False
+    )
+    locator: Mapped[str] = mapped_column(String(2_000), nullable=False)
+    name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    status: Mapped[SourceStatus] = mapped_column(
+        _enum_column(SourceStatus, "source_status"),
+        nullable=False,
+        default=SourceStatus.ACTIVE,
+        server_default=SourceStatus.ACTIVE.value,
+    )
+    last_checksum: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    last_synced_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_error: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("space_id", "locator", name="uq_knowledge_sources_space_locator"),
+        Index("ix_knowledge_sources_space_status", "space_id", "status", "updated_at"),
+    )
 
 
 share_link_categories = Table(
@@ -178,6 +347,47 @@ share_link_categories = Table(
 )
 
 
+class TagRecord(Base):
+    __tablename__ = "knowledge_tags"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    space_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("knowledge_spaces.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String(64), nullable=False)
+    color: Mapped[str | None] = mapped_column(String(7), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("space_id", "name", name="uq_knowledge_tags_space_name"),
+        Index("ix_knowledge_tags_space", "space_id", "name"),
+    )
+
+
+document_tags = Table(
+    "document_tags",
+    Base.metadata,
+    Column(
+        "document_id",
+        PG_UUID(as_uuid=True),
+        ForeignKey("documents.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "tag_id",
+        PG_UUID(as_uuid=True),
+        ForeignKey("knowledge_tags.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column("created_at", DateTime(timezone=True), nullable=False, server_default=func.now()),
+)
+
+
 class DocumentRecord(Base):
     __tablename__ = "documents"
 
@@ -186,6 +396,9 @@ class DocumentRecord(Base):
         PG_UUID(as_uuid=True),
         ForeignKey("knowledge_spaces.id", ondelete="CASCADE"),
         nullable=False,
+    )
+    owner_user_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
     )
     category_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
@@ -216,6 +429,11 @@ class DocumentRecord(Base):
         _enum_column(DocumentFailureCode, "document_failure_code"), nullable=True
     )
     failure_message: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    is_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default="true"
+    )
+    effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -226,6 +444,7 @@ class DocumentRecord(Base):
 
     __table_args__ = (
         Index("ix_documents_space_status", "space_id", "status"),
+        Index("ix_documents_availability", "space_id", "is_enabled", "effective_at", "expires_at"),
         Index(
             "uq_documents_active_space_sha256",
             "space_id",
@@ -439,6 +658,21 @@ class FeedbackRecord(Base):
     )
     comment: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     is_guest: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    review_status: Mapped[FeedbackReviewStatus] = mapped_column(
+        _enum_column(FeedbackReviewStatus, "feedback_review_status"),
+        nullable=False,
+        default=FeedbackReviewStatus.PENDING,
+        server_default=FeedbackReviewStatus.PENDING.value,
+    )
+    corrected_answer: Mapped[str | None] = mapped_column(Text, nullable=True)
+    review_note: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    data_usage_scope: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="INTERNAL_ONLY", server_default="INTERNAL_ONLY"
+    )
+    pii_status: Mapped[str] = mapped_column(
+        String(32), nullable=False, default="UNKNOWN", server_default="UNKNOWN"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -462,6 +696,30 @@ class EvalCaseRecord(Base):
     category_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class EvalSetVersionRecord(Base):
+    __tablename__ = "eval_set_versions"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    space_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("knowledge_spaces.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    label: Mapped[str] = mapped_column(String(120), nullable=False)
+    cases_snapshot: Mapped[list[dict[str, object]]] = mapped_column(
+        JSONB, nullable=False, default=list
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("space_id", "version_number", name="uq_eval_set_versions_space_number"),
+        Index("ix_eval_set_versions_space_created", "space_id", "created_at"),
     )
 
 
@@ -499,7 +757,10 @@ class EvalResultRecord(Base):
     )
     eval_case_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True),
-        ForeignKey("eval_cases.id", ondelete="CASCADE"),
+        # Historical runs keep their result rows.  A case referenced by a
+        # result must therefore be retained instead of cascading the result
+        # away when the editable test set changes.
+        ForeignKey("eval_cases.id", ondelete="RESTRICT"),
         nullable=False,
     )
     answer_status: Mapped[AnswerStatus] = mapped_column(

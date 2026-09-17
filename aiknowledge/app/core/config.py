@@ -67,6 +67,17 @@ class Settings(BaseSettings):
     # Local H5 runs on HTTP; deployment must set this to true behind HTTPS.
     public_session_cookie_secure: bool = False
 
+    # Authentication is enabled for all deployed owner APIs. Replace both
+    # development defaults with environment-specific secrets before exposure.
+    auth_access_token_secret: SecretStr = SecretStr("aiknowledge-local-access-secret")
+    auth_refresh_token_pepper: SecretStr = SecretStr("aiknowledge-local-refresh-pepper")
+    auth_access_token_ttl_seconds: int = Field(default=900, ge=60, le=86_400)
+    auth_refresh_token_ttl_seconds: int = Field(default=2_592_000, ge=300, le=31_536_000)
+    # Kept false for the existing single-workspace local fixtures. Docker
+    # deployments should set AIKNOWLEDGE_AUTH_REQUIRED=true before sharing
+    # owner APIs beyond the local machine.
+    auth_required: bool = False
+
     # Comma-separated development origins; production should inject the exact
     # deployed frontend origin(s) rather than using a wildcard with cookies.
     cors_allowed_origins: str = (
@@ -82,6 +93,11 @@ class Settings(BaseSettings):
     public_question_rate_limit: int = Field(default=60, ge=1, le=10_000)
 
     document_max_file_bytes: int = Field(default=20 * 1024 * 1024, ge=1)
+
+    # Manual source synchronization is bounded so a single URL cannot exhaust
+    # the API process or object storage. Deployment can tune these independently.
+    source_sync_timeout_seconds: float = Field(default=30.0, gt=0, le=300)
+    source_sync_max_bytes: int = Field(default=20 * 1024 * 1024, ge=1)
 
 
 def get_settings() -> Settings:

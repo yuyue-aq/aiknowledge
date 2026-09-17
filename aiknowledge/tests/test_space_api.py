@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -10,6 +11,8 @@ from app.domain.spaces import (
     Category,
     CreatedShareLink,
     KnowledgeSpace,
+    PublicQuestionRecord,
+    SpacePlan,
     ShareLink,
     ShareLinkStatus,
     SpaceRuleViolationError,
@@ -150,3 +153,55 @@ async def test_share_link_api_returns_raw_token_once_and_never_serializes_token_
     assert listed.status_code == 200
     assert "token" not in listed.json()["items"][0]
     assert "token_hash" not in listed.json()["items"][0]
+
+
+@pytest.mark.asyncio
+async def test_public_question_records_api_returns_anonymized_records() -> None:
+    service = FakeSpaceService()
+    record = PublicQuestionRecord(
+        id=uuid4(),
+        share_link_id=service.link.id,
+        visitor_id="anonymous",
+        conversation_id=None,
+        question_hash="b" * 64,
+        created_at=service.now,
+    )
+
+    class FakeQuestionLogService:
+        async def list_questions(self, *_: object, **__: object) -> list[PublicQuestionRecord]:
+            return [record]
+
+    app = create_app(rag_service=object(), space_service_factory=lambda _: service)
+    app.state.public_question_log_service_factory = lambda _: FakeQuestionLogService()
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.get(f"/api/v1/spaces/{service.space.id}/public-questions")
+
+    assert response.status_code == 200
+    assert response.json()["items"][0]["question_hash"] == "b" * 64
+    assert "question" not in response.json()["items"][0]
+
+
+@pytest.mark.asyncio
+async def test_spaces_api_updates_demo_plan() -> None:
+    service = FakeSpaceService()
+
+    async def update_space(_: UUID, **changes: object) -> KnowledgeSpace:
+        if "plan" in changes:
+            service.space = replace(service.space, plan=changes["plan"])  # type: ignore[arg-type]
+        return service.space
+
+    service.update_space = update_space  # type: ignore[method-assign]
+    app = create_app(rag_service=object(), space_service_factory=lambda _: service)
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.patch(
+            f"/api/v1/spaces/{service.space.id}", json={"plan": "PRO"}
+        )
+
+    assert response.status_code == 200
+    assert response.json()["plan"] == SpacePlan.PRO

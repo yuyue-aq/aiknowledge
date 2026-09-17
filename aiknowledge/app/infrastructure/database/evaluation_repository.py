@@ -1,17 +1,21 @@
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.conversations import EvalCase, EvalResult, EvalRun
+from app.domain.conversations import EvalCase, EvalResult, EvalRun, EvalSetVersion, EvalScope
 from app.infrastructure.database.models import (
     EvalCaseRecord,
     EvalResultRecord,
     EvalRunRecord,
+    EvalSetVersionRecord,
     KnowledgeSpaceRecord,
+    SpaceMembershipRecord,
 )
+from app.domain.users import SpaceRole
 
 
 class SqlAlchemyEvaluationRepository:
@@ -19,6 +23,42 @@ class SqlAlchemyEvaluationRepository:
 
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    async def has_space_access(self, *, space_id: UUID, user_id: UUID) -> bool:
+        value = await self._session.scalar(
+            select(KnowledgeSpaceRecord.id).where(
+                KnowledgeSpaceRecord.id == space_id,
+                KnowledgeSpaceRecord.deleted_at.is_(None),
+                or_(
+                    KnowledgeSpaceRecord.owner_user_id == user_id,
+                    exists(
+                        select(SpaceMembershipRecord.space_id).where(
+                            SpaceMembershipRecord.space_id == KnowledgeSpaceRecord.id,
+                            SpaceMembershipRecord.user_id == user_id,
+                        )
+                    ),
+                ),
+            )
+        )
+        return value is not None
+
+    async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None:
+        space = await self._session.scalar(
+            select(KnowledgeSpaceRecord).where(
+                KnowledgeSpaceRecord.id == space_id,
+                KnowledgeSpaceRecord.deleted_at.is_(None),
+            )
+        )
+        if space is None:
+            return None
+        if space.owner_user_id == user_id:
+            return SpaceRole.OWNER
+        return await self._session.scalar(
+            select(SpaceMembershipRecord.role).where(
+                SpaceMembershipRecord.space_id == space_id,
+                SpaceMembershipRecord.user_id == user_id,
+            )
+        )
 
     async def has_active_space(self, space_id: UUID) -> bool:
         value = await self._session.scalar(
@@ -74,6 +114,13 @@ class SqlAlchemyEvaluationRepository:
         await self._session.delete(record)
         await self._session.flush()
 
+    async def has_results_for_case(self, case_id: UUID) -> bool:
+        return bool(
+            await self._session.scalar(
+                select(exists().where(EvalResultRecord.eval_case_id == case_id))
+            )
+        )
+
     async def add_run(self, run: EvalRun) -> None:
         self._session.add(
             EvalRunRecord(
@@ -92,6 +139,41 @@ class SqlAlchemyEvaluationRepository:
     async def get_run(self, run_id: UUID) -> EvalRun | None:
         record = await self._session.get(EvalRunRecord, run_id)
         return self._to_run(record) if record is not None else None
+
+    async def list_runs(self, space_id: UUID, limit: int = 20) -> list[EvalRun]:
+        records = await self._session.scalars(
+            select(EvalRunRecord)
+            .where(EvalRunRecord.space_id == space_id)
+            .order_by(EvalRunRecord.created_at.desc(), EvalRunRecord.id.desc())
+            .limit(limit)
+        )
+        return [self._to_run(record) for record in records.all()]
+
+    async def add_version(self, version: EvalSetVersion) -> None:
+        self._session.add(
+            EvalSetVersionRecord(
+                id=version.id,
+                space_id=version.space_id,
+                version_number=version.version_number,
+                label=version.label,
+                cases_snapshot=[self._case_to_dict(case) for case in version.cases],
+                created_at=version.created_at,
+            )
+        )
+        await self._session.flush()
+
+    async def list_versions(self, space_id: UUID, limit: int = 20) -> list[EvalSetVersion]:
+        records = await self._session.scalars(
+            select(EvalSetVersionRecord)
+            .where(EvalSetVersionRecord.space_id == space_id)
+            .order_by(EvalSetVersionRecord.version_number.desc())
+            .limit(limit)
+        )
+        return [self._to_version(record) for record in records.all()]
+
+    async def get_version(self, version_id: UUID) -> EvalSetVersion | None:
+        record = await self._session.get(EvalSetVersionRecord, version_id)
+        return self._to_version(record) if record is not None else None
 
     async def update_run(self, run: EvalRun) -> None:
         record = await self._session.get(EvalRunRecord, run.id)
@@ -179,4 +261,46 @@ class SqlAlchemyEvaluationRepository:
             citation_count=record.citation_count,
             reviewer_score=record.reviewer_score,
             reviewer_note=record.reviewer_note,
+        )
+
+    @staticmethod
+    def _case_to_dict(case: EvalCase) -> dict[str, object]:
+        return {
+            "id": str(case.id),
+            "space_id": str(case.space_id),
+            "question": case.question,
+            "expected_answer": case.expected_answer,
+            "expected_document_ids": [str(value) for value in case.expected_document_ids],
+            "scope": case.scope.value,
+            "category_ids": [str(value) for value in case.category_ids],
+            "created_at": case.created_at.isoformat(),
+        }
+
+    @classmethod
+    def _to_version(cls, record: EvalSetVersionRecord) -> EvalSetVersion:
+        return EvalSetVersion(
+            id=record.id,
+            space_id=record.space_id,
+            version_number=record.version_number,
+            label=record.label,
+            cases=tuple(cls._case_from_dict(item) for item in (record.cases_snapshot or [])),
+            created_at=record.created_at,
+        )
+
+    @staticmethod
+    def _case_from_dict(item: dict[str, object]) -> EvalCase:
+        created_at = datetime.fromisoformat(str(item["created_at"]))
+        return EvalCase(
+            id=UUID(str(item["id"])),
+            space_id=UUID(str(item["space_id"])),
+            question=str(item["question"]),
+            expected_answer=(
+                str(item["expected_answer"])
+                if item.get("expected_answer") is not None
+                else None
+            ),
+            expected_document_ids=tuple(UUID(str(value)) for value in item.get("expected_document_ids", [])),
+            scope=EvalScope(str(item["scope"])),
+            category_ids=tuple(UUID(str(value)) for value in item.get("category_ids", [])),
+            created_at=created_at,
         )

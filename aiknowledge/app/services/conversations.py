@@ -22,6 +22,7 @@ from app.domain.conversations import (
 )
 from app.domain.rag import AnswerStatus, RagAnswer, RankedSourceChunk, SourceChunk
 from app.domain.spaces import PublicRetrievalScope
+from app.services.usage import UsageService
 
 
 class ConversationQuestionError(ValueError):
@@ -30,6 +31,8 @@ class ConversationQuestionError(ValueError):
 
 class ConversationRepository(Protocol):
     async def has_active_space(self, space_id: UUID) -> bool: ...
+
+    async def has_space_access(self, *, space_id: UUID, user_id: UUID) -> bool: ...
 
     async def add_conversation(self, conversation: Conversation) -> None: ...
 
@@ -160,6 +163,7 @@ class ConversationService:
         history_limit: int = 6,
         id_factory: Callable[[], UUID] = uuid4,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        usage_service: UsageService | None = None,
     ) -> None:
         if retrieval_candidate_limit <= 0:
             raise ValueError("retrieval_candidate_limit must be positive")
@@ -176,11 +180,12 @@ class ConversationService:
         self._history_limit = history_limit
         self._id_factory = id_factory
         self._clock = clock
+        self._usage_service = usage_service
 
     async def create_owner_conversation(
-        self, *, space_id: UUID, title: str | None = None
+        self, *, space_id: UUID, title: str | None = None, owner_user_id: UUID | None = None
     ) -> Conversation:
-        await self._require_active_space(space_id)
+        await self._require_owner_space(space_id, owner_user_id=owner_user_id)
         conversation = Conversation(
             id=self._id_factory(),
             space_id=space_id,
@@ -212,12 +217,16 @@ class ConversationService:
         return conversation
 
     async def ask_owner(
-        self, *, conversation_id: UUID, question: str
+        self, *, conversation_id: UUID, question: str, owner_user_id: UUID | None = None
     ) -> ConversationAnswer:
         conversation = await self._require_conversation(conversation_id)
         if conversation.kind is not ConversationKind.OWNER:
             raise ConversationAccessDeniedError("对话访问范围不匹配。")
-        await self._require_active_space(conversation.space_id)
+        await self._require_owner_space(conversation.space_id, owner_user_id=owner_user_id)
+        if self._usage_service is not None:
+            await self._usage_service.ensure_question_allowed(
+                conversation.space_id, owner_user_id=owner_user_id
+            )
         return await self._ask(
             conversation=conversation,
             question=question,
@@ -229,11 +238,13 @@ class ConversationService:
             public_request=False,
         )
 
-    async def get_owner_conversation(self, conversation_id: UUID) -> ConversationDetail:
+    async def get_owner_conversation(
+        self, conversation_id: UUID, *, owner_user_id: UUID | None = None
+    ) -> ConversationDetail:
         conversation = await self._require_conversation(conversation_id)
         if conversation.kind is not ConversationKind.OWNER:
             raise ConversationAccessDeniedError("对话访问范围不匹配。")
-        await self._require_active_space(conversation.space_id)
+        await self._require_owner_space(conversation.space_id, owner_user_id=owner_user_id)
         messages = tuple(await self._repository.list_messages(conversation.id))
         citations_by_message: dict[UUID, list[CitationSnapshot]] = {}
         for citation in await self._repository.list_citations(
@@ -249,7 +260,9 @@ class ConversationService:
             },
         )
 
-    async def list_owner_conversations(self, space_id: UUID) -> tuple[Conversation, ...]:
+    async def list_owner_conversations(
+        self, space_id: UUID, *, owner_user_id: UUID | None = None
+    ) -> tuple[Conversation, ...]:
         """Return only owner conversations from a live knowledge space.
 
         The repository query performs the kind and space filtering as well, so
@@ -258,7 +271,7 @@ class ConversationService:
         leaking historical metadata through this collection endpoint.
         """
 
-        await self._require_active_space(space_id)
+        await self._require_owner_space(space_id, owner_user_id=owner_user_id)
         conversations = await self._repository.list_conversations(space_id)
         return tuple(
             conversation
@@ -266,11 +279,13 @@ class ConversationService:
             if conversation.kind is ConversationKind.OWNER
         )
 
-    async def delete_owner_conversation(self, conversation_id: UUID) -> None:
+    async def delete_owner_conversation(
+        self, conversation_id: UUID, *, owner_user_id: UUID | None = None
+    ) -> None:
         conversation = await self._require_conversation(conversation_id)
         if conversation.kind is not ConversationKind.OWNER:
             raise ConversationAccessDeniedError("对话访问范围不匹配。")
-        await self._require_active_space(conversation.space_id)
+        await self._require_owner_space(conversation.space_id, owner_user_id=owner_user_id)
         await self._repository.delete_conversation(conversation.id)
         await self._repository.commit()
 
@@ -576,6 +591,14 @@ class ConversationService:
 
     async def _require_active_space(self, space_id: UUID) -> None:
         if not await self._repository.has_active_space(space_id):
+            raise ConversationNotFoundError("知识空间不存在。")
+
+    async def _require_owner_space(self, space_id: UUID, *, owner_user_id: UUID | None) -> None:
+        if owner_user_id is None:
+            await self._require_active_space(space_id)
+            return
+        checker = getattr(self._repository, "has_space_access", None)
+        if checker is None or not await checker(space_id=space_id, user_id=owner_user_id):
             raise ConversationNotFoundError("知识空间不存在。")
 
     async def _require_conversation(self, conversation_id: UUID) -> Conversation:

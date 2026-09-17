@@ -11,19 +11,37 @@ from app.domain.conversations import (
     FeedbackAccessDeniedError,
     FeedbackGuestDisabledError,
     FeedbackMessageNotFoundError,
+    FeedbackNotFoundError,
     FeedbackRating,
     FeedbackReason,
+    FeedbackReviewStatus,
     MessageFeedbackContext,
 )
 from app.domain.spaces import PublicRetrievalScope
+from app.domain.users import SpaceRole
 
 
 class FeedbackRepository(Protocol):
+    async def has_space_access(self, *, space_id: UUID, user_id: UUID) -> bool: ...
+
+    async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None: ...
+
     async def get_message_context(self, message_id: UUID) -> MessageFeedbackContext | None: ...
 
     async def add_feedback(self, feedback: Feedback) -> None: ...
 
-    async def list_feedback(self, space_id: UUID) -> list[Feedback]: ...
+    async def list_feedback(
+        self,
+        space_id: UUID,
+        *,
+        review_status: FeedbackReviewStatus | None = None,
+        rating: FeedbackRating | None = None,
+        is_guest: bool | None = None,
+    ) -> list[Feedback]: ...
+
+    async def get_feedback(self, feedback_id: UUID) -> Feedback | None: ...
+
+    async def update_feedback_review(self, feedback_id: UUID, **changes: object) -> Feedback | None: ...
 
     async def commit(self) -> None: ...
 
@@ -49,8 +67,10 @@ class FeedbackService:
         rating: FeedbackRating,
         reason: FeedbackReason | None,
         comment: str | None,
+        owner_user_id: UUID | None = None,
     ) -> Feedback:
         context = await self._require_message_context(message_id)
+        await self._require_owner_space(context.space_id, owner_user_id=owner_user_id)
         return await self._create(
             context=context,
             rating=rating,
@@ -85,8 +105,65 @@ class FeedbackService:
             is_guest=True,
         )
 
-    async def list_space_feedback(self, space_id: UUID) -> list[Feedback]:
-        return await self._repository.list_feedback(space_id)
+    async def list_space_feedback(
+        self,
+        space_id: UUID,
+        *,
+        review_status: FeedbackReviewStatus | None = None,
+        rating: FeedbackRating | None = None,
+        is_guest: bool | None = None,
+        owner_user_id: UUID | None = None,
+    ) -> list[Feedback]:
+        await self._require_owner_space(space_id, owner_user_id=owner_user_id)
+        return await self._repository.list_feedback(
+            space_id,
+            review_status=review_status,
+            rating=rating,
+            is_guest=is_guest,
+        )
+
+    async def review_feedback(
+        self,
+        *,
+        feedback_id: UUID,
+        review_status: FeedbackReviewStatus,
+        corrected_answer: str | None,
+        review_note: str | None,
+        data_usage_scope: str,
+        pii_status: str,
+        owner_user_id: UUID | None = None,
+    ) -> Feedback:
+        feedback = await self._repository.get_feedback(feedback_id)
+        if feedback is None:
+            raise FeedbackNotFoundError("反馈记录不存在。")
+        await self._require_owner_space(
+            feedback.space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.EDITOR
+        )
+        normalized_answer = self._normalize_text(corrected_answer, 4_000, "修正答案")
+        normalized_note = self._normalize_text(review_note, 1_000, "审核说明")
+        normalized_scope = data_usage_scope.strip().upper()
+        normalized_pii = pii_status.strip().upper()
+        if not normalized_scope:
+            raise ValueError("请选择反馈数据用途。")
+        if not normalized_pii:
+            raise ValueError("请选择隐私处理状态。")
+        if review_status is FeedbackReviewStatus.FIXED and not normalized_answer:
+            raise ValueError("已修正的反馈必须填写修正答案。")
+        if review_status is not FeedbackReviewStatus.FIXED:
+            normalized_answer = normalized_answer or None
+        updated = await self._repository.update_feedback_review(
+            feedback_id,
+            review_status=review_status,
+            corrected_answer=normalized_answer,
+            review_note=normalized_note,
+            reviewed_at=self._now(),
+            data_usage_scope=normalized_scope,
+            pii_status=normalized_pii,
+        )
+        if updated is None:
+            raise FeedbackNotFoundError("反馈记录不存在。")
+        await self._repository.commit()
+        return updated
 
     async def _create(
         self,
@@ -134,3 +211,34 @@ class FeedbackService:
         if value.tzinfo is None:
             raise ValueError("clock must return a timezone-aware datetime")
         return value.astimezone(UTC)
+
+    async def _require_owner_space(
+        self,
+        space_id: UUID,
+        *,
+        owner_user_id: UUID | None,
+        minimum_role: SpaceRole = SpaceRole.MEMBER,
+    ) -> None:
+        if owner_user_id is None:
+            return
+        role_reader = getattr(self._repository, "get_space_role", None)
+        if role_reader is not None:
+            role = await role_reader(space_id=space_id, user_id=owner_user_id)
+            if role is None:
+                raise FeedbackNotFoundError("反馈记录不存在。")
+            order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+            if order[role] < order[minimum_role]:
+                raise FeedbackAccessDeniedError("你没有执行反馈审核的权限。")
+            return
+        checker = getattr(self._repository, "has_space_access", None)
+        if checker is None or not await checker(space_id=space_id, user_id=owner_user_id):
+            raise FeedbackNotFoundError("反馈记录不存在。")
+
+    @staticmethod
+    def _normalize_text(value: str | None, maximum: int, label: str) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        if len(normalized) > maximum:
+            raise ValueError(f"{label}不能超过 {maximum} 个字符。")
+        return normalized or None

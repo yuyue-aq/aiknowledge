@@ -12,6 +12,8 @@ from app.domain.documents import (
     StoredDocumentVersion,
 )
 from app.services.document_management import DocumentManagementService
+from app.domain.users import SpaceRole
+from app.services.document_management import DocumentPermissionDeniedError
 
 
 class FakeRepository:
@@ -37,6 +39,15 @@ class FakeRepository:
 
     async def commit(self) -> None:
         self.commits += 1
+
+
+class RoleAwareRepository(FakeRepository):
+    def __init__(self, document: StoredDocument, version: StoredDocumentVersion, role: SpaceRole) -> None:
+        super().__init__(document, version)
+        self.role = role
+
+    async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None:
+        return self.role if space_id == self.document.space_id else None
 
 
 class FakeDispatcher:
@@ -115,3 +126,17 @@ async def test_delete_marks_document_unavailable_before_returning() -> None:
     assert repository.commits == 1
     assert dispatcher.cleanup_keys == [document.storage_key]
     assert dispatcher.commits_at_cleanup == 1
+
+
+@pytest.mark.asyncio
+async def test_read_only_member_can_list_but_cannot_retry_or_delete_documents() -> None:
+    document, version = build_records()
+    repository = RoleAwareRepository(document, version, SpaceRole.MEMBER)
+    service = DocumentManagementService(repository=repository, dispatcher=FakeDispatcher(repository))
+    member_id = uuid4()
+
+    assert await service.list_documents(document.space_id, owner_user_id=member_id) == [document]
+    with pytest.raises(DocumentPermissionDeniedError):
+        await service.retry(document.id, owner_user_id=member_id)
+    with pytest.raises(DocumentPermissionDeniedError):
+        await service.delete(document.id, owner_user_id=member_id)

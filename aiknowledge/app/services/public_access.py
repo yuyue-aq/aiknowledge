@@ -48,6 +48,10 @@ class PublicSessionCodec:
         return f"{payload}.{self._sign(payload)}"
 
     def read_link_id(self, token: str) -> UUID:
+        link_id, _ = self.read_session(token)
+        return link_id
+
+    def read_session(self, token: str) -> tuple[UUID, str]:
         try:
             version, raw_link_id, raw_expiry, nonce, signature = token.split(".")
             link_id = UUID(raw_link_id)
@@ -61,7 +65,7 @@ class PublicSessionCodec:
             raise PublicSessionInvalidError("访客会话无效。")
         if self._now().timestamp() >= expires_at:
             raise PublicSessionInvalidError("访客会话已过期。")
-        return link_id
+        return link_id, nonce
 
     def _sign(self, payload: str) -> str:
         return hmac.new(self._secret, payload.encode("utf-8"), hashlib.sha256).hexdigest()

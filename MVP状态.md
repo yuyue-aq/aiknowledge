@@ -1,32 +1,56 @@
-# MVP 当前状态（2026-09-15）
+# 知溯 AiKnowledge 当前状态（2026-09-17）
 
-## 本轮已完成
+## 交付结论
+
+MVP P0 核心闭环、P1 协作/知识维护能力和当前排期内的 P2 公开运营/数据连接能力已经实现：文档上传与异步向量化、Owner/Public 问答、引用与拒答、反馈治理、成员权限、文档生命周期、标签搜索、访客记录、套餐用量、来源同步、访问统计、Token 查询和评测版本均有前后端实现。后端 TDD 全量回归为 **208 passed**，Docker 合成数据端到端冒烟通过。
+
+## 已完成能力
 
 | 范围 | 状态 | 验证 |
-|---|---|---|
+| --- | --- | --- |
+| DeepSeek Flash 结构化回答、拒答、引用校验与有限重试 | 完成 | `test_deepseek_client.py`、`test_rag_service.py` |
 | BGE-large-zh-v1.5（1024 维、批量、超时/重试） | 完成 | `test_bge_client.py` |
-| DeepSeek Flash 结构化回答、引用校验、拒答与瞬时错误有限重试 | 完成 | `test_deepseek_client.py`、`test_rag_service.py` |
-| 文档上传、解析、切块、异步任务、版本切换和删除清理 | 完成 | 文档/运行测试 |
-| 空间、分类、分享链接及公开范围实时校验 | 完成（单工作区） | `test_space_*`、`test_conversation_*` |
-| Owner/Public 对话、历史引用、删除、对话列表 | 完成 | `test_conversation_service.py`、`test_conversation_api.py` |
-| 连续追问（最近用户问题改写，回答不作为证据，改写长度受 2000 字符上限约束） | 完成 | `test_follow_up_rewrites_against_only_recent_user_question`、`test_follow_up_rewrite_keeps_the_normalized_question_limit_for_long_history` |
-| Owner/Public SSE、增量事件、移动端 JSON 降级和 AbortController 停止 | 完成 | API SSE/断开测试、前端类型/构建 |
-| 公开接口限流、Origin/CSRF 边界、安全响应头 | 完成（进程级限流） | `test_security.py`、`test_app_infrastructure.py` |
-| 反馈、轻量评测 CRUD/运行/人工评分与 12 题评测清单 | 完成（题目需映射真实资料） | `test_evaluation_*`、`eval/mvp_eval_set.json` |
-| Taro 前端原型、响应式布局、授权入口占位 | 完成（授权目录保留） | premium audit、TypeScript、H5 build、ESLint |
+| PDF/DOCX/Markdown/TXT/CSV/TSV/XLSX/PPTX 上传、解析、切块、异步任务与失败重试 | 完成 | 文档解析、格式边界、任务和运行测试 |
+| 文档版本原子切换、负责人、生效/失效时间、启停、删除清理 | 完成 | 文档生命周期测试；迁移 `20260917_0010` |
+| 私密/公开空间、公开分类、默认入口、密码、有效期、访客提问上限 | 完成 | `test_space_*`、`test_public_*` |
+| Owner/Public 对话、连续追问、历史引用、SSE 与 JSON 降级 | 完成 | `test_conversation_*` |
+| 注册、登录、刷新、退出、成员邀请和 Owner/Editor/Member 权限矩阵 | 完成 | `test_auth_*`、`test_membership*`、权限回归 |
+| 反馈筛选、人工修正、审核状态、数据用途和隐私标记 | 完成 | `test_feedback_*` |
+| 知识标签、文档打标、标签筛选和文档搜索 | 完成 | `test_tag*`、`test_document_search.py` |
+| 匿名访客提问记录 | 完成 | `test_public_questions.py`、`test_space_api.py` |
+| FREE/PRO/TEAM 套餐、文档/成员/每日提问额度与前端用量展示 | 完成 | `test_usage.py`、`test_usage_api.py` |
+| Docker Compose API/Worker/Postgres/Redis/MinIO/前端启动链 | 完成 | `/health/live`、`/health/ready`、合成数据 e2e |
+| 安全边界、Origin/CSRF、限流、安全响应头和公开 DTO 脱敏 | 完成 | `test_security.py`、`test_app_infrastructure.py` |
+| P2 来源登记与手动同步（网页、Markdown 仓库、FAQ 表格） | 完成 | `test_sources.py`、`test_sources_api.py` |
+| P2 公开访问统计、访客审核/隐藏、Origin 白名单、Token 查询和嵌入脚本 | 完成 | `test_public_analytics.py`、公开接口回归、H5 构建 |
+| P2 评测集版本快照、历史运行题目快照、运行指标对比和批量导入 | 完成 | `test_evaluation_*`、`test_document_api.py` |
+| 评测历史结果保护（题目有结果时禁止删除） | 完成 | `test_evaluation_service.py`、迁移 `20260917_0015` |
 
-## 有意延期
+## 当前验证结果
 
-- 用户注册、登录、刷新令牌、退出和真实 owner scope：你已明确要求“用户系统先不要做”。当前 owner 接口只适用于本地/受控演示环境，接入公网前不得把它视为已授权。
+- 后端：`208 passed`；迁移已从数据库升级至 `20260917_0015`。
+- Docker：Owner/Public 合成问答均返回 `ANSWERED`，公开响应不含引用字段；删除后 MinIO 对象消失、文档返回 404。
+- 前端：TypeScript、ESLint、Stylelint、H5 生产构建通过；Nginx H5 路由回退已配置。
+- 真实资料评测：已按授权完成 12 题 DeepSeek Flash 基线，结果为 4 `ANSWERED`、7 `INSUFFICIENT_EVIDENCE`、1 `OUT_OF_SCOPE`、0 `FAILED`；尚未进行人工 reviewer 复核，因此不能将状态分布当作正确率。
 
-## 需要外部环境才能完成的验收
+## 仍需外部/运营验收的事项
 
-- Docker Desktop Linux 引擎当前在本机 WSL 中为 `Stopped`，因此本轮无法重新运行 Postgres/Redis/MinIO 容器级联调；代码和 Compose 配置检查已通过。引擎恢复后运行 `tests/runtime_public_e2e.ps1` 与 `tests/runtime_delete_cleanup.ps1`。
-- 真实 10–20 题指标（正确率、引用率、延迟、成本）必须使用项目资料、有效分类 ID 和实际 DeepSeek key 运行，不能用演示文案冒充基线。
-- 生产 HTTPS、备份恢复演练、至少 5 名用户试用属于部署/运营阶段，不在本地代码测试中伪造完成。
+- 至少 5 名目标用户的真实试用与反馈记录；
+- 在隔离环境执行一次数据库和 MinIO 备份恢复演练（脚本位于 `ops/`，恢复命令有显式破坏性确认）；
+- 公网部署前配置 HTTPS、密钥轮换、日志采集和备份保留策略；
+- 扫描 PDF 目前会明确标记为 `SCANNED_DOCUMENT` 并拒绝入库，尚未接入 OCR/图像理解模型；企业网盘/知识平台连接器、自动生成评测题仍需真实凭据和产品规则后排期。
+- 仍需至少 5 名目标用户的真实试用、隔离环境备份恢复演练，以及公网部署前的 HTTPS、密钥轮换、日志采集和备份保留策略验收。
 
-## 回归门禁
+## 回归命令
 
-后端：`uv run pytest -q`（当前 126 passed）、`uv run python -m compileall -q app tests`。
+```powershell
+cd D:\develop\aiknowledge\aiknowledge
+& .venv-local\Scripts\python.exe -m pytest -q
+& .venv-local\Scripts\python.exe -m compileall -q app tests
 
-前端：`npx tsc --noEmit --skipLibCheck`、`npm run build:h5`、`npm run build:weapp`、`npx eslint src`、`npm run lint:style`，并运行 frontend-design-premium strict audit。Stylelint 已针对 Taro 自定义宿主选择器和原型 token 记法配置兼容规则，并通过当前 SCSS 校验。
+cd ..\aiknowledge_frontend
+npx tsc --noEmit --skipLibCheck
+npx eslint src
+npm run lint:style
+npm run build:h5
+```

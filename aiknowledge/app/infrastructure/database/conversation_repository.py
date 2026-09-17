@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import Select, select
+from sqlalchemy import Select, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.conversations import (
@@ -26,6 +26,7 @@ from app.infrastructure.database.models import (
     KnowledgeSpaceRecord,
     MessageRecord,
     RagRunRecord,
+    SpaceMembershipRecord,
 )
 
 
@@ -43,6 +44,24 @@ class SqlAlchemyConversationRepository:
             )
         )
         return space_id_value is not None
+
+    async def has_space_access(self, *, space_id: UUID, user_id: UUID) -> bool:
+        space = await self._session.scalar(
+            select(KnowledgeSpaceRecord.id).where(
+                KnowledgeSpaceRecord.id == space_id,
+                KnowledgeSpaceRecord.deleted_at.is_(None),
+                or_(
+                    KnowledgeSpaceRecord.owner_user_id == user_id,
+                    exists(
+                        select(SpaceMembershipRecord.space_id).where(
+                            SpaceMembershipRecord.space_id == KnowledgeSpaceRecord.id,
+                            SpaceMembershipRecord.user_id == user_id,
+                        )
+                    ),
+                ),
+            )
+        )
+        return space is not None
 
     async def add_conversation(self, conversation: Conversation) -> None:
         self._session.add(
@@ -226,6 +245,9 @@ class SqlAlchemyConversationRepository:
                 DocumentRecord.status == DocumentStatus.READY,
                 DocumentRecord.deleted_at.is_(None),
                 DocumentRecord.active_version_id == ChunkRecord.document_version_id,
+                DocumentRecord.is_enabled.is_(True),
+                or_(DocumentRecord.effective_at.is_(None), DocumentRecord.effective_at <= func.now()),
+                or_(DocumentRecord.expires_at.is_(None), DocumentRecord.expires_at > func.now()),
                 KnowledgeSpaceRecord.deleted_at.is_(None),
             )
             .order_by(distance)

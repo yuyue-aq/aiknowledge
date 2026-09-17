@@ -3,15 +3,17 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import insert, select, update
+from sqlalchemy import exists, insert, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.spaces import Category, KnowledgeSpace, ShareLink, ShareLinkStatus
+from app.domain.users import SpaceMembership, SpaceRole
 from app.infrastructure.database.models import (
     CategoryRecord,
     KnowledgeSpaceRecord,
     ShareLinkRecord,
     share_link_categories,
+    SpaceMembershipRecord,
 )
 
 
@@ -21,26 +23,57 @@ class SqlAlchemySpaceRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def list_spaces(self) -> list[KnowledgeSpace]:
-        records = await self._session.scalars(
-            select(KnowledgeSpaceRecord)
-            .where(KnowledgeSpaceRecord.deleted_at.is_(None))
-            .order_by(KnowledgeSpaceRecord.updated_at.desc())
-        )
+    async def list_spaces(self, owner_user_id: UUID | None = None) -> list[KnowledgeSpace]:
+        query = select(KnowledgeSpaceRecord).where(KnowledgeSpaceRecord.deleted_at.is_(None))
+        if owner_user_id is not None:
+            query = query.where(
+                or_(
+                    KnowledgeSpaceRecord.owner_user_id == owner_user_id,
+                    exists(
+                        select(SpaceMembershipRecord.space_id).where(
+                            SpaceMembershipRecord.space_id == KnowledgeSpaceRecord.id,
+                            SpaceMembershipRecord.user_id == owner_user_id,
+                        )
+                    ),
+                )
+            )
+        records = await self._session.scalars(query.order_by(KnowledgeSpaceRecord.updated_at.desc()))
         return [self._to_space(record) for record in records.all()]
 
     async def get_space(self, space_id: UUID) -> KnowledgeSpace | None:
         record = await self._session.get(KnowledgeSpaceRecord, space_id)
         return self._to_space(record) if record is not None else None
 
+    async def get_membership_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None:
+        return await self._session.scalar(
+            select(SpaceMembershipRecord.role).where(
+                SpaceMembershipRecord.space_id == space_id,
+                SpaceMembershipRecord.user_id == user_id,
+            )
+        )
+
+    async def add_membership(self, membership: SpaceMembership) -> None:
+        """Create the owner membership while the space is in the same transaction."""
+        self._session.add(
+            SpaceMembershipRecord(
+                space_id=membership.space_id,
+                user_id=membership.user_id,
+                role=membership.role,
+                created_at=membership.created_at,
+            )
+        )
+        await self._session.flush()
+
     async def add_space(self, space: KnowledgeSpace) -> None:
         self._session.add(
             KnowledgeSpaceRecord(
                 id=space.id,
+                owner_user_id=space.owner_user_id,
                 name=space.name,
                 description=space.description,
                 visibility=space.visibility,
                 guest_feedback_enabled=space.guest_feedback_enabled,
+                plan=space.plan,
                 created_at=space.created_at,
                 updated_at=space.updated_at,
                 deleted_at=space.deleted_at,
@@ -53,9 +86,11 @@ class SqlAlchemySpaceRepository:
         if record is None:
             return
         record.name = space.name
+        record.owner_user_id = space.owner_user_id
         record.description = space.description
         record.visibility = space.visibility
         record.guest_feedback_enabled = space.guest_feedback_enabled
+        record.plan = space.plan
         record.updated_at = space.updated_at
         record.deleted_at = space.deleted_at
         await self._session.flush()
@@ -78,8 +113,11 @@ class SqlAlchemySpaceRepository:
                 space_id=category.space_id,
                 name=category.name,
                 description=category.description,
+                display_name=category.display_name,
+                display_description=category.display_description,
                 is_open=category.is_open,
                 sort_order=category.sort_order,
+                is_default=category.is_default,
                 created_at=category.created_at,
                 updated_at=category.updated_at,
                 deleted_at=category.deleted_at,
@@ -97,10 +135,25 @@ class SqlAlchemySpaceRepository:
             return
         record.name = category.name
         record.description = category.description
+        record.display_name = category.display_name
+        record.display_description = category.display_description
         record.is_open = category.is_open
         record.sort_order = category.sort_order
+        record.is_default = category.is_default
         record.updated_at = category.updated_at
         record.deleted_at = category.deleted_at
+        await self._session.flush()
+
+    async def clear_category_default(self, *, space_id: UUID, except_category_id: UUID) -> None:
+        await self._session.execute(
+            update(CategoryRecord)
+            .where(
+                CategoryRecord.space_id == space_id,
+                CategoryRecord.id != except_category_id,
+                CategoryRecord.is_default.is_(True),
+            )
+            .values(is_default=False)
+        )
         await self._session.flush()
 
     async def list_share_links(self, space_id: UUID) -> list[ShareLink]:
@@ -134,6 +187,9 @@ class SqlAlchemySpaceRepository:
                 created_at=link.created_at,
                 revoked_at=link.revoked_at,
                 expires_at=link.expires_at,
+                password_hash=link.password_hash,
+                visitor_question_limit=link.visitor_question_limit,
+                allowed_origins=list(link.allowed_origins),
             )
         )
         # The association table has a foreign key to share_links.  Flush the
@@ -165,6 +221,9 @@ class SqlAlchemySpaceRepository:
         record.status = link.status
         record.revoked_at = link.revoked_at
         record.expires_at = link.expires_at
+        record.password_hash = link.password_hash
+        record.visitor_question_limit = link.visitor_question_limit
+        record.allowed_origins = list(link.allowed_origins)
         await self._session.flush()
 
     async def revoke_active_links(self, space_id: UUID, revoked_at: datetime) -> None:
@@ -182,10 +241,12 @@ class SqlAlchemySpaceRepository:
     def _to_space(record: KnowledgeSpaceRecord) -> KnowledgeSpace:
         return KnowledgeSpace(
             id=record.id,
+            owner_user_id=record.owner_user_id,
             name=record.name,
             description=record.description,
             visibility=record.visibility,
             guest_feedback_enabled=record.guest_feedback_enabled,
+            plan=record.plan,
             created_at=record.created_at,
             updated_at=record.updated_at,
             deleted_at=record.deleted_at,
@@ -198,8 +259,11 @@ class SqlAlchemySpaceRepository:
             space_id=record.space_id,
             name=record.name,
             description=record.description,
+            display_name=record.display_name,
+            display_description=record.display_description,
             is_open=record.is_open,
             sort_order=record.sort_order,
+            is_default=record.is_default,
             created_at=record.created_at,
             updated_at=record.updated_at,
             deleted_at=record.deleted_at,
@@ -220,4 +284,7 @@ class SqlAlchemySpaceRepository:
             created_at=record.created_at,
             revoked_at=record.revoked_at,
             expires_at=record.expires_at,
+            password_hash=record.password_hash,
+            visitor_question_limit=record.visitor_question_limit,
+            allowed_origins=tuple(record.allowed_origins or ()),
         )

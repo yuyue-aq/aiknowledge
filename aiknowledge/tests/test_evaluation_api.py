@@ -13,6 +13,8 @@ from app.domain.conversations import (
     EvalRun,
     EvalRunStatus,
     EvalScope,
+    EvalSetVersion,
+    EvaluationRunComparison,
     EvaluationRunDetail,
 )
 from app.domain.rag import AnswerStatus
@@ -55,6 +57,14 @@ class FakeEvaluationService:
             completed_at=self.now,
         )
         self.reviewed = None
+        self.version = EvalSetVersion(
+            id=uuid4(),
+            space_id=self.space_id,
+            version_number=1,
+            label="基线版本",
+            cases=(self.case,),
+            created_at=self.now,
+        )
 
     async def create_case(self, **_kwargs: object) -> EvalCase:
         return self.case
@@ -73,6 +83,24 @@ class FakeEvaluationService:
         return self._detail()
 
     async def get_run(self, _run_id: UUID) -> EvaluationRunDetail:
+        return self._detail()
+
+    async def compare_runs(self, **_kwargs: object) -> EvaluationRunComparison:
+        return EvaluationRunComparison(baseline=self._detail(), candidate=self._detail())
+
+    async def list_runs(self, _space_id: UUID, **_: object) -> list[EvalRun]:
+        return [self.run_record]
+
+    async def create_version(self, **_kwargs: object) -> EvalSetVersion:
+        return self.version
+
+    async def list_versions(self, _space_id: UUID, **_: object) -> list[EvalSetVersion]:
+        return [self.version]
+
+    async def get_version(self, _version_id: UUID, **_: object) -> EvalSetVersion:
+        return self.version
+
+    async def run_version(self, _version_id: UUID, **_: object) -> EvaluationRunDetail:
         return self._detail()
 
     async def review_result(
@@ -115,6 +143,20 @@ async def test_evaluation_api_exposes_cases_run_snapshot_security_summary_and_ma
         listed = await client.get(f"/api/v1/spaces/{service.space_id}/eval-cases")
         run = await client.post(f"/api/v1/spaces/{service.space_id}/eval-runs")
         fetched = await client.get(f"/api/v1/eval-runs/{service.run_id}")
+        history = await client.get(f"/api/v1/spaces/{service.space_id}/eval-runs")
+        compared = await client.get(
+            f"/api/v1/spaces/{service.space_id}/eval-runs/compare",
+            params={
+                "baseline_run_id": str(service.run_id),
+                "candidate_run_id": str(uuid4()),
+            },
+        )
+        version_created = await client.post(
+            f"/api/v1/spaces/{service.space_id}/eval-versions", json={"label": "基线版本"}
+        )
+        versions = await client.get(f"/api/v1/spaces/{service.space_id}/eval-versions")
+        version_detail = await client.get(f"/api/v1/eval-versions/{service.version.id}")
+        version_run = await client.post(f"/api/v1/eval-versions/{service.version.id}/runs")
         reviewed = await client.patch(
             f"/api/v1/eval-results/{service.result_id}",
             json={"reviewer_score": 0.0, "reviewer_note": "越权回答。"},
@@ -126,6 +168,16 @@ async def test_evaluation_api_exposes_cases_run_snapshot_security_summary_and_ma
     assert run.json()["run"]["retrieval_config_snapshot"]["chat_model"] == "deepseek-v4-flash"
     assert run.json()["summary"]["out_of_scope_violations"] == 1
     assert fetched.status_code == 200
+    assert history.status_code == 200
+    assert history.json()["items"][0]["id"] == str(service.run_id)
+    assert compared.status_code == 200
+    assert compared.json()["baseline_summary"]["out_of_scope_violations"] == 1
+    assert compared.json()["delta"]["answered_rate"] == 0.0
+    assert version_created.status_code == 201
+    assert version_created.json()["version_number"] == 1
+    assert versions.status_code == 200
+    assert version_detail.json()["cases"][0]["question"] == "公开范围问题"
+    assert version_run.status_code == 201
     assert reviewed.status_code == 200
     assert reviewed.json()["reviewer_score"] == 0.0
     assert service.reviewed == (0.0, "越权回答。")

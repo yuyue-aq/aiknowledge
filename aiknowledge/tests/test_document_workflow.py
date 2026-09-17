@@ -13,6 +13,7 @@ from app.domain.documents import (
     DocumentVersionStatus,
     ParsedDocument,
 )
+from app.domain.users import SpaceRole
 from app.services.document_ingestion import PreparedChunk, PreparedDocument
 from app.services.document_workflow import (
     DocumentAlreadyExistsError,
@@ -51,6 +52,9 @@ class FakeRepository:
 
     async def is_valid_document_scope(self, *, space_id: UUID, category_id: UUID | None) -> bool:
         return self.valid_scope
+
+    async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None:
+        return SpaceRole.OWNER
 
     async def find_active_document_by_hash(self, *, space_id: UUID, sha256: str):  # type: ignore[no-untyped-def]
         return self.existing
@@ -162,6 +166,26 @@ async def test_upload_persists_a_processing_version_before_dispatching_an_opaque
     assert dispatcher.commit_count_when_enqueued == 1
     assert result.document.id == document.id
     assert result.version.id == version.id
+
+
+@pytest.mark.asyncio
+async def test_upload_records_the_document_owner_when_a_user_scope_is_present() -> None:
+    repository = FakeRepository()
+    storage = FakeStorage()
+    dispatcher = FakeDispatcher(repository)
+    service = create_upload_service(repository, storage, dispatcher)
+    owner_id = uuid4()
+
+    result = await service.upload(
+        space_id=uuid4(),
+        category_id=None,
+        filename="负责人.txt",
+        content=b"owned source",
+        content_type="text/plain",
+        owner_user_id=owner_id,
+    )
+
+    assert result.document.owner_user_id == owner_id
 
 
 @pytest.mark.asyncio

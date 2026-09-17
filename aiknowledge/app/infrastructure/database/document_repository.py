@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import select, update
+from sqlalchemy import exists, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.documents import (
@@ -15,12 +15,15 @@ from app.domain.documents import (
     StoredDocumentVersion,
 )
 from app.domain.spaces import SpaceVisibility
+from app.domain.users import SpaceRole
 from app.infrastructure.database.models import (
     CategoryRecord,
     ChunkRecord,
     DocumentRecord,
     DocumentVersionRecord,
     KnowledgeSpaceRecord,
+    document_tags,
+    SpaceMembershipRecord,
 )
 
 
@@ -30,6 +33,42 @@ class SqlAlchemyDocumentRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    async def has_space_access(self, *, space_id: UUID, user_id: UUID) -> bool:
+        space = await self._session.scalar(
+            select(KnowledgeSpaceRecord.id).where(
+                KnowledgeSpaceRecord.id == space_id,
+                KnowledgeSpaceRecord.deleted_at.is_(None),
+                or_(
+                    KnowledgeSpaceRecord.owner_user_id == user_id,
+                    exists(
+                        select(SpaceMembershipRecord.space_id).where(
+                            SpaceMembershipRecord.space_id == KnowledgeSpaceRecord.id,
+                            SpaceMembershipRecord.user_id == user_id,
+                        )
+                    ),
+                ),
+            )
+        )
+        return space is not None
+
+    async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None:
+        space = await self._session.scalar(
+            select(KnowledgeSpaceRecord).where(
+                KnowledgeSpaceRecord.id == space_id,
+                KnowledgeSpaceRecord.deleted_at.is_(None),
+            )
+        )
+        if space is None:
+            return None
+        if space.owner_user_id == user_id:
+            return SpaceRole.OWNER
+        return await self._session.scalar(
+            select(SpaceMembershipRecord.role).where(
+                SpaceMembershipRecord.space_id == space_id,
+                SpaceMembershipRecord.user_id == user_id,
+            )
+        )
+
     async def list_documents(self, space_id: UUID) -> list[StoredDocument]:
         records = await self._session.scalars(
             select(DocumentRecord)
@@ -38,6 +77,32 @@ class SqlAlchemyDocumentRepository:
                 DocumentRecord.deleted_at.is_(None),
             )
             .order_by(DocumentRecord.updated_at.desc())
+        )
+        return [self._to_document(record) for record in records.all()]
+
+    async def search_documents(
+        self, space_id: UUID, query: str, tag_id: UUID | None = None
+    ) -> list[StoredDocument]:
+        pattern = f"%{query}%"
+        statement = select(DocumentRecord).where(
+            DocumentRecord.space_id == space_id,
+            DocumentRecord.deleted_at.is_(None),
+            or_(
+                DocumentRecord.original_filename.ilike(pattern),
+                DocumentRecord.failure_message.ilike(pattern),
+            ),
+        )
+        if tag_id is not None:
+            statement = statement.where(
+                exists(
+                    select(document_tags.c.document_id).where(
+                        document_tags.c.document_id == DocumentRecord.id,
+                        document_tags.c.tag_id == tag_id,
+                    )
+                )
+            )
+        records = await self._session.scalars(
+            statement.order_by(DocumentRecord.updated_at.desc())
         )
         return [self._to_document(record) for record in records.all()]
 
@@ -106,6 +171,7 @@ class SqlAlchemyDocumentRepository:
             DocumentRecord(
                 id=document.id,
                 space_id=document.space_id,
+                owner_user_id=document.owner_user_id,
                 category_id=document.category_id,
                 original_filename=document.original_filename,
                 storage_key=document.storage_key,
@@ -116,6 +182,9 @@ class SqlAlchemyDocumentRepository:
                 active_version_id=document.active_version_id,
                 failure_code=document.failure_code,
                 failure_message=document.failure_message,
+                is_enabled=document.is_enabled,
+                effective_at=document.effective_at,
+                expires_at=document.expires_at,
                 created_at=document.created_at,
                 updated_at=document.updated_at,
                 deleted_at=document.deleted_at,
@@ -233,6 +302,25 @@ class SqlAlchemyDocumentRepository:
         )
         await self._session.flush()
 
+    async def update_document_availability(
+        self,
+        document_id: UUID,
+        *,
+        is_enabled: bool | None,
+        effective_at: datetime | None,
+        expires_at: datetime | None,
+    ) -> StoredDocument | None:
+        document = await self._session.get(DocumentRecord, document_id, with_for_update=True)
+        if document is None or document.deleted_at is not None or document.status == DocumentStatus.DELETED:
+            return None
+        if is_enabled is not None:
+            document.is_enabled = is_enabled
+        document.effective_at = effective_at
+        document.expires_at = expires_at
+        document.updated_at = datetime.now(UTC)
+        await self._session.flush()
+        return self._to_document(document)
+
     async def commit(self) -> None:
         await self._session.commit()
 
@@ -241,6 +329,7 @@ class SqlAlchemyDocumentRepository:
         return StoredDocument(
             id=record.id,
             space_id=record.space_id,
+            owner_user_id=record.owner_user_id,
             category_id=record.category_id,
             original_filename=record.original_filename,
             storage_key=record.storage_key,
@@ -253,6 +342,9 @@ class SqlAlchemyDocumentRepository:
             updated_at=record.updated_at,
             failure_code=record.failure_code,
             failure_message=record.failure_message,
+            is_enabled=record.is_enabled,
+            effective_at=record.effective_at,
+            expires_at=record.expires_at,
             deleted_at=record.deleted_at,
         )
 

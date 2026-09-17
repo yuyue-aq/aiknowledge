@@ -32,6 +32,12 @@ class FeedbackReason(StrEnum):
     MISSING_MATERIAL = "MISSING_MATERIAL"
 
 
+class FeedbackReviewStatus(StrEnum):
+    PENDING = "PENDING"
+    FIXED = "FIXED"
+    DEFERRED = "DEFERRED"
+
+
 class EvalRunStatus(StrEnum):
     PENDING = "PENDING"
     RUNNING = "RUNNING"
@@ -149,6 +155,10 @@ class FeedbackGuestDisabledError(PermissionError):
     pass
 
 
+class FeedbackNotFoundError(LookupError):
+    pass
+
+
 @dataclass(frozen=True, slots=True)
 class MessageFeedbackContext:
     message_id: UUID
@@ -168,9 +178,23 @@ class Feedback:
     comment: str | None
     is_guest: bool
     created_at: datetime
+    review_status: FeedbackReviewStatus = FeedbackReviewStatus.PENDING
+    corrected_answer: str | None = None
+    review_note: str | None = None
+    reviewed_at: datetime | None = None
+    data_usage_scope: str = "INTERNAL_ONLY"
+    pii_status: str = "UNKNOWN"
 
 
 class EvalCaseNotFoundError(LookupError):
+    pass
+
+
+class EvalCaseInUseError(ValueError):
+    """Raised when deleting a live case would destroy historical results."""
+
+
+class EvalAccessDeniedError(PermissionError):
     pass
 
 
@@ -179,6 +203,10 @@ class EvalRunNotFoundError(LookupError):
 
 
 class EvalResultNotFoundError(LookupError):
+    pass
+
+
+class EvalVersionNotFoundError(LookupError):
     pass
 
 
@@ -191,6 +219,18 @@ class EvalCase:
     expected_document_ids: tuple[UUID, ...]
     scope: EvalScope
     category_ids: tuple[UUID, ...]
+    created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class EvalSetVersion:
+    """Immutable snapshot of an evaluation set for reproducible comparisons."""
+
+    id: UUID
+    space_id: UUID
+    version_number: int
+    label: str
+    cases: tuple[EvalCase, ...]
     created_at: datetime
 
 
@@ -223,3 +263,11 @@ class EvaluationRunDetail:
     run: EvalRun
     results: tuple[EvalResult, ...]
     cases_by_id: dict[UUID, EvalCase]
+
+
+@dataclass(frozen=True, slots=True)
+class EvaluationRunComparison:
+    """Two run snapshots selected for quality and regression comparison."""
+
+    baseline: EvaluationRunDetail
+    candidate: EvaluationRunDetail

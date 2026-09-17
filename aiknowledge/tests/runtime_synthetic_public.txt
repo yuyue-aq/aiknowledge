@@ -1,0 +1,4 @@
+# Synthetic runtime smoke fixture
+
+本夹具仅用于 Docker 运行链路测试，不包含任何项目配置、密钥或私人资料。
+测试资料中的颜色是蓝色；BGE 模型产生 1024 维向量。

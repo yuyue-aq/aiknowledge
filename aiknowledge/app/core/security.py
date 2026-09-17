@@ -17,6 +17,7 @@ from app.core.request_id import current_request_id
 _SAFE_METHODS: Final = frozenset({"GET", "HEAD", "OPTIONS"})
 _PUBLIC_SESSION_PATH = "/api/v1/public/session"
 _PUBLIC_QUESTION_PREFIX = "/api/v1/public/conversations/"
+_PUBLIC_QUERY_PATH = "/api/v1/public/query"
 
 
 @dataclass(frozen=True, slots=True)
@@ -127,6 +128,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             and request.url.path.endswith("/messages")
         ):
             return "public_question"
+        if request.url.path == _PUBLIC_QUERY_PATH:
+            return "public_question"
         return None
 
 
@@ -182,4 +185,3 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         for name, value in self._HEADERS.items():
             response.headers[name] = value
         return response
-

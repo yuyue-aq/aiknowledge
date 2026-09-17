@@ -3,12 +3,14 @@ from __future__ import annotations
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.conversations import (
     ConversationKind,
     Feedback,
+    FeedbackRating,
+    FeedbackReviewStatus,
     MessageFeedbackContext,
 )
 from app.infrastructure.database.models import (
@@ -16,7 +18,9 @@ from app.infrastructure.database.models import (
     ConversationRecord,
     KnowledgeSpaceRecord,
     MessageRecord,
+    SpaceMembershipRecord,
 )
+from app.domain.users import SpaceRole
 
 
 class SqlAlchemyFeedbackRepository:
@@ -24,6 +28,42 @@ class SqlAlchemyFeedbackRepository:
 
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+
+    async def has_space_access(self, *, space_id: UUID, user_id: UUID) -> bool:
+        value = await self._session.scalar(
+            select(KnowledgeSpaceRecord.id).where(
+                KnowledgeSpaceRecord.id == space_id,
+                KnowledgeSpaceRecord.deleted_at.is_(None),
+                or_(
+                    KnowledgeSpaceRecord.owner_user_id == user_id,
+                    exists(
+                        select(SpaceMembershipRecord.space_id).where(
+                            SpaceMembershipRecord.space_id == KnowledgeSpaceRecord.id,
+                            SpaceMembershipRecord.user_id == user_id,
+                        )
+                    ),
+                ),
+            )
+        )
+        return value is not None
+
+    async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None:
+        space = await self._session.scalar(
+            select(KnowledgeSpaceRecord).where(
+                KnowledgeSpaceRecord.id == space_id,
+                KnowledgeSpaceRecord.deleted_at.is_(None),
+            )
+        )
+        if space is None:
+            return None
+        if space.owner_user_id == user_id:
+            return SpaceRole.OWNER
+        return await self._session.scalar(
+            select(SpaceMembershipRecord.role).where(
+                SpaceMembershipRecord.space_id == space_id,
+                SpaceMembershipRecord.user_id == user_id,
+            )
+        )
 
     async def get_message_context(self, message_id: UUID) -> MessageFeedbackContext | None:
         result = await self._session.execute(
@@ -67,13 +107,26 @@ class SqlAlchemyFeedbackRepository:
                 reason=feedback.reason,
                 comment=feedback.comment,
                 is_guest=feedback.is_guest,
+                review_status=feedback.review_status,
+                corrected_answer=feedback.corrected_answer,
+                review_note=feedback.review_note,
+                reviewed_at=feedback.reviewed_at,
+                data_usage_scope=feedback.data_usage_scope,
+                pii_status=feedback.pii_status,
                 created_at=feedback.created_at,
             )
         )
         await self._session.flush()
 
-    async def list_feedback(self, space_id: UUID) -> list[Feedback]:
-        records = await self._session.scalars(
+    async def list_feedback(
+        self,
+        space_id: UUID,
+        *,
+        review_status: FeedbackReviewStatus | None = None,
+        rating: FeedbackRating | None = None,
+        is_guest: bool | None = None,
+    ) -> list[Feedback]:
+        statement = (
             select(FeedbackRecord)
             .join(MessageRecord, FeedbackRecord.message_id == MessageRecord.id)
             .join(
@@ -83,7 +136,37 @@ class SqlAlchemyFeedbackRepository:
             .where(ConversationRecord.space_id == space_id)
             .order_by(FeedbackRecord.created_at.desc())
         )
+        if review_status is not None:
+            statement = statement.where(FeedbackRecord.review_status == review_status)
+        if rating is not None:
+            statement = statement.where(FeedbackRecord.rating == rating)
+        if is_guest is not None:
+            statement = statement.where(FeedbackRecord.is_guest == is_guest)
+        records = await self._session.scalars(statement)
         return [self._to_feedback(record, space_id=space_id) for record in records.all()]
+
+    async def get_feedback(self, feedback_id: UUID) -> Feedback | None:
+        record = await self._session.get(FeedbackRecord, feedback_id)
+        if record is None:
+            return None
+        context = await self._session.scalar(
+            select(ConversationRecord.space_id)
+            .join(MessageRecord, MessageRecord.conversation_id == ConversationRecord.id)
+            .where(MessageRecord.id == record.message_id)
+        )
+        if context is None:
+            return None
+        return self._to_feedback(record, space_id=context)
+
+    async def update_feedback_review(self, feedback_id: UUID, **changes: object) -> Feedback | None:
+        record = await self._session.get(FeedbackRecord, feedback_id, with_for_update=True)
+        if record is None:
+            return None
+        for field, value in changes.items():
+            if hasattr(record, field):
+                setattr(record, field, value)
+        await self._session.flush()
+        return await self.get_feedback(feedback_id)
 
     async def commit(self) -> None:
         await self._session.commit()
@@ -99,4 +182,10 @@ class SqlAlchemyFeedbackRepository:
             comment=record.comment,
             is_guest=record.is_guest,
             created_at=record.created_at,
+            review_status=record.review_status,
+            corrected_answer=record.corrected_answer,
+            review_note=record.review_note,
+            reviewed_at=record.reviewed_at,
+            data_usage_scope=record.data_usage_scope,
+            pii_status=record.pii_status,
         )

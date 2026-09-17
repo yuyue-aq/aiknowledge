@@ -11,9 +11,13 @@ from app.domain.spaces import (
     KnowledgeSpace,
     PublicAccessDeniedError,
     ShareLink,
+    SpaceNotFoundError,
+    SpaceAccessDeniedError,
     SpaceRuleViolationError,
+    SpacePlan,
     SpaceVisibility,
 )
+from app.domain.users import SpaceMembership, SpaceRole
 from app.services.spaces import SpaceService
 
 
@@ -22,6 +26,7 @@ class FakeSpaceRepository:
         self.spaces: dict[UUID, KnowledgeSpace] = {}
         self.categories: dict[UUID, Category] = {}
         self.links: dict[UUID, ShareLink] = {}
+        self.roles: dict[tuple[UUID, UUID], SpaceRole] = {}
 
     async def get_space(self, space_id: UUID) -> KnowledgeSpace | None:
         return self.spaces.get(space_id)
@@ -73,6 +78,17 @@ class FakeSpaceRepository:
             if link.space_id == space_id and link.is_active(at=revoked_at):
                 self.links[link_id] = replace(link, status="REVOKED", revoked_at=revoked_at)
 
+    async def add_membership(self, membership: SpaceMembership) -> None:
+        self.roles[(membership.space_id, membership.user_id)] = membership.role
+
+    async def get_membership_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None:
+        return self.roles.get((space_id, user_id))
+
+    async def clear_category_default(self, *, space_id: UUID, except_category_id: UUID) -> None:
+        for category_id, category in list(self.categories.items()):
+            if category.space_id == space_id and category_id != except_category_id:
+                self.categories[category_id] = replace(category, is_default=False)
+
 
 def create_service(repository: FakeSpaceRepository) -> SpaceService:
     return SpaceService(
@@ -123,6 +139,55 @@ async def test_share_link_returns_raw_token_once_but_persists_only_a_hash() -> N
     assert len(created.link.token_hash) == 64
     assert repository.links[created.link.id].token_hash == created.link.token_hash
     assert not hasattr(created.link, "token")
+
+
+@pytest.mark.asyncio
+async def test_share_link_normalizes_and_validates_allowed_origins() -> None:
+    repository = FakeSpaceRepository()
+    service = create_service(repository)
+    space = await service.create_space(
+        name="嵌入公开空间", description=None, visibility=SpaceVisibility.PUBLIC
+    )
+    category = await service.create_category(
+        space_id=space.id, name="开放分类", description=None, is_open=True
+    )
+
+    created = await service.create_share_link(
+        space_id=space.id,
+        category_ids=(category.id,),
+        allowed_origins=(" HTTPS://Example.com/ ", "https://example.com", "http://example.com:80"),
+    )
+
+    assert created.link.allowed_origins == ("https://example.com", "http://example.com")
+    resolved = await service.resolve_public_scope(created.token)
+    assert resolved.allowed_origins == created.link.allowed_origins
+
+    await service.revoke_share_link(created.link.id)
+    with pytest.raises(SpaceRuleViolationError, match="Origin"):
+        await service.create_share_link(
+            space_id=space.id,
+            category_ids=(category.id,),
+            allowed_origins=("https://example.com/embed",),
+        )
+
+
+@pytest.mark.asyncio
+async def test_share_link_origin_allowlist_is_bounded() -> None:
+    repository = FakeSpaceRepository()
+    service = create_service(repository)
+    space = await service.create_space(
+        name="来源限制空间", description=None, visibility=SpaceVisibility.PUBLIC
+    )
+    category = await service.create_category(
+        space_id=space.id, name="开放分类", description=None, is_open=True
+    )
+
+    with pytest.raises(SpaceRuleViolationError, match="10"):
+        await service.create_share_link(
+            space_id=space.id,
+            category_ids=(category.id,),
+            allowed_origins=tuple(f"https://example-{index}.test" for index in range(11)),
+        )
 
 
 @pytest.mark.asyncio
@@ -220,3 +285,102 @@ async def test_public_space_keeps_at_most_one_active_share_link() -> None:
 
     with pytest.raises(SpaceRuleViolationError, match="一个活动分享链接"):
         await service.create_share_link(space_id=space.id, category_ids=(category.id,))
+
+
+@pytest.mark.asyncio
+async def test_owner_scope_rejects_cross_user_access_without_leaking_space_data() -> None:
+    repository = FakeSpaceRepository()
+    service = create_service(repository)
+    owner_id = uuid4()
+    other_user_id = uuid4()
+    space = await service.create_space(
+        name="归属空间",
+        description=None,
+        visibility=SpaceVisibility.PRIVATE,
+        owner_user_id=owner_id,
+    )
+
+    assert (await service.get_space(space.id, owner_user_id=owner_id)).id == space.id
+    with pytest.raises(SpaceNotFoundError, match="知识空间不存在"):
+        await service.get_space(space.id, owner_user_id=other_user_id)
+
+
+@pytest.mark.asyncio
+async def test_public_link_password_and_question_limit_are_enforced() -> None:
+    repository = FakeSpaceRepository()
+    service = create_service(repository)
+    space = await service.create_space(
+        name="受控公开空间", description=None, visibility=SpaceVisibility.PUBLIC
+    )
+    category = await service.create_category(
+        space_id=space.id, name="展示分类", description=None, is_open=True, is_default=True,
+        display_name="对外展示", display_description="访客说明",
+    )
+    created = await service.create_share_link(
+        space_id=space.id,
+        category_ids=(category.id,),
+        password="pass-1234",
+        visitor_question_limit=3,
+    )
+
+    with pytest.raises(PublicAccessDeniedError, match="密码错误"):
+        await service.resolve_public_scope(created.token, password="wrong")
+    scope = await service.resolve_public_scope(created.token, password="pass-1234")
+    assert scope.visitor_question_limit == 3
+    assert repository.categories[category.id].display_name == "对外展示"
+
+
+@pytest.mark.asyncio
+async def test_member_role_allows_read_but_editor_cannot_change_space_visibility() -> None:
+    repository = FakeSpaceRepository()
+    service = create_service(repository)
+    owner_id = uuid4()
+    editor_id = uuid4()
+    space = await service.create_space(
+        name="协作空间",
+        description=None,
+        visibility=SpaceVisibility.PUBLIC,
+        owner_user_id=owner_id,
+    )
+    repository.roles[(space.id, editor_id)] = SpaceRole.EDITOR
+
+    assert (await service.get_space(space.id, owner_user_id=editor_id)).id == space.id
+    with pytest.raises(SpaceAccessDeniedError):
+        await service.update_space(
+            space.id,
+            visibility=SpaceVisibility.PRIVATE,
+            owner_user_id=editor_id,
+        )
+
+    category = await service.create_category(
+        space_id=space.id,
+        name="产品",
+        description=None,
+        is_open=True,
+        owner_user_id=editor_id,
+    )
+    assert category.space_id == space.id
+
+
+@pytest.mark.asyncio
+async def test_owner_can_change_demo_plan_but_editor_cannot() -> None:
+    repository = FakeSpaceRepository()
+    service = create_service(repository)
+    owner_id = uuid4()
+    editor_id = uuid4()
+    space = await service.create_space(
+        name="套餐空间",
+        description=None,
+        visibility=SpaceVisibility.PRIVATE,
+        owner_user_id=owner_id,
+    )
+    repository.roles[(space.id, editor_id)] = SpaceRole.EDITOR
+
+    upgraded = await service.update_space(
+        space.id, plan=SpacePlan.PRO, owner_user_id=owner_id
+    )
+    assert upgraded.plan is SpacePlan.PRO
+    with pytest.raises(SpaceAccessDeniedError):
+        await service.update_space(
+            space.id, plan=SpacePlan.TEAM, owner_user_id=editor_id
+        )

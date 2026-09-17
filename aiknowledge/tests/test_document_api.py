@@ -107,6 +107,43 @@ async def test_document_upload_api_reads_multipart_file_and_returns_processing_s
 
 
 @pytest.mark.asyncio
+async def test_batch_document_upload_returns_successes_and_per_file_failures() -> None:
+    service = FakeDocumentService()
+    original_upload = service.upload
+
+    async def upload_with_one_failure(**kwargs: object) -> DocumentSubmission:
+        if kwargs["filename"] == "坏文件.exe":
+            from app.services.document_workflow import DocumentUploadError
+
+            raise DocumentUploadError("不支持的文件类型。")
+        return await original_upload(**kwargs)
+
+    service.upload = upload_with_one_failure  # type: ignore[method-assign]
+    app = create_app(
+        rag_service=object(), document_service_factory=lambda _: service
+    )
+    space_id = uuid4()
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.post(
+            f"/api/v1/spaces/{space_id}/documents/batch",
+            files=[
+                ("files", ("好文件.txt", b"ok", "text/plain")),
+                ("files", ("坏文件.exe", b"bad", "application/octet-stream")),
+            ],
+        )
+
+    assert response.status_code == 202
+    assert len(response.json()["items"]) == 1
+    assert response.json()["items"][0]["document"]["original_filename"] == "好文件.txt"
+    assert response.json()["failures"] == [
+        {"filename": "坏文件.exe", "code": "DOCUMENT_UPLOAD_INVALID", "message": "不支持的文件类型。"}
+    ]
+
+
+@pytest.mark.asyncio
 async def test_document_download_streams_private_bytes_with_safe_filename_header() -> None:
     service = FakeDocumentService()
     app = create_app(

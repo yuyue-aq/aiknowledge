@@ -41,3 +41,14 @@ jobs:
       - run: npx eslint src
       - run: npm run lint:style
       - run: npm run build:h5
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare model placeholder for Compose build
+        shell: bash
+        run: mkdir -p models/embedding/bge-large-zh-v1.5
+      - name: Build runtime images
+        run: docker compose --env-file aiknowledge/.env.example build api worker frontend

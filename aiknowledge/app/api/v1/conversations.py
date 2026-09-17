@@ -3,7 +3,9 @@ from __future__ import annotations
 import asyncio
 import json
 from datetime import datetime
+from dataclasses import replace
 from typing import Annotated, Protocol
+from urllib.parse import urlparse
 from uuid import UUID
 
 from fastapi import APIRouter, Cookie, Depends, Request, Response, status
@@ -11,7 +13,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_database_session
+from app.api.dependencies import get_database_session, get_optional_current_user
 from app.core.errors import AppError
 from app.domain.conversations import (
     CitationSnapshot,
@@ -26,10 +28,17 @@ from app.domain.spaces import (
     Category,
     KnowledgeSpace,
     PublicAccessDeniedError,
+    PublicAccessEventType,
     PublicRetrievalScope,
 )
+from app.domain.users import User
 from app.services.conversations import ConversationQuestionError
 from app.services.public_access import PublicSessionInvalidError
+from app.services.public_questions import (
+    PublicQuestionLimitExceededError,
+    PublicQuestionLimitService,
+)
+from app.services.usage import UsageLimitExceededError
 
 
 router = APIRouter(tags=["conversations"])
@@ -38,7 +47,7 @@ PUBLIC_SESSION_COOKIE = "aiknowledge_public_session"
 
 class ConversationServicePort(Protocol):
     async def create_owner_conversation(
-        self, *, space_id: UUID, title: str | None = None
+        self, *, space_id: UUID, title: str | None = None, owner_user_id: UUID | None = None
     ) -> Conversation: ...
 
     async def create_public_conversation(
@@ -46,7 +55,7 @@ class ConversationServicePort(Protocol):
     ) -> Conversation: ...
 
     async def ask_owner(
-        self, *, conversation_id: UUID, question: str
+        self, *, conversation_id: UUID, question: str, owner_user_id: UUID | None = None
     ) -> ConversationAnswer: ...
 
     async def ask_public(
@@ -57,15 +66,17 @@ class ConversationServicePort(Protocol):
         question: str,
     ) -> ConversationAnswer: ...
 
-    async def get_owner_conversation(self, conversation_id: UUID) -> ConversationDetail: ...
+    async def get_owner_conversation(self, conversation_id: UUID, *, owner_user_id: UUID | None = None) -> ConversationDetail: ...
 
-    async def list_owner_conversations(self, space_id: UUID) -> tuple[Conversation, ...]: ...
+    async def list_owner_conversations(self, space_id: UUID, *, owner_user_id: UUID | None = None) -> tuple[Conversation, ...]: ...
 
-    async def delete_owner_conversation(self, conversation_id: UUID) -> None: ...
+    async def delete_owner_conversation(self, conversation_id: UUID, *, owner_user_id: UUID | None = None) -> None: ...
 
 
 class PublicSpaceServicePort(Protocol):
-    async def resolve_public_scope(self, raw_token: str) -> PublicRetrievalScope: ...
+    async def resolve_public_scope(
+        self, raw_token: str, password: str | None = None
+    ) -> PublicRetrievalScope: ...
 
     async def resolve_public_scope_by_link_id(
         self, share_link_id: UUID
@@ -80,6 +91,18 @@ class PublicSessionCodecPort(Protocol):
     def issue(self, share_link_id: UUID) -> str: ...
 
     def read_link_id(self, token: str) -> UUID: ...
+
+    def read_session(self, token: str) -> tuple[UUID, str]: ...
+
+
+class PublicQuestionLimitServicePort(Protocol):
+    async def check_and_record(
+        self, *, scope: PublicRetrievalScope, conversation_id: UUID | None, question: str
+    ) -> None: ...
+
+
+class PublicAnalyticsServicePort(Protocol):
+    async def record_event(self, **kwargs: object) -> object: ...
 
 
 def get_conversation_service(
@@ -100,7 +123,22 @@ def get_public_session_codec(request: Request) -> PublicSessionCodecPort:
     return request.app.state.public_session_codec
 
 
+def get_public_question_limit_service(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_database_session, scope="function")],
+) -> PublicQuestionLimitServicePort:
+    return request.app.state.public_question_limit_service_factory(session)
+
+
+def get_public_analytics_service(
+    request: Request,
+    session: Annotated[AsyncSession, Depends(get_database_session, scope="function")],
+) -> PublicAnalyticsServicePort:
+    return request.app.state.public_analytics_service_factory(session)
+
+
 async def get_public_scope(
+    request: Request,
     public_session: Annotated[str | None, Cookie(alias=PUBLIC_SESSION_COOKIE)] = None,
     codec: PublicSessionCodecPort = Depends(get_public_session_codec),
     service: PublicSpaceServicePort = Depends(get_public_space_service),
@@ -112,8 +150,17 @@ async def get_public_scope(
             status_code=401,
         )
     try:
-        share_link_id = codec.read_link_id(public_session)
-        return await service.resolve_public_scope_by_link_id(share_link_id)
+        share_link_id, visitor_id = codec.read_session(public_session)
+        scope = await service.resolve_public_scope_by_link_id(share_link_id)
+        _enforce_public_origin(scope, request.headers.get("origin"))
+        return PublicRetrievalScope(
+            share_link_id=scope.share_link_id,
+            space_id=scope.space_id,
+            category_ids=scope.category_ids,
+            visitor_id=visitor_id if scope.visitor_question_limit is not None else None,
+            visitor_question_limit=scope.visitor_question_limit,
+            allowed_origins=scope.allowed_origins,
+        )
     except (PublicSessionInvalidError, PublicAccessDeniedError) as error:
         raise AppError(
             code="PUBLIC_ACCESS_DENIED",
@@ -254,6 +301,15 @@ class PublicAnswerResponse(BaseModel):
 
 class PublicSessionRequest(BaseModel):
     token: str = Field(min_length=1, max_length=512)
+    password: str | None = Field(default=None, min_length=4, max_length=128)
+
+
+class PublicQueryRequest(BaseModel):
+    """Token-based query contract for embeds and server-to-server clients."""
+
+    token: str = Field(min_length=1, max_length=512)
+    password: str | None = Field(default=None, min_length=4, max_length=128)
+    question: str = Field(min_length=1, max_length=2_000)
 
 
 class PublicCategoryResponse(BaseModel):
@@ -275,14 +331,42 @@ def _public_space_response(
         name=space.name,
         description=space.description,
         categories=[
-            PublicCategoryResponse(name=category.name, description=category.description)
+            PublicCategoryResponse(
+                name=category.display_name or category.name,
+                description=category.display_description or category.description,
+            )
             for category in categories
             if category.id in allowed and category.is_open and category.is_active
         ],
     )
 
 
+def _enforce_public_origin(scope: PublicRetrievalScope, origin: str | None) -> None:
+    """Enforce a share-link Origin allowlist when the browser supplies Origin."""
+
+    if not scope.allowed_origins or not origin:
+        return
+    value = origin.strip().rstrip("/")
+    parsed = urlparse(value)
+    if not parsed.scheme or not parsed.hostname:
+        raise PublicAccessDeniedError("当前来源不在分享链接允许范围内。")
+    try:
+        port = parsed.port
+    except ValueError as error:
+        raise PublicAccessDeniedError("当前来源不在分享链接允许范围内。") from error
+    normalized = f"{parsed.scheme.lower()}://{parsed.hostname.lower()}"
+    default_port = (parsed.scheme.lower() == "http" and port == 80) or (
+        parsed.scheme.lower() == "https" and port == 443
+    )
+    if port is not None and not default_port:
+        normalized += f":{port}"
+    if normalized not in scope.allowed_origins:
+        raise PublicAccessDeniedError("当前来源不在分享链接允许范围内。")
+
+
 def _translate_conversation_error(error: Exception) -> None:
+    if isinstance(error, UsageLimitExceededError):
+        raise AppError(code="USAGE_LIMIT_EXCEEDED", message=str(error), status_code=429) from error
     if isinstance(error, ConversationNotFoundError):
         raise AppError(code="CONVERSATION_NOT_FOUND", message="对话不存在。", status_code=404) from error
     if isinstance(error, ConversationAccessDeniedError):
@@ -294,6 +378,12 @@ def _translate_conversation_error(error: Exception) -> None:
             code="PUBLIC_ACCESS_DENIED",
             message="公开访问已失效，请重新打开有效分享链接。",
             status_code=403,
+        ) from error
+    if isinstance(error, PublicQuestionLimitExceededError):
+        raise AppError(
+            code="PUBLIC_QUESTION_LIMIT_REACHED",
+            message="该分享链接的访客提问次数已用完。",
+            status_code=429,
         ) from error
     raise error
 
@@ -338,9 +428,13 @@ def _as_sse(payload: BaseModel, request: Request) -> StreamingResponse:
 async def create_owner_conversation(
     payload: ConversationCreateRequest,
     service: ConversationServicePort = Depends(get_conversation_service),
+    _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
 ) -> ConversationResponse:
     try:
-        conversation = await service.create_owner_conversation(**payload.model_dump())
+        kwargs = payload.model_dump()
+        if _current_user is not None:
+            kwargs["owner_user_id"] = _current_user.id
+        conversation = await service.create_owner_conversation(**kwargs)
     except Exception as error:
         _translate_conversation_error(error)
         raise
@@ -354,9 +448,15 @@ async def create_owner_conversation(
 async def list_owner_conversations(
     space_id: UUID,
     service: ConversationServicePort = Depends(get_conversation_service),
+    _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
 ) -> list[ConversationResponse]:
     try:
-        conversations = await service.list_owner_conversations(space_id)
+        if _current_user is None:
+            conversations = await service.list_owner_conversations(space_id)
+        else:
+            conversations = await service.list_owner_conversations(
+                space_id, owner_user_id=_current_user.id
+            )
     except Exception as error:
         _translate_conversation_error(error)
         raise
@@ -372,11 +472,16 @@ async def ask_owner(
     payload: QuestionRequest,
     request: Request,
     service: ConversationServicePort = Depends(get_conversation_service),
+    _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
 ) -> OwnerAnswerResponse | StreamingResponse:
     try:
-        result = await service.ask_owner(
-            conversation_id=conversation_id, question=payload.question
-        )
+        kwargs: dict[str, object] = {
+            "conversation_id": conversation_id,
+            "question": payload.question,
+        }
+        if _current_user is not None:
+            kwargs["owner_user_id"] = _current_user.id
+        result = await service.ask_owner(**kwargs)
     except Exception as error:
         _translate_conversation_error(error)
         raise
@@ -391,9 +496,15 @@ async def ask_owner(
 async def get_owner_conversation(
     conversation_id: UUID,
     service: ConversationServicePort = Depends(get_conversation_service),
+    _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
 ) -> OwnerConversationDetailResponse:
     try:
-        detail = await service.get_owner_conversation(conversation_id)
+        if _current_user is None:
+            detail = await service.get_owner_conversation(conversation_id)
+        else:
+            detail = await service.get_owner_conversation(
+                conversation_id, owner_user_id=_current_user.id
+            )
     except Exception as error:
         _translate_conversation_error(error)
         raise
@@ -404,9 +515,15 @@ async def get_owner_conversation(
 async def delete_owner_conversation(
     conversation_id: UUID,
     service: ConversationServicePort = Depends(get_conversation_service),
+    _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
 ) -> Response:
     try:
-        await service.delete_owner_conversation(conversation_id)
+        if _current_user is None:
+            await service.delete_owner_conversation(conversation_id)
+        else:
+            await service.delete_owner_conversation(
+                conversation_id, owner_user_id=_current_user.id
+            )
     except Exception as error:
         _translate_conversation_error(error)
         raise
@@ -423,17 +540,37 @@ async def create_public_session(
     request: Request,
     service: PublicSpaceServicePort = Depends(get_public_space_service),
     codec: PublicSessionCodecPort = Depends(get_public_session_codec),
+    analytics: PublicAnalyticsServicePort = Depends(get_public_analytics_service),
 ) -> PublicSpaceResponse:
     try:
-        scope = await service.resolve_public_scope(payload.token)
+        if payload.password is None:
+            scope = await service.resolve_public_scope(payload.token)
+        else:
+            scope = await service.resolve_public_scope(payload.token, payload.password)
+        _enforce_public_origin(scope, request.headers.get("origin"))
         space = await service.get_space(scope.space_id)
         categories = await service.list_categories(scope.space_id)
     except Exception as error:
         _translate_conversation_error(error)
         raise
+    session_token = codec.issue(scope.share_link_id)
+    try:
+        _, visitor_id = codec.read_session(session_token)
+        await analytics.record_event(
+            space_id=scope.space_id,
+            share_link_id=scope.share_link_id,
+            visitor_id=visitor_id,
+            event_type=PublicAccessEventType.SESSION,
+            origin=request.headers.get("origin"),
+            user_agent=request.headers.get("user-agent"),
+        )
+    except Exception:
+        # Analytics is deliberately best-effort; link validation and the
+        # public session must remain available when telemetry is degraded.
+        pass
     response.set_cookie(
         key=PUBLIC_SESSION_COOKIE,
-        value=codec.issue(scope.share_link_id),
+        value=session_token,
         max_age=request.app.state.settings.public_session_ttl_seconds,
         httponly=True,
         secure=request.app.state.settings.public_session_cookie_secure,
@@ -457,6 +594,52 @@ async def get_public_space(
     return _public_space_response(space, categories, scope)
 
 
+@router.post("/public/query", response_model=PublicAnswerResponse)
+async def public_query(
+    payload: PublicQueryRequest,
+    request: Request,
+    service: ConversationServicePort = Depends(get_conversation_service),
+    space_service: PublicSpaceServicePort = Depends(get_public_space_service),
+    codec: PublicSessionCodecPort = Depends(get_public_session_codec),
+    question_limit_service: PublicQuestionLimitServicePort = Depends(get_public_question_limit_service),
+) -> PublicAnswerResponse:
+    """Answer one share-link question without requiring a browser cookie.
+
+    The raw share token is accepted only in this request body, immediately
+    resolved against the live link and never persisted or returned.  The
+    resulting response deliberately uses the same source-free DTO as the
+    cookie-based public conversation endpoint.
+    """
+
+    try:
+        if payload.password is None:
+            raw_scope = await space_service.resolve_public_scope(payload.token)
+        else:
+            raw_scope = await space_service.resolve_public_scope(payload.token, payload.password)
+        _enforce_public_origin(raw_scope, request.headers.get("origin"))
+        session_token = codec.issue(raw_scope.share_link_id)
+        _, visitor_id = codec.read_session(session_token)
+        scope = replace(
+            raw_scope,
+            visitor_id=visitor_id if raw_scope.visitor_question_limit is not None else None,
+        )
+        # Check and record before creating a conversation so a rejected query
+        # cannot leave an orphaned public conversation row.
+        await question_limit_service.check_and_record(
+            scope=scope, conversation_id=None, question=payload.question
+        )
+        conversation = await service.create_public_conversation(scope=scope)
+        result = await service.ask_public(
+            conversation_id=conversation.id,
+            scope=scope,
+            question=payload.question,
+        )
+    except Exception as error:
+        _translate_conversation_error(error)
+        raise
+    return PublicAnswerResponse.from_domain(result)
+
+
 @router.post(
     "/public/conversations",
     status_code=status.HTTP_201_CREATED,
@@ -466,11 +649,21 @@ async def create_public_conversation(
     payload: PublicConversationCreateRequest,
     scope: PublicRetrievalScope = Depends(get_public_scope),
     service: ConversationServicePort = Depends(get_conversation_service),
+    analytics: PublicAnalyticsServicePort = Depends(get_public_analytics_service),
 ) -> ConversationResponse:
     try:
         conversation = await service.create_public_conversation(
             scope=scope, title=payload.title
         )
+        try:
+            await analytics.record_event(
+                space_id=scope.space_id,
+                share_link_id=scope.share_link_id,
+                visitor_id=scope.visitor_id or "anonymous",
+                event_type=PublicAccessEventType.CONVERSATION,
+            )
+        except Exception:
+            pass
     except Exception as error:
         _translate_conversation_error(error)
         raise
@@ -487,8 +680,14 @@ async def ask_public(
     request: Request,
     scope: PublicRetrievalScope = Depends(get_public_scope),
     service: ConversationServicePort = Depends(get_conversation_service),
+    question_limit_service: PublicQuestionLimitServicePort = Depends(get_public_question_limit_service),
 ) -> PublicAnswerResponse | StreamingResponse:
     try:
+        await question_limit_service.check_and_record(
+            scope=scope,
+            conversation_id=conversation_id,
+            question=payload.question,
+        )
         result = await service.ask_public(
             conversation_id=conversation_id,
             scope=scope,

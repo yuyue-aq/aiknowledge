@@ -9,7 +9,9 @@
 - 模型：DeepSeek `deepseek-flash`（瞬时网络/5xx 错误有限重试）；Embedding `BAAI/bge-large-zh-v1.5`，默认 1024 维，支持批量生成。
 - 问答：普通 JSON 与 SSE 增量事件；前端支持 `AbortController` 停止生成、SSE 不可用时降级 JSON；连续追问只使用最近用户问题，不把回答当作事实证据。
 - 安全：公开会话/提问进程级限流、可信 Origin 校验、安全响应头、公开响应不包含来源字段。
-- 用户登录/注册和真实授权：按你的明确要求暂缓，目录和入口保留；在接入公网前必须先补齐身份认证与 owner scope。
+- 用户登录/注册、刷新令牌和空间成员权限：已接入；公开访问仍通过短期会话和分享范围控制。生产环境请使用独立密钥并完成 HTTPS/日志/备份配置。
+- 外部知识来源：支持登记网页、Markdown 仓库地址和 FAQ CSV/TSV/XLSX 地址，手动同步后复用普通文档的解析、向量化与权限链路。
+- 运营增强：支持公开访问统计、访客问题审核/隐藏、来源 Origin 白名单、评测集版本快照、批量文档上传、公开 Token 查询和嵌入脚本。
 
 ## Windows Docker 启动（推荐）
 
@@ -39,6 +41,8 @@
 
    API 容器启动时自动执行 `alembic upgrade head`。访问 `http://localhost:8000/health/live` 检查存活，`http://localhost:8000/health/ready` 检查 Postgres、Redis、MinIO；前端地址为 `http://localhost:10086`。
 
+   Worker 默认使用 4 个 Celery 子进程，并将模型线程限制为 1；每个子进程会加载一份本地 BGE 模型。CPU 较弱时可在 `aiknowledge\\.env` 下调 `AIKNOWLEDGE_WORKER_CONCURRENCY`，内存充足且需要并行 ingest 时再调高。
+
 4. 查看应用日志：
 
    ```powershell
@@ -52,6 +56,10 @@
    ```
 
    前端 H5 已在 Nginx 容器内构建并托管，不需要再运行 IDE 中的 `npm run dev:h5` 或本机 Uvicorn。Compose 默认将前端 API 地址编译为 `http://localhost:8000/api/v1`；如果修改了 API 端口，请同步修改 `.env` 中的 `TARO_APP_API_BASE` 和 Compose 端口映射后重新执行 `up -d --build`。跨域地址必须同时加入 `AIKNOWLEDGE_CORS_ALLOWED_ORIGINS`。
+
+## 备份与恢复
+
+数据库和 MinIO 私有桶需要成对备份。`ops\backup.ps1` 优先使用本机 `mc`，没有安装时会自动使用 API 容器内的 MinIO SDK 生成 tar 归档；`ops\restore.ps1` 默认拒绝执行，必须显式传入 `-ConfirmRestore`。完整说明见 [`ops/README.md`](ops/README.md)。
 
 ## 测试与静态检查
 
@@ -78,6 +86,16 @@ npm run lint:style
 
 后端测试采用 TDD，覆盖模型客户端、Embedding 维度/重试、文档解析与生命周期、空间/分类/分享权限、owner/public RAG scope、引用快照、连续追问、对话列表/删除、SSE、限流和 Origin 安全策略。Docker 不可用时仍可运行完整单元/API 测试；依赖恢复后再运行 `tests\runtime_public_e2e.ps1` 与 `tests\runtime_delete_cleanup.ps1` 做真实 Postgres/Redis/MinIO 验证。
 
+Docker 运行链路的安全冒烟测试使用纯合成夹具，不会上传项目文档：
+
+```powershell
+$fixture = "D:\develop\aiknowledge\aiknowledge\tests\runtime_synthetic_public.txt"
+& .\aiknowledge\tests\runtime_public_e2e.ps1 -FixturePath $fixture
+& .\aiknowledge\tests\runtime_delete_cleanup.ps1 -FixturePath $fixture
+```
+
+`tests\runtime_eval_baseline.ps1` 会读取项目资料并调用配置的第三方 DeepSeek 服务，脚本默认拒绝执行；只有在明确授权资料外发后，才显式追加 `-AllowExternalData` 运行。
+
 ## 主要接口
 
 ```text
@@ -85,19 +103,57 @@ GET    /health/live
 GET    /health/ready
 POST   /api/v1/spaces
 GET    /api/v1/spaces
+GET    /api/v1/spaces/{space_id}/usage
+GET    /api/v1/spaces/{space_id}/public-questions
 POST   /api/v1/spaces/{space_id}/documents
 GET    /api/v1/spaces/{space_id}/documents
+GET    /api/v1/spaces/{space_id}/sources
+POST   /api/v1/spaces/{space_id}/sources
+PATCH  /api/v1/sources/{source_id}
+POST   /api/v1/sources/{source_id}/sync
+GET    /api/v1/spaces/{space_id}/eval-versions
+POST   /api/v1/spaces/{space_id}/eval-versions
+POST   /api/v1/eval-versions/{version_id}/runs
+GET    /api/v1/spaces/{space_id}/eval-runs/compare?baseline_run_id={id}&candidate_run_id={id}
+GET    /api/v1/spaces/{space_id}/public-analytics
+GET    /api/v1/spaces/{space_id}/public-questions
 POST   /api/v1/owner/conversations
 GET    /api/v1/owner/conversations?space_id={space_id}
 GET    /api/v1/owner/conversations/{conversation_id}
 POST   /api/v1/owner/conversations/{conversation_id}/messages
 DELETE /api/v1/owner/conversations/{conversation_id}
 POST   /api/v1/public/session
+POST   /api/v1/public/query
 POST   /api/v1/public/conversations
 POST   /api/v1/public/conversations/{conversation_id}/messages
 ```
 
 `stream=true` 时消息接口返回 `text/event-stream`，事件顺序为若干 `delta`（`{"text":"..."}`）、`answer`（最终 DTO）和 `done`。`delta` 是服务端完成引用/权限校验后的安全增量，不会把未经校验的模型原始 token 提前暴露；公开接口的每个事件都不包含 citations、文件名或原文片段。
+
+### 公开 Token 与嵌入
+
+在空间设置中生成分享链接后，可选填来源 Origin 白名单（例如 `https://docs.example.com`）。公开会话、Cookie 问答以及 `POST /api/v1/public/query` 都会统一执行白名单校验；未配置白名单时不限制 Origin，但仍需要有效分享 Token。
+
+网页嵌入脚本位于构建产物 [`aiknowledge_frontend/dist/aiknowledge-embed.js`](aiknowledge_frontend/dist/aiknowledge-embed.js)。将脚本部署到静态站点后，在业务页面使用：
+
+```html
+<div id="aiknowledge-widget"></div>
+<script src="/aiknowledge-embed.js"></script>
+<script>
+  AiKnowledgeEmbed.mount({
+    token: "创建分享链接时获得的 token",
+    target: "#aiknowledge-widget",
+    publicUrl: "http://localhost:10086",
+    height: "620px"
+  });
+</script>
+```
+
+脚本只把 Token 放入公开页面 iframe 的 URL，不向脚本服务器发送 Token；生产环境请使用 HTTPS、短期 Token 和明确的 Origin 白名单。
+
+### 批量导入与评测版本
+
+批量上传使用 `POST /api/v1/spaces/{space_id}/documents/batch`，字段名为 `files`，单次最多 20 个文件，返回 `items` 与逐文件 `failures`，允许部分成功。评测页可以保存当前题集快照并按版本运行，版本记录包含题目、预期答案和证据 ID，避免后续编辑题集改变历史结果。
 
 ## Docker 故障排查
 

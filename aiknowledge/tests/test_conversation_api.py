@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
@@ -17,6 +18,7 @@ from app.domain.conversations import (
 )
 from app.domain.rag import AnswerStatus
 from app.domain.spaces import Category, KnowledgeSpace, PublicRetrievalScope, SpaceVisibility
+from app.core.config import Settings
 from app.main import create_app
 from app.api.v1.conversations import OwnerAnswerResponse, _as_sse
 
@@ -210,6 +212,72 @@ async def test_owner_api_returns_source_citations_but_public_api_never_serialize
     assert "私有文件名不能出现在访客响应.pdf" not in serialized_public_answer
     assert "私有引用片段不能出现在访客响应。" not in serialized_public_answer
     assert conversations.public_scopes == [spaces.scope, spaces.scope]
+
+
+@pytest.mark.asyncio
+async def test_public_query_endpoint_accepts_share_token_without_browser_cookie() -> None:
+    spaces = FakePublicSpaceService()
+    conversations = FakeConversationService(spaces.space.id, spaces.link_id)
+
+    class FakeLimit:
+        async def check_and_record(self, **_: object) -> None:
+            return None
+
+    app = create_app(
+        rag_service=object(),
+        space_service_factory=lambda _: spaces,
+        conversation_service_factory=lambda _: conversations,
+    )
+    app.state.public_question_limit_service_factory = lambda _: FakeLimit()
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.post(
+            "/api/v1/public/query",
+            json={"token": "only-returned-once-token", "question": "公开入口能回答什么？"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "ANSWERED"
+    assert "citations" not in response.json()
+    assert "only-returned-once-token" not in response.text
+
+
+@pytest.mark.asyncio
+async def test_public_share_origin_allowlist_rejects_untrusted_browser_origins() -> None:
+    spaces = FakePublicSpaceService()
+    spaces.scope = replace(spaces.scope, allowed_origins=("https://trusted.example",))
+    conversations = FakeConversationService(spaces.space.id, spaces.link_id)
+    app = create_app(
+        settings=Settings(cors_allowed_origins="https://evil.example,https://trusted.example"),
+        rag_service=object(),
+        space_service_factory=lambda _: spaces,
+        conversation_service_factory=lambda _: conversations,
+    )
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        blocked = await client.post(
+            "/api/v1/public/session",
+            json={"token": "only-returned-once-token"},
+            headers={"Origin": "https://evil.example"},
+        )
+        allowed = await client.post(
+            "/api/v1/public/session",
+            json={"token": "only-returned-once-token"},
+            headers={"Origin": "https://trusted.example/"},
+        )
+        direct_blocked = await client.post(
+            "/api/v1/public/query",
+            json={"token": "only-returned-once-token", "question": "测试"},
+            headers={"Origin": "https://evil.example"},
+        )
+
+    assert blocked.status_code == 403
+    assert blocked.json()["code"] == "PUBLIC_ACCESS_DENIED"
+    assert allowed.status_code == 200
+    assert direct_blocked.status_code == 403
 
 
 @pytest.mark.asyncio
