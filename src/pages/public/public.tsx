@@ -38,6 +38,8 @@ const demoSpace: PublicSpace = {
 export default function Public() {
   const router = useRouter();
   const [token, setToken] = useState(router.params.token ?? "");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [space, setSpace] = useState<PublicSpace | null>(null);
   const [state, setState] = useState<"entry" | "loading" | "ready" | "invalid">(
     "entry",
@@ -84,7 +86,7 @@ export default function Public() {
       setState("entry");
     }
   };
-  const openSession = async (nextToken: string) => {
+  const openSession = async (nextToken: string, nextPassword = password) => {
     if (!nextToken.trim()) {
       setError("请输入有效的分享 token。");
       return;
@@ -94,7 +96,7 @@ export default function Public() {
     setQuestionError("");
     setUsingDemo(false);
     try {
-      const result = await createPublicSession(nextToken.trim());
+      const result = await createPublicSession(nextToken.trim(), nextPassword.trim() || undefined);
       setSpace(result);
       setState("ready");
       setToken(nextToken.trim());
@@ -234,6 +236,30 @@ export default function Public() {
               aria-label='分享 token'
               onConfirm={() => void openSession(token)}
             />
+          </View>
+          <View className='public-token-field'>
+            <Text className='field-label'>访问密码（如有）</Text>
+            <View className='secret-input public-secret-input'>
+              <Input
+                value={password}
+                password={!showPassword}
+                onInput={(event) => {
+                  setPassword(valueOf(event));
+                  setError("");
+                }}
+                placeholder='如链接设置了密码，请输入'
+                aria-label='访问密码'
+                onConfirm={() => void openSession(token)}
+              />
+              <Button
+                className='input-action'
+                size='mini'
+                onClick={() => setShowPassword((current) => !current)}
+                aria-label={showPassword ? '隐藏访问密码' : '显示访问密码'}
+              >
+                {showPassword ? '隐藏' : '显示'}
+              </Button>
+            </View>
           </View>
           {error && <Text className='public-error'>{error}</Text>}
           <Button

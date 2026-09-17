@@ -23,6 +23,14 @@ import {
   listCategories,
   listDocuments,
   listEvalCases,
+  listEvalRuns,
+  compareEvalRuns,
+  listEvalVersions,
+  createEvalVersion,
+  runEvalVersion,
+  createEvalCase,
+  deleteEvalCase,
+  reviewEvalResult,
   listFeedback,
   listShareLinks,
   listSpaces,
@@ -41,13 +49,50 @@ import {
   type ConversationDetail,
   type EvalCase,
   type EvalDetail,
+  type EvalRunComparison,
+  type EvalSetVersion,
+  type EvalResult,
   type Feedback,
   type FeedbackRating,
   type KnowledgeDocument,
   type ShareLink,
   type Space,
+  type SpacePlan,
   type SpaceVisibility,
   type UploadFile,
+  login,
+  register,
+  getMe,
+  logout,
+  type AuthUser,
+  createTag,
+  deleteTag,
+  listTags,
+  listMembers,
+  addMember,
+  changeMemberRole,
+  removeMember,
+  reviewFeedback,
+  searchDocuments,
+  listDocumentTags,
+  setDocumentTags,
+  updateDocumentAvailability,
+  type KnowledgeTag,
+  type SpaceMember,
+  getSpaceUsage,
+  type SpaceUsage,
+  createSource,
+  listSources,
+  setSourceStatus,
+  syncSource,
+  type KnowledgeSource,
+  type SourceKind,
+  type SourceStatus,
+  listPublicQuestionRecords,
+  getPublicAnalytics,
+  moderatePublicQuestion,
+  type PublicAnalytics,
+  type PublicQuestionRecord,
 } from "../../api/client";
 import { AppShell, type WorkspacePage } from "../../components/AppShell";
 import { Icon } from "../../components/Icon";
@@ -60,6 +105,7 @@ import {
   demoSpaceId,
 } from "../../mock/data";
 import "./index.scss";
+import "./eval-compare.scss";
 
 type ToastTone = "success" | "info" | "warning" | "error";
 type ToastState = { tone: ToastTone; message: string } | null;
@@ -77,6 +123,12 @@ type LocalMessage = {
 const now = () => new Date().toISOString();
 const localId = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+const formatSignedPercent = (value: number | null | undefined) => {
+  if (value == null || Number.isNaN(value)) return "—";
+  const percent = Math.round(value * 100);
+  return `${percent > 0 ? "+" : ""}${percent}%`;
+};
 
 const isLocalDemoId = (value: string | null | undefined) =>
   Boolean(value && (value === demoSpaceId || /^(space|document|conversation|assistant|user)-/.test(value)));
@@ -116,7 +168,7 @@ function AuthView({
   onEnter,
   onPublic,
 }: {
-  onEnter: () => void;
+  onEnter: (user: AuthUser) => void;
   onPublic: () => void;
 }) {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -127,7 +179,7 @@ function AuthView({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const submit = () => {
+  const submit = async () => {
     if (mode === "register" && !name.trim()) {
       setError("请输入你的称呼。");
       return;
@@ -136,17 +188,22 @@ function AuthView({
       setError("请输入有效的邮箱地址。");
       return;
     }
-    if (password.length < 6) {
-      setError("密码至少需要 6 个字符。");
+    if (password.length < 8) {
+      setError("密码至少需要 8 个字符。");
       return;
     }
     setError("");
     setBusy(true);
-    // 用户系统按要求保留为独立模块；当前 MVP 使用本地工作区入口。
-    setTimeout(() => {
+    try {
+      const session = mode === "login"
+        ? await login({ email: email.trim(), password })
+        : await register({ email: email.trim(), password, display_name: name.trim() });
+      onEnter(session.user);
+    } catch (requestError) {
+      setError(requestError instanceof ApiRequestError ? requestError.message : "暂时无法完成登录，请稍后重试。");
+    } finally {
       setBusy(false);
-      onEnter();
-    }, 260);
+    }
   };
 
   return (
@@ -202,7 +259,7 @@ function AuthView({
           <Text className='auth-card-desc'>
             {mode === "login"
               ? "登录知溯，继续你的知识工作"
-              : "先创建一个本地工作区，稍后可接入授权系统"}
+              : "创建账号并进入你的知识工作区"}
           </Text>
           {mode === "register" && (
             <Field label='称呼' id='auth-name'>
@@ -229,7 +286,7 @@ function AuthView({
                 setError("");
               }}
               aria-label='邮箱'
-              onConfirm={submit}
+              onConfirm={() => void submit()}
             />
           </Field>
           <Field label='密码' id='auth-password'>
@@ -245,7 +302,7 @@ function AuthView({
                   setError("");
                 }}
                 aria-label='密码'
-                onConfirm={submit}
+                onConfirm={() => void submit()}
               />
               <Button
                 className='input-action'
@@ -300,9 +357,7 @@ function AuthView({
             <Icon name='globe' />
             使用公开访问链接
           </Button>
-          <Text className='auth-note'>
-            授权系统已预留目录，当前版本先验证知识库与模型闭环。
-          </Text>
+          <Text className='auth-note'>登录后可管理私密空间、团队成员与公开问答范围。</Text>
         </View>
       </View>
     </View>
@@ -607,8 +662,8 @@ function SpacesView({
       <View className='model-note'>
         <Icon name='info' />
         <Text>
-          当前 MVP 暂以单工作区模式运行，授权/用户目录已保留；问答使用 DeepSeek
-          Flash，向量模型为 BAAI/bge-large-zh-v1.5（1024 维）。
+          当前支持多个知识空间与成员权限；问答使用 DeepSeek Flash，向量模型为
+          BAAI/bge-large-zh-v1.5（1024 维）。
         </Text>
       </View>
     </View>
@@ -769,14 +824,20 @@ function DocumentsView({
   space,
   documents,
   categories,
+  tags,
   error,
   onUpload,
   onDelete,
   onRetry,
+  onSearch,
+  onLoadTags,
+  onSetTags,
+  onAvailability,
 }: {
   space: Space;
   documents: KnowledgeDocument[];
   categories: Category[];
+  tags: KnowledgeTag[];
   error: string;
   onUpload: (
     file: UploadFile,
@@ -785,22 +846,34 @@ function DocumentsView({
   ) => Promise<void>;
   onDelete: (document: KnowledgeDocument) => Promise<void>;
   onRetry: (document: KnowledgeDocument) => Promise<void>;
+  onSearch: (query: string, tagId?: string) => Promise<void>;
+  onLoadTags: (document: KnowledgeDocument) => Promise<string[]>;
+  onSetTags: (document: KnowledgeDocument, tagIds: string[]) => Promise<void>;
+  onAvailability: (document: KnowledgeDocument, enabled: boolean) => Promise<void>;
 }) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [fileError, setFileError] = useState("");
-  const accept = ".pdf,.docx,.md,.markdown,.txt";
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchTag, setSearchTag] = useState("");
+  const accept = ".pdf,.docx,.md,.markdown,.txt,.csv,.tsv,.pptx";
   const categoryOptions = ["不指定分类", ...categories.map((category) => category.name)];
   const selectedCategoryIndex = selectedCategory
     ? Math.max(0, categories.findIndex((category) => category.id === selectedCategory) + 1)
     : 0;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      void onSearch(searchQuery.trim(), searchTag || undefined);
+    }, 260);
+    return () => clearTimeout(timer);
+  }, [onSearch, searchQuery, searchTag]);
   const handleFile = async (file: UploadFile | null) => {
     if (!file) return;
     const extension = `.${file.name.split(".").pop()?.toLowerCase()}`;
     if (!accept.split(",").includes(extension)) {
-      setFileError("仅支持 PDF、DOCX、Markdown、TXT 文件。");
+      setFileError("支持 PDF、DOCX、Markdown、TXT、CSV/TSV 和 PPTX 文件。");
       return;
     }
     if (file.size === 0 || file.size > 20 * 1024 * 1024) {
@@ -818,6 +891,9 @@ function DocumentsView({
       if (fileInput.current) fileInput.current.value = "";
     }
   };
+  const handleFiles = async (files: UploadFile[]) => {
+    for (const file of files) await handleFile(file);
+  };
   const openPicker = async () => {
     if (process.env.TARO_ENV === "h5") {
       fileInput.current?.click();
@@ -825,11 +901,11 @@ function DocumentsView({
     }
     try {
       const result = await Taro.chooseMessageFile({
-        count: 1,
+        count: 20,
         type: "file",
-        extension: ["pdf", "docx", "md", "markdown", "txt"],
+        extension: ["pdf", "docx", "md", "markdown", "txt", "csv", "tsv", "pptx"],
       });
-      await handleFile(result.tempFiles[0] ?? null);
+      await handleFiles(result.tempFiles);
     } catch {
       setFileError("无法打开文件选择器，请重试。");
     }
@@ -873,8 +949,9 @@ function DocumentsView({
           ref={fileInput}
           className='native-file-input'
           type='file'
+          multiple
           accept={accept}
-          onChange={(event) => void handleFile(event.target.files?.[0] ?? null)}
+          onChange={(event) => void handleFiles(Array.from(event.target.files ?? []))}
           aria-label='选择资料文件'
         />
         <View className='upload-icon'>
@@ -896,7 +973,7 @@ function DocumentsView({
             : "选择文件上传"}
         </Text>
         <Text className='drop-hint'>
-          支持 PDF、DOCX、Markdown、TXT，单文件不超过 20 MB
+          支持 PDF、DOCX、Markdown、TXT、CSV/TSV、PPTX，单文件不超过 20 MB
         </Text>
         {uploading && (
           <View className='progress-track'>
@@ -919,6 +996,30 @@ function DocumentsView({
           <Text>{error}</Text>
         </View>
       )}
+      <View className='document-search-bar'>
+        <View className='search-input-wrap'>
+          <Icon name='search' />
+          <Input
+            value={searchQuery}
+            placeholder='搜索文件名或处理信息…'
+            onInput={(event) => setSearchQuery(valueOf(event))}
+            aria-label='搜索文档'
+          />
+        </View>
+        <View className='tag-filter-list' role='listbox' aria-label='按标签筛选'>
+          <Button
+            className={!searchTag ? 'tag-filter is-active' : 'tag-filter'}
+            onClick={() => setSearchTag("")}
+          >全部标签</Button>
+          {tags.map((tag) => (
+            <Button
+              key={tag.id}
+              className={searchTag === tag.id ? 'tag-filter is-active' : 'tag-filter'}
+              onClick={() => setSearchTag(tag.id)}
+            >{tag.name}</Button>
+          ))}
+        </View>
+      </View>
       <View className='list-heading'>
         <Text className='section-title'>上传队列（{documents.length}/20）</Text>
         <Text className='muted-copy'>可逐个查看处理状态与失败原因</Text>
@@ -934,8 +1035,12 @@ function DocumentsView({
             <DocumentRow
               key={document.id}
               document={document}
+              tags={tags}
               onDelete={onDelete}
               onRetry={onRetry}
+              onLoadTags={onLoadTags}
+              onSetTags={onSetTags}
+              onAvailability={onAvailability}
             />
           ))}
         </View>
@@ -946,14 +1051,26 @@ function DocumentsView({
 
 function DocumentRow({
   document,
+  tags,
   onDelete,
   onRetry,
+  onLoadTags,
+  onSetTags,
+  onAvailability,
 }: {
   document: KnowledgeDocument;
+  tags: KnowledgeTag[];
   onDelete: (document: KnowledgeDocument) => Promise<void>;
   onRetry: (document: KnowledgeDocument) => Promise<void>;
+  onLoadTags: (document: KnowledgeDocument) => Promise<string[]>;
+  onSetTags: (document: KnowledgeDocument, tagIds: string[]) => Promise<void>;
+  onAvailability: (document: KnowledgeDocument, enabled: boolean) => Promise<void>;
 }) {
   const [busy, setBusy] = useState(false);
+  const [showTags, setShowTags] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(false);
+  const [tagsLoaded, setTagsLoaded] = useState(false);
   const status =
     document.status === "READY"
       ? "ready"
@@ -970,6 +1087,18 @@ function DocumentRow({
       setBusy(false);
     }
   };
+  const toggleTags = () => {
+    const next = !showTags;
+    setShowTags(next);
+    if (!next || tagsLoaded || tagsLoading) return;
+    setTagsLoading(true);
+    void onLoadTags(document)
+      .then((tagIds) => {
+        setSelectedTags(tagIds);
+        setTagsLoaded(true);
+      })
+      .finally(() => setTagsLoading(false));
+  };
   return (
     <View className='document-row'>
       <View
@@ -985,6 +1114,42 @@ function DocumentRow({
         </Text>
         {document.failure_message && (
           <Text className='document-error'>{document.failure_message}</Text>
+        )}
+        <View className='document-meta-controls'>
+          <Button
+            className='text-button compact-text-button'
+            onClick={toggleTags}
+          >标签</Button>
+          <Button
+            className='text-button compact-text-button'
+            onClick={() => void onAvailability(document, document.is_enabled === false)}
+          >{document.is_enabled === false ? '启用' : '停用'}</Button>
+          {(document.effective_at || document.expires_at) && (
+            <Text className='document-window'>
+              {document.effective_at ? `生效 ${formatDate(document.effective_at)}` : ''}
+              {document.expires_at ? ` · 截止 ${formatDate(document.expires_at)}` : ''}
+            </Text>
+          )}
+        </View>
+        {showTags && tags.length > 0 && (
+          <View className='document-tag-editor' role='group' aria-label='文档标签'>
+            {tagsLoading && <Text className='muted-copy'>正在读取已有标签…</Text>}
+            {tags.map((tag) => {
+              const selected = selectedTags.includes(tag.id);
+              return (
+                <Button
+                  key={tag.id}
+                  className={selected ? 'tag-filter is-active' : 'tag-filter'}
+                  onClick={() => setSelectedTags((items) => selected ? items.filter((id) => id !== tag.id) : [...items, tag.id])}
+                >{tag.name}</Button>
+              );
+            })}
+            <Button
+              className='outline-button compact'
+              onClick={() => void onSetTags(document, selectedTags)}
+              disabled={busy}
+            >保存标签</Button>
+          </View>
         )}
       </View>
       <View className='document-status'>
@@ -1326,21 +1491,38 @@ function CitationPanel({
 function PublicSettingsView({
   space,
   categories,
+  tags,
   links,
+  publicQuestions,
+  publicAnalytics,
   onToggle,
   onCreateCategory,
+  onCreateTag,
+  onDeleteTag,
   onShare,
   onRevoke,
+  onModerateQuestion,
 }: {
   space: Space;
   categories: Category[];
+  tags: KnowledgeTag[];
   links: ShareLink[];
+  publicQuestions: PublicQuestionRecord[];
+  publicAnalytics: PublicAnalytics | null;
   onToggle: (category: Category) => Promise<void>;
   onCreateCategory: (name: string) => Promise<void>;
-  onShare: () => Promise<CreatedShareLink | null>;
+  onCreateTag: (name: string) => Promise<void>;
+  onDeleteTag: (tag: KnowledgeTag) => Promise<void>;
+  onShare: (options?: { password?: string; visitor_question_limit?: number | null; allowed_origins?: string[] }) => Promise<CreatedShareLink | null>;
   onRevoke: (link: ShareLink) => Promise<void>;
+  onModerateQuestion: (item: PublicQuestionRecord) => Promise<void>;
 }) {
   const [categoryName, setCategoryName] = useState("");
+  const [tagName, setTagName] = useState("");
+  const [sharePassword, setSharePassword] = useState("");
+  const [questionLimit, setQuestionLimit] = useState("");
+  const [shareOrigin, setShareOrigin] = useState("");
+  const [showSharePassword, setShowSharePassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [shareResult, setShareResult] = useState<CreatedShareLink | null>(null);
   const [localError, setLocalError] = useState("");
@@ -1354,6 +1536,18 @@ function PublicSettingsView({
       setLocalError("分享链接已复制到剪贴板。");
     } catch {
       setLocalError("复制失败，请手动复制下方链接。");
+    }
+  };
+  const embedSnippet = shareResult
+    ? `<div id="knowledge-widget"></div>\n<script src="${typeof window !== "undefined" ? window.location.origin : ""}/aiknowledge-embed.js"></script>\n<script>AiKnowledgeEmbed.mount({ token: "${shareResult.token}", target: "#knowledge-widget" });</script>`
+    : "";
+  const copyEmbed = async () => {
+    if (!embedSnippet) return;
+    try {
+      await Taro.setClipboardData({ data: embedSnippet });
+      setLocalError("嵌入代码已复制到剪贴板。");
+    } catch {
+      setLocalError("复制失败，请手动复制下方嵌入代码。");
     }
   };
   const addCategory = async () => {
@@ -1405,7 +1599,7 @@ function PublicSettingsView({
               <View className='category-main'>
                 <Text className='category-name'>{category.name}</Text>
                 <Text className='category-description'>
-                  {category.description || "暂无分类说明"}
+                  {category.display_description || category.description || "暂无分类说明"}
                 </Text>
               </View>
               <Button
@@ -1435,6 +1629,41 @@ function PublicSettingsView({
           </Button>
         </View>
       </View>
+      <View className='settings-card tag-settings-card'>
+        <View className='card-heading'>
+          <View>
+            <Text className='section-title'>知识标签</Text>
+            <Text className='section-description'>用标签整理文档，便于快速筛选。</Text>
+          </View>
+        </View>
+        <View className='add-category'>
+          <Input
+            value={tagName}
+            placeholder='新增标签，例如：产品、合规'
+            onInput={(event) => setTagName(valueOf(event))}
+            aria-label='新增知识标签'
+          />
+          <Button
+            className='outline-button compact'
+            onClick={async () => {
+              if (!tagName.trim()) return;
+              setBusy(true);
+              try { await onCreateTag(tagName.trim()); setTagName(""); } finally { setBusy(false); }
+            }}
+            disabled={busy}
+          >新增标签</Button>
+        </View>
+        {tags.length > 0 && (
+          <View className='tag-manager-list'>
+            {tags.map((tag) => (
+              <View className='managed-tag' key={tag.id}>
+                <Text>{tag.name}</Text>
+                <Button className='text-button compact-text-button' onClick={() => void onDeleteTag(tag)}>删除</Button>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
       <View className='settings-card share-card'>
         <View className='card-heading'>
           <View>
@@ -1443,11 +1672,49 @@ function PublicSettingsView({
               访客只能查看以上 {openCategories.length} 个已开放分类的回答。
             </Text>
           </View>
+          <View className='share-controls'>
+            <View className='secret-input share-secret-input'>
+              <Input
+                value={sharePassword}
+                type='text'
+                password={!showSharePassword}
+                placeholder='访问密码（可选）'
+                onInput={(event) => setSharePassword(valueOf(event))}
+                aria-label='分享访问密码'
+              />
+              <Button
+                className='input-action'
+                size='mini'
+                onClick={() => setShowSharePassword((value) => !value)}
+                aria-label={showSharePassword ? '隐藏分享密码' : '显示分享密码'}
+              >{showSharePassword ? '隐藏' : '显示'}</Button>
+            </View>
+            <Input
+              className='share-limit-input'
+              type='number'
+              value={questionLimit}
+              placeholder='访客提问上限（可选）'
+              onInput={(event) => setQuestionLimit(valueOf(event))}
+              aria-label='访客提问上限'
+            />
+            <Input
+              className='share-origin-input'
+              value={shareOrigin}
+              placeholder='允许来源（可选，如 https://example.com）'
+              onInput={(event) => setShareOrigin(valueOf(event))}
+              aria-label='分享链接允许来源'
+            />
+          </View>
           <Button
             className='primary-button'
             onClick={async () => {
               setBusy(true);
-              const result = await onShare();
+              const parsedLimit = Number(questionLimit);
+              const result = await onShare({
+                password: sharePassword.trim() || undefined,
+                visitor_question_limit: Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : null,
+                allowed_origins: shareOrigin.trim() ? [shareOrigin.trim()] : [],
+              });
               if (result) setShareResult(result);
               setBusy(false);
             }}
@@ -1486,6 +1753,15 @@ function PublicSettingsView({
             </View>
           </View>
         )}
+        {shareResult && (
+          <View className='embed-snippet'>
+            <View className='embed-snippet-heading'>
+              <View><Text className='section-title'>嵌入到已有页面</Text><Text className='section-description'>加载脚本后会在目标容器中打开同一套公开问答界面。</Text></View>
+              <Button className='outline-button compact' onClick={() => void copyEmbed()}>复制代码</Button>
+            </View>
+            <Text className='embed-snippet-code'>{embedSnippet}</Text>
+          </View>
+        )}
         {links
           .filter((link) => link.status === "ACTIVE")
           .map((link) => (
@@ -1514,6 +1790,76 @@ function PublicSettingsView({
           <Text>访客只会看到回答，不会看到文档列表、原文片段或下载入口。</Text>
         </View>
       </View>
+      <View className='settings-card public-question-log-card'>
+        <View className='card-heading'>
+          <View>
+            <Text className='section-title'>访客提问记录</Text>
+            <Text className='section-description'>仅保存匿名标识与问题摘要哈希，便于观察公开入口使用情况。</Text>
+          </View>
+          <StatusPill status={publicQuestions.length ? 'ready' : 'neutral'}>
+            {publicQuestions.length} 条
+          </StatusPill>
+        </View>
+        {publicQuestions.length === 0 ? (
+          <Text className='muted-copy'>暂时没有访客提问记录。</Text>
+        ) : (
+          <View className='public-question-log-list'>
+            {publicQuestions.slice(0, 20).map((item) => (
+              <View className='public-question-log-row' key={item.id}>
+                <View>
+                  <Text className='public-question-log-time'>{formatDate(item.created_at)}</Text>
+                  <Text className='public-question-log-hash'>问题指纹 {item.question_hash.slice(0, 12)}…</Text>
+                </View>
+                <Text className='public-question-log-visitor'>访客 {item.visitor_id.slice(0, 8)}</Text>
+                <StatusPill status={item.is_hidden ? 'warning' : 'neutral'}>
+                  {item.is_hidden ? '已隐藏' : '可见'}
+                </StatusPill>
+                <Button
+                  className='text-button compact-text-button'
+                  onClick={() => void onModerateQuestion(item)}
+                >{item.is_hidden ? '取消隐藏' : '隐藏'}</Button>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+      <View className='settings-card public-analytics-card'>
+        <View className='card-heading'>
+          <View>
+            <Text className='section-title'>公开入口统计</Text>
+            <Text className='section-description'>最近 30 天的匿名访问趋势，不记录问题原文。</Text>
+          </View>
+          <StatusPill status={publicAnalytics ? 'ready' : 'neutral'}>
+            {publicAnalytics ? '已同步' : '暂无数据'}
+          </StatusPill>
+        </View>
+        {publicAnalytics ? (
+          <>
+            <View className='public-analytics-grid'>
+              <View><Text className='analytics-number'>{publicAnalytics.sessions}</Text><Text>访问会话</Text></View>
+              <View><Text className='analytics-number'>{publicAnalytics.conversations}</Text><Text>对话</Text></View>
+              <View><Text className='analytics-number'>{publicAnalytics.questions}</Text><Text>问题</Text></View>
+              <View><Text className='analytics-number'>{publicAnalytics.unique_visitors}</Text><Text>匿名访客</Text></View>
+            </View>
+            <View className='public-call-stats'>
+              <Text>模型调用 {publicAnalytics.answer_count ?? 0} 次</Text>
+              <Text>失败 {publicAnalytics.failed_answers ?? 0} 次</Text>
+              <Text>P50 {publicAnalytics.latency_p50_ms ?? '—'} ms</Text>
+              <Text>P95 {publicAnalytics.latency_p95_ms ?? '—'} ms</Text>
+              <Text>Token {(publicAnalytics.input_tokens ?? 0) + (publicAnalytics.output_tokens ?? 0)}</Text>
+            </View>
+            {publicAnalytics.daily.length > 0 && (
+              <View className='public-analytics-daily'>
+                {publicAnalytics.daily.slice(-7).map((item) => (
+                  <View className='public-analytics-day' key={item.date}>
+                    <Text>{item.date.slice(5)}</Text><Text>{item.questions} 问题</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
+        ) : <Text className='muted-copy'>公开入口产生访问后，这里会显示统计。</Text>}
+      </View>
     </View>
   );
 }
@@ -1522,16 +1868,27 @@ function FeedbackView({
   feedback,
   loading,
   onRetry,
+  onReview,
 }: {
   feedback: Feedback[];
   loading: boolean;
   onRetry: () => void;
+  onReview: (item: Feedback, input: {
+    review_status: "PENDING" | "FIXED" | "DEFERRED";
+    corrected_answer?: string | null;
+    review_note?: string | null;
+    data_usage_scope?: string;
+    pii_status?: string;
+  }) => Promise<void>;
 }) {
   const [filter, setFilter] = useState<"ALL" | FeedbackRating>("ALL");
   const filtered =
     filter === "ALL"
       ? feedback
       : feedback.filter((item) => item.rating === filter);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [correctedAnswer, setCorrectedAnswer] = useState("");
+  const [reviewNote, setReviewNote] = useState("");
   return (
     <View className='page-stack feedback-page'>
       <View className='page-heading'>
@@ -1554,20 +1911,20 @@ function FeedbackView({
         <FeedbackMetric
           tone='negative'
           label='负面反馈'
-          value={feedback.filter((item) => item.rating === "DOWN").length || 6}
+          value={feedback.filter((item) => item.rating === "DOWN").length}
         />
         <FeedbackMetric
           tone='pending'
           label='待处理'
           value={
-            feedback.filter((item) => item.rating === "NEEDS_CORRECTION")
-              .length || 4
+            feedback.filter((item) => item.rating === "NEEDS_CORRECTION" && item.review_status !== "FIXED")
+              .length
           }
         />
         <FeedbackMetric
           tone='positive'
           label='已修正'
-          value={feedback.filter((item) => item.rating === "UP").length || 2}
+          value={feedback.filter((item) => item.review_status === "FIXED").length}
         />
       </View>
       <View className='filter-chips' role='tablist' aria-label='反馈筛选'>
@@ -1601,6 +1958,7 @@ function FeedbackView({
             <Text>用户问题</Text>
             <Text>反馈状态</Text>
             <Text>原因</Text>
+            <Text>审核状态</Text>
             <Text>反馈时间</Text>
             <Text>操作</Text>
           </View>
@@ -1627,14 +1985,42 @@ function FeedbackView({
                 </StatusPill>
               </Text>
               <Text>{reasonLabel(item.reason)}</Text>
+              <Text>
+                <StatusPill status={item.review_status === "FIXED" ? "ready" : item.review_status === "DEFERRED" ? "neutral" : "warning"}>
+                  {item.review_status === "FIXED" ? "已修正" : item.review_status === "DEFERRED" ? "已延期" : "待处理"}
+                </StatusPill>
+              </Text>
               <Text className='tabular'>{formatDate(item.created_at)}</Text>
-              <Button
-                className='outline-button compact'
-                disabled
-                aria-label={`查看 ${item.comment || "该条"} 对话（MVP 未接入）`}
-              >
-                查看对话
-              </Button>
+              <View className='feedback-actions'>
+                <Button
+                  className='outline-button compact'
+                  onClick={() => {
+                    setEditingId(editingId === item.id ? null : item.id);
+                    setCorrectedAnswer(item.corrected_answer || "");
+                    setReviewNote(item.review_note || "");
+                  }}
+                >{editingId === item.id ? "收起" : "审核"}</Button>
+              </View>
+              {editingId === item.id && (
+                <View className='feedback-review-editor'>
+                  <Textarea
+                    value={correctedAnswer}
+                    placeholder='人工修正答案（标记为已修正时必填）'
+                    onInput={(event) => setCorrectedAnswer(valueOf(event))}
+                    aria-label='人工修正答案'
+                  />
+                  <Input
+                    value={reviewNote}
+                    placeholder='审核说明（可选）'
+                    onInput={(event) => setReviewNote(valueOf(event))}
+                    aria-label='审核说明'
+                  />
+                  <View className='feedback-review-actions'>
+                    <Button className='primary-button compact' onClick={() => void onReview(item, { review_status: "FIXED", corrected_answer: correctedAnswer, review_note: reviewNote, data_usage_scope: "INTERNAL_ONLY", pii_status: "UNKNOWN" })}>标记已修正</Button>
+                    <Button className='outline-button compact' onClick={() => void onReview(item, { review_status: "DEFERRED", review_note: reviewNote, data_usage_scope: "INTERNAL_ONLY", pii_status: "UNKNOWN" })}>暂缓处理</Button>
+                  </View>
+                </View>
+              )}
             </View>
           ))}
         </View>
@@ -1683,22 +2069,80 @@ function FeedbackMetric({
 
 function EvalView({
   cases,
+  runs,
+  versions,
   result,
   loading,
   onRun,
   onRetry,
+  onCreateCase,
+  onDeleteCase,
+  onReviewResult,
+  onCreateVersion,
+  onRunVersion,
+  comparison,
+  onCompare,
 }: {
   cases: EvalCase[];
+  runs: EvalDetail["run"][];
+  versions: EvalSetVersion[];
   result: EvalDetail | null;
   loading: boolean;
   onRun: () => Promise<void>;
   onRetry: () => void;
+  onCreateCase: (input: { question: string; expected_answer?: string | null; scope: EvalCase["scope"] }) => Promise<void>;
+  onDeleteCase: (item: EvalCase) => Promise<void>;
+  onReviewResult: (item: EvalResult, score: 0 | 0.5 | 1) => Promise<void>;
+  onCreateVersion: (label: string) => Promise<void>;
+  onRunVersion: (version: EvalSetVersion) => Promise<void>;
+  comparison: EvalRunComparison | null;
+  onCompare: (baselineRunId: string, candidateRunId: string) => Promise<void>;
 }) {
   const [scope, setScope] = useState<
     "ALL" | "OWNER" | "PUBLIC" | "OUT_OF_SCOPE"
   >("ALL");
   const filteredCases =
     scope === "ALL" ? cases : cases.filter((item) => item.scope === scope);
+  const [newQuestion, setNewQuestion] = useState("");
+  const [newExpected, setNewExpected] = useState("");
+  const [newScope, setNewScope] = useState<EvalCase["scope"]>("OWNER");
+  const [caseBusy, setCaseBusy] = useState(false);
+  const [versionLabel, setVersionLabel] = useState("");
+  const [versionBusy, setVersionBusy] = useState(false);
+  const [baselineRunId, setBaselineRunId] = useState("");
+  const [candidateRunId, setCandidateRunId] = useState("");
+  const [compareBusy, setCompareBusy] = useState(false);
+  const addCase = async () => {
+    if (!newQuestion.trim()) return;
+    setCaseBusy(true);
+    try {
+      await onCreateCase({ question: newQuestion.trim(), expected_answer: newExpected.trim() || null, scope: newScope });
+      setNewQuestion("");
+      setNewExpected("");
+    } finally { setCaseBusy(false); }
+  };
+  const saveVersion = async () => {
+    if (!versionLabel.trim()) return;
+    setVersionBusy(true);
+    try {
+      await onCreateVersion(versionLabel.trim());
+      setVersionLabel("");
+    } finally {
+      setVersionBusy(false);
+    }
+  };
+  const compare = async () => {
+    if (!baselineRunId || !candidateRunId || baselineRunId === candidateRunId) return;
+    setCompareBusy(true);
+    try {
+      await onCompare(baselineRunId, candidateRunId);
+    } finally {
+      setCompareBusy(false);
+    }
+  };
+  const runLabels = runs.map((run, index) => `${index + 1}. ${formatDate(run.created_at)} · ${run.status === "COMPLETED" ? "已完成" : run.status}`);
+  const baselineIndex = Math.max(0, runs.findIndex((run) => run.id === baselineRunId));
+  const candidateIndex = Math.max(0, runs.findIndex((run) => run.id === candidateRunId));
   return (
     <View className='page-stack eval-page'>
       <View className='page-heading'>
@@ -1717,6 +2161,39 @@ function EvalView({
           <Icon name='send' />
           {loading ? "运行中…" : "运行测试"}
         </Button>
+      </View>
+      <View className='settings-card eval-version-card'>
+        <View className='card-heading'>
+          <View>
+            <Text className='section-title'>测试集版本</Text>
+            <Text className='section-description'>冻结当前题集，后续修改不会影响已保存的基线。</Text>
+          </View>
+        </View>
+        <View className='eval-version-create'>
+          <Input
+            value={versionLabel}
+            maxlength={120}
+            placeholder='版本名称，例如：发布前基线'
+            onInput={(event) => setVersionLabel(valueOf(event))}
+            aria-label='评测集版本名称'
+          />
+          <Button className='outline-button compact' disabled={versionBusy || !versionLabel.trim() || cases.length === 0} onClick={() => void saveVersion()}>
+            {versionBusy ? '保存中…' : '保存当前题集'}
+          </Button>
+        </View>
+        {versions.length > 0 ? (
+          <View className='eval-version-list'>
+            {versions.slice(0, 10).map((version) => (
+              <View className='eval-version-row' key={version.id}>
+                <View className='eval-version-copy'>
+                  <Text>v{version.version_number} · {version.label}</Text>
+                  <Text className='muted-copy'>{version.cases.length} 题 · {formatDate(version.created_at)}</Text>
+                </View>
+                <Button className='text-button compact-text-button' disabled={loading} onClick={() => void onRunVersion(version)}>运行此版本</Button>
+              </View>
+            ))}
+          </View>
+        ) : <Text className='muted-copy'>保存后可对比不同题集版本的运行结果。</Text>}
       </View>
       <View className='eval-summary-cards'>
         <View className='eval-summary-card is-highlight'>
@@ -1768,6 +2245,34 @@ function EvalView({
             ))}
           </View>
         </View>
+        <View className='eval-case-create'>
+          <Textarea
+            value={newQuestion}
+            maxlength={2000}
+            placeholder='新增测试问题，例如：项目的交付周期是多少？'
+            onInput={(event) => setNewQuestion(valueOf(event))}
+            aria-label='新增测试问题'
+          />
+          <Input
+            value={newExpected}
+            maxlength={5000}
+            placeholder='参考答案（可选）'
+            onInput={(event) => setNewExpected(valueOf(event))}
+            aria-label='测试题参考答案'
+          />
+          <Picker
+            mode='selector'
+            range={['私密空间', '公开分类', '跨范围']}
+            value={newScope === 'OWNER' ? 0 : newScope === 'PUBLIC' ? 1 : 2}
+            onChange={(event) => {
+              const index = Number(event.detail.value);
+              setNewScope(index === 1 ? 'PUBLIC' : index === 2 ? 'OUT_OF_SCOPE' : 'OWNER');
+            }}
+          >
+            <View className='select-like' aria-label='测试题范围'><Text>{newScope === 'OWNER' ? '私密空间' : newScope === 'PUBLIC' ? '公开分类' : '跨范围'}</Text><Text>⌄</Text></View>
+          </Picker>
+          <Button className='outline-button compact' disabled={caseBusy || !newQuestion.trim()} onClick={() => void addCase()}>{caseBusy ? '添加中…' : '添加测试题'}</Button>
+        </View>
         {filteredCases.length === 0 ? (
           <EmptyState
             title='还没有测试题'
@@ -1794,12 +2299,75 @@ function EvalView({
                       ? "公开分类"
                       : "私密知识"}
                 </StatusPill>
+                <Button className='text-button compact-text-button' onClick={() => void onDeleteCase(item)}>删除</Button>
               </View>
             ))}
           </View>
         )}
       </View>
+      {runs.length > 0 && (
+        <View className='settings-card eval-history-card'>
+          <View className='card-heading'><View><Text className='section-title'>历史评测</Text><Text className='section-description'>保留最近运行快照，便于比较模型与检索配置变化。</Text></View></View>
+          <View className='eval-history-list'>
+            {runs.slice(0, 10).map((run) => (
+              <View className='eval-history-row' key={run.id}><Text>{formatDate(run.created_at)}</Text><StatusPill status={run.status === 'COMPLETED' ? 'ready' : run.status === 'FAILED' ? 'warning' : 'neutral'}>{run.status === 'COMPLETED' ? '已完成' : run.status === 'FAILED' ? '失败' : '进行中'}</StatusPill><Text className='muted-copy'>Top {String(run.retrieval_config_snapshot.candidate_limit ?? 12)}</Text></View>
+            ))}
+          </View>
+          {runs.length > 1 && (
+            <View className='eval-compare-bar'>
+              <Text className='muted-copy'>运行对比</Text>
+              <Picker
+                mode='selector'
+                range={runLabels}
+                value={baselineIndex}
+                onChange={(event) => setBaselineRunId(runs[Number(event.detail.value)]?.id ?? "")}
+              >
+                <View className='select-like compact-select'><Text>{baselineRunId ? `基线：${formatDate(runs[baselineIndex]?.created_at ?? "")}` : "选择基线"}</Text><Text>⌄</Text></View>
+              </Picker>
+              <Picker
+                mode='selector'
+                range={runLabels}
+                value={candidateIndex}
+                onChange={(event) => setCandidateRunId(runs[Number(event.detail.value)]?.id ?? "")}
+              >
+                <View className='select-like compact-select'><Text>{candidateRunId ? `候选：${formatDate(runs[candidateIndex]?.created_at ?? "")}` : "选择候选"}</Text><Text>⌄</Text></View>
+              </Picker>
+              <Button className='outline-button compact' disabled={compareBusy || !baselineRunId || !candidateRunId || baselineRunId === candidateRunId} onClick={() => void compare()}>
+                {compareBusy ? "对比中…" : "生成对比"}
+              </Button>
+            </View>
+          )}
+        </View>
+      )}
+      {comparison && (
+        <View className='settings-card eval-compare-card'>
+          <View className='card-heading'><View><Text className='section-title'>运行对比</Text><Text className='section-description'>候选运行相对基线的变化，正数表示指标提升。</Text></View></View>
+          <View className='eval-compare-grid'>
+            <View><Text className='muted-copy'>回答完成率</Text><Text className='eval-compare-value'>{Math.round(comparison.baseline_summary.answered_rate * 100)}% → {Math.round(comparison.candidate_summary.answered_rate * 100)}%</Text></View>
+            <View><Text className='muted-copy'>有效引用率</Text><Text className='eval-compare-value'>{Math.round(comparison.baseline_summary.citation_rate * 100)}% → {Math.round(comparison.candidate_summary.citation_rate * 100)}%</Text></View>
+            <View><Text className='muted-copy'>越权回答</Text><Text className='eval-compare-value'>{comparison.baseline_summary.out_of_scope_violations} → {comparison.candidate_summary.out_of_scope_violations}</Text></View>
+            <View><Text className='muted-copy'>回答率变化</Text><Text className='eval-compare-value'>{formatSignedPercent(comparison.delta.answered_rate)}</Text></View>
+          </View>
+        </View>
+      )}
       {result && <EvalResultCard result={result} />}
+      {result && result.results.length > 0 && (
+        <View className='settings-card eval-result-list'>
+          <View className='card-heading'>
+            <View><Text className='section-title'>人工复核</Text><Text className='section-description'>逐题标记正确、部分正确或错误，结果会写入本次评测。</Text></View>
+          </View>
+          {result.results.map((item) => (
+            <View className='eval-result-row' key={item.id}>
+              <View className='eval-result-copy'><Text>{item.answer.slice(0, 140) || '暂无回答'}</Text><Text className='muted-copy'>引用 {item.citation_count} 条 · {item.answer_status}</Text></View>
+              <View className='eval-review-actions'>
+                {([[1, '正确'], [0.5, '部分'], [0, '错误']] as const).map(([score, label]) => (
+                  <Button key={label} className={item.reviewer_score === score ? 'segment is-selected' : 'segment'} onClick={() => void onReviewResult(item, score)}>{label}</Button>
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
       <View className='model-note'>
         <Icon name='info' />
         <Text>
@@ -1870,10 +2438,54 @@ function EvalResultCard({ result }: { result: EvalDetail }) {
 function SettingsView({
   space,
   onVisibilityChange,
+  onPlanChange,
+  sources,
+  onCreateSource,
+  onSyncSource,
+  onToggleSource,
+  members,
+  onAddMember,
+  onChangeMemberRole,
+  onRemoveMember,
+  usage,
 }: {
   space: Space;
   onVisibilityChange: (visibility: SpaceVisibility) => Promise<void>;
+  onPlanChange: (plan: SpacePlan) => Promise<void>;
+  sources: KnowledgeSource[];
+  onCreateSource: (input: { kind: SourceKind; locator: string; name?: string }) => Promise<void>;
+  onSyncSource: (source: KnowledgeSource) => Promise<void>;
+  onToggleSource: (source: KnowledgeSource) => Promise<void>;
+  members: SpaceMember[];
+  onAddMember: (email: string, role: "EDITOR" | "MEMBER") => Promise<void>;
+  onChangeMemberRole: (member: SpaceMember, role: "EDITOR" | "MEMBER") => Promise<void>;
+  onRemoveMember: (member: SpaceMember) => Promise<void>;
+  usage: SpaceUsage | null;
 }) {
+  const [memberEmail, setMemberEmail] = useState("");
+  const [memberRole, setMemberRole] = useState<"EDITOR" | "MEMBER">("MEMBER");
+  const [memberBusy, setMemberBusy] = useState(false);
+  const [planBusy, setPlanBusy] = useState(false);
+  const [sourceKind, setSourceKind] = useState<SourceKind>("WEBPAGE");
+  const [sourceLocator, setSourceLocator] = useState("");
+  const [sourceName, setSourceName] = useState("");
+  const [sourceBusy, setSourceBusy] = useState(false);
+
+  const add = async () => {
+    const email = memberEmail.trim();
+    if (!email || !email.includes("@")) return;
+    setMemberBusy(true);
+    try {
+      await onAddMember(email, memberRole);
+      setMemberEmail("");
+    } finally {
+      setMemberBusy(false);
+    }
+  };
+
+  const roleLabel = (role: SpaceMember["role"]) =>
+    role === "OWNER" ? "所有者" : role === "EDITOR" ? "编辑者" : "成员";
+
   return (
     <View className='page-stack settings-page'>
       <View className='page-heading'>
@@ -1938,15 +2550,211 @@ function SettingsView({
           <ConfigItem label='检索候选' value='Top 12' />
         </View>
       </View>
+      <View className='settings-card source-settings'>
+        <View className='card-heading'>
+          <View>
+            <Text className='section-title'>外部知识来源</Text>
+            <Text className='section-description'>登记网页、Markdown 或 FAQ 地址，手动同步后会按普通文档进入解析与检索。</Text>
+          </View>
+          <StatusPill status={sources.length ? "ready" : "neutral"}>{sources.length} 个来源</StatusPill>
+        </View>
+        <View className='source-create-row'>
+          <Picker
+            mode='selector'
+            range={['网页', 'Markdown 仓库', 'FAQ 表格']}
+            value={sourceKind === 'WEBPAGE' ? 0 : sourceKind === 'MARKDOWN_REPOSITORY' ? 1 : 2}
+            onChange={(event) => {
+              const index = Number(event.detail.value);
+              setSourceKind(index === 1 ? 'MARKDOWN_REPOSITORY' : index === 2 ? 'FAQ_TABLE' : 'WEBPAGE');
+            }}
+          >
+            <View className='select-like source-kind-select' aria-label='来源类型'>
+              <Text>{sourceKind === 'WEBPAGE' ? '网页' : sourceKind === 'MARKDOWN_REPOSITORY' ? 'Markdown 仓库' : 'FAQ 表格'}</Text><Text>⌄</Text>
+            </View>
+          </Picker>
+          <Input
+            className='text-input source-locator-input'
+            value={sourceLocator}
+            placeholder='https://example.com/knowledge.md'
+            onInput={(event) => setSourceLocator(valueOf(event))}
+            aria-label='来源地址'
+          />
+          <Input
+            className='text-input source-name-input'
+            value={sourceName}
+            placeholder='名称（可选）'
+            onInput={(event) => setSourceName(valueOf(event))}
+            aria-label='来源名称'
+          />
+          <Button
+            className='primary-button compact'
+            disabled={sourceBusy || !sourceLocator.trim()}
+            onClick={async () => {
+              setSourceBusy(true);
+              try {
+                await onCreateSource({ kind: sourceKind, locator: sourceLocator.trim(), ...(sourceName.trim() ? { name: sourceName.trim() } : {}) });
+                setSourceLocator('');
+                setSourceName('');
+              } finally { setSourceBusy(false); }
+            }}
+          >{sourceBusy ? '登记中…' : '登记来源'}</Button>
+        </View>
+        {sources.length === 0 ? (
+          <Text className='muted-copy'>暂未登记外部来源。你也可以直接上传本地资料。</Text>
+        ) : (
+          <View className='source-list' role='list' aria-label='外部知识来源列表'>
+            {sources.map((source) => (
+              <View className='source-row' role='listitem' key={source.id}>
+                <View className='source-main'>
+                  <Text className='source-name'>{source.name || source.locator}</Text>
+                  <Text className='source-meta'>{source.kind === 'WEBPAGE' ? '网页' : source.kind === 'MARKDOWN_REPOSITORY' ? 'Markdown 仓库' : 'FAQ 表格'} · {source.locator}</Text>
+                  {source.last_error && <Text className='form-hint source-error'>{source.last_error}</Text>}
+                </View>
+                <StatusPill status={source.status === 'FAILED' ? 'warning' : source.status === 'READY' ? 'ready' : 'neutral'}>
+                  {source.status === 'READY' ? '已同步' : source.status === 'SYNCING' ? '同步中' : source.status === 'FAILED' ? '同步失败' : source.status === 'DISABLED' ? '已停用' : '待同步'}
+                </StatusPill>
+                <View className='source-actions'>
+                  <Button className='text-button compact-text-button' disabled={source.status === 'SYNCING'} onClick={() => void onSyncSource(source)}>同步</Button>
+                  <Button className='outline-button compact' onClick={() => void onToggleSource(source)}>{source.status === 'DISABLED' ? '启用' : '停用'}</Button>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+      <View className='settings-card plan-settings'>
+        <View className='settings-row'>
+          <View>
+            <Text className='section-title'>套餐权益</Text>
+            <Text className='section-description'>演示阶段可切换额度，用于验证不同套餐的资源边界；暂不连接支付渠道。</Text>
+          </View>
+          <View className='segmented-control plan-selector' aria-label='选择套餐'>
+            {([['FREE', '免费版'], ['PRO', '专业版'], ['TEAM', '小团队版']] as const).map(([plan, label]) => (
+              <Button
+                key={plan}
+                className={(space.plan ?? usage?.plan ?? 'FREE') === plan ? 'segment is-selected' : 'segment'}
+                disabled={planBusy}
+                onClick={async () => {
+                  setPlanBusy(true);
+                  try { await onPlanChange(plan); } finally { setPlanBusy(false); }
+                }}
+                aria-pressed={(space.plan ?? usage?.plan ?? 'FREE') === plan}
+              >{label}</Button>
+            ))}
+          </View>
+        </View>
+      </View>
+      {usage && (
+        <View className='settings-card usage-settings'>
+          <View className='card-heading'>
+            <View>
+              <Text className='section-title'>套餐与用量</Text>
+              <Text className='section-description'>当前套餐仅控制资源上限，不连接支付渠道。</Text>
+            </View>
+            <StatusPill status={usage.plan === "FREE" ? "neutral" : "ready"}>
+              {usage.plan === "FREE" ? "个人免费版" : usage.plan === "PRO" ? "个人专业版" : "小团队版"}
+            </StatusPill>
+          </View>
+          <View className='usage-grid'>
+            <UsageItem label='文档' used={usage.documents_used} limit={usage.limits.documents} />
+            <UsageItem label='成员' used={usage.members_used} limit={usage.limits.members} />
+            <UsageItem label='今日提问' used={usage.questions_used_today} limit={usage.limits.questions_per_day} />
+          </View>
+        </View>
+      )}
+      <View className='settings-card members-settings'>
+        <View className='card-heading'>
+          <View>
+            <Text className='section-title'>成员与权限</Text>
+            <Text className='section-description'>
+              通过邮箱邀请协作者，并按最小权限分配编辑或只读访问。
+            </Text>
+          </View>
+          <StatusPill status='ready'>服务端鉴权</StatusPill>
+        </View>
+        <View className='member-invite'>
+          <Input
+            className='text-input member-email-input'
+            value={memberEmail}
+            onInput={(event) => setMemberEmail(valueOf(event))}
+            onConfirm={() => void add()}
+            type='text'
+            placeholder='输入成员邮箱'
+            aria-label='成员邮箱'
+          />
+          <View className='member-role-picker' role='group' aria-label='成员角色'>
+            <Button
+              className={memberRole === "MEMBER" ? "segment is-selected" : "segment"}
+              onClick={() => setMemberRole("MEMBER")}
+              aria-pressed={memberRole === "MEMBER"}
+            >只读成员</Button>
+            <Button
+              className={memberRole === "EDITOR" ? "segment is-selected" : "segment"}
+              onClick={() => setMemberRole("EDITOR")}
+              aria-pressed={memberRole === "EDITOR"}
+            >编辑者</Button>
+          </View>
+          <Button
+            className='primary-button compact member-invite-button'
+            onClick={() => void add()}
+            disabled={memberBusy || !memberEmail.trim()}
+            aria-busy={memberBusy}
+          >{memberBusy ? "添加中…" : "添加成员"}</Button>
+        </View>
+        <View className='member-list' role='list' aria-label='空间成员'>
+          {members.length === 0 && (
+            <View className='empty-state compact-empty'>
+              <Text>暂无成员记录。添加后，成员会在这里显示。</Text>
+            </View>
+          )}
+          {members.map((member) => (
+            <View className='member-row' role='listitem' key={member.user_id}>
+              <View className='member-avatar' aria-hidden='true'>
+                <Text>{(member.display_name || member.email || "?").slice(0, 1).toUpperCase()}</Text>
+              </View>
+              <View className='member-identity'>
+                <Text className='member-name'>{member.display_name || "未命名成员"}</Text>
+                <Text className='member-email'>{member.email}</Text>
+              </View>
+              <StatusPill status={member.role === "OWNER" ? "ready" : "neutral"}>
+                {roleLabel(member.role)}
+              </StatusPill>
+              {member.role !== "OWNER" && (
+                <View className='member-actions'>
+                  <Button
+                    className='text-button compact-text-button'
+                    onClick={() => void onChangeMemberRole(member, member.role === "EDITOR" ? "MEMBER" : "EDITOR")}
+                  >切换为{member.role === "EDITOR" ? "只读" : "编辑"}</Button>
+                  <Button
+                    className='danger-button compact'
+                    onClick={() => void onRemoveMember(member)}
+                  >移除</Button>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      </View>
       <View className='auth-placeholder'>
         <Icon name='lock' />
         <View>
-          <Text className='section-title'>授权组件预留</Text>
+          <Text className='section-title'>安全边界</Text>
           <Text className='section-description'>
-            用户、角色与刷新令牌目录已保留，本阶段不伪装多用户隔离。接入授权后，空间与文档访问将由服务端身份注入。
+            所有者、编辑者与成员的空间访问均由服务端校验；分享链接仍单独受公开访问密码、分类范围和问题配额约束。
           </Text>
         </View>
       </View>
+    </View>
+  );
+}
+
+function UsageItem({ label, used, limit }: { label: string; used: number; limit: number }) {
+  const percentage = Math.min(100, Math.round((used / Math.max(limit, 1)) * 100));
+  return (
+    <View className='usage-item'>
+      <View className='usage-item-heading'><Text>{label}</Text><Text>{used} / {limit}</Text></View>
+      <View className='usage-track' aria-label={`${label}使用量 ${used} / ${limit}`}><View className='usage-bar' style={{ width: `${percentage}%` }} /></View>
+      <Text className='usage-remaining'>剩余 {Math.max(limit - used, 0)}</Text>
     </View>
   );
 }
@@ -1981,15 +2789,25 @@ function reasonLabel(reason: Feedback["reason"]) {
 export default function Index() {
   const router = useRouter();
   const [loggedIn, setLoggedIn] = useState(false);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [activePage, setActivePage] = useState<WorkspacePage>("spaces");
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [currentSpace, setCurrentSpace] = useState<Space | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<KnowledgeTag[]>([]);
+  const [members, setMembers] = useState<SpaceMember[]>([]);
+  const [usage, setUsage] = useState<SpaceUsage | null>(null);
+  const [publicQuestions, setPublicQuestions] = useState<PublicQuestionRecord[]>([]);
+  const [publicAnalytics, setPublicAnalytics] = useState<PublicAnalytics | null>(null);
+  const [sources, setSources] = useState<KnowledgeSource[]>([]);
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
   const [documentsError, setDocumentsError] = useState("");
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [evalCases, setEvalCases] = useState<EvalCase[]>([]);
+  const [evalRuns, setEvalRuns] = useState<EvalDetail["run"][]>([]);
+  const [evalVersions, setEvalVersions] = useState<EvalSetVersion[]>([]);
   const [evalResult, setEvalResult] = useState<EvalDetail | null>(null);
+  const [evalComparison, setEvalComparison] = useState<EvalRunComparison | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [shareLinks, setShareLinks] = useState<ShareLink[]>([]);
@@ -2179,6 +2997,14 @@ export default function Index() {
 
   useLoad(() => {
     if (router.params.view === "workspace") setLoggedIn(true);
+    void getMe()
+      .then((user) => {
+        setAuthUser(user);
+        setLoggedIn(true);
+      })
+      .catch(() => {
+        // The login form owns the recoverable unauthenticated state.
+      });
   });
   useEffect(() => {
     if (!toast) return undefined;
@@ -2234,11 +3060,17 @@ export default function Index() {
     setMessages([]);
     setDocuments([]);
     setDocumentsError("");
+    setSources([]);
     void restoreConversation(space.id);
     try {
       setCategories(await listCategories(space.id));
     } catch {
       setCategories(space.id === demoSpaceId ? demoCategories : []);
+    }
+    try {
+      setTags(await listTags(space.id));
+    } catch {
+      setTags([]);
     }
     try {
       const listedDocuments = await listDocuments(space.id);
@@ -2281,6 +3113,41 @@ export default function Index() {
       setShareLinks(await listShareLinks(space.id));
     } catch {
       setShareLinks([]);
+    }
+  }, []);
+  const loadMembers = useCallback(async (space: Space) => {
+    try {
+      setMembers(await listMembers(space.id));
+    } catch {
+      setMembers([]);
+    }
+  }, []);
+  const loadUsage = useCallback(async (space: Space) => {
+    try {
+      setUsage(await getSpaceUsage(space.id));
+    } catch {
+      setUsage(null);
+    }
+  }, []);
+  const loadPublicQuestions = useCallback(async (space: Space) => {
+    try {
+      setPublicQuestions(await listPublicQuestionRecords(space.id));
+    } catch {
+      setPublicQuestions([]);
+    }
+  }, []);
+  const loadPublicAnalytics = useCallback(async (space: Space) => {
+    try {
+      setPublicAnalytics(await getPublicAnalytics(space.id));
+    } catch {
+      setPublicAnalytics(null);
+    }
+  }, []);
+  const loadSources = useCallback(async (space: Space) => {
+    try {
+      setSources(await listSources(space.id));
+    } catch {
+      setSources([]);
     }
   }, []);
   const ensureConversation = useCallback(async () => {
@@ -2548,6 +3415,84 @@ export default function Index() {
     },
     [currentSpace, trackDocumentProcessing],
   );
+  const handleDocumentSearch = useCallback(
+    async (query: string, tagId?: string) => {
+      if (!currentSpace) return;
+      try {
+        const result = query || tagId
+          ? await searchDocuments(currentSpace.id, query, tagId)
+          : await listDocuments(currentSpace.id);
+        setDocuments(result);
+        setDocumentsError("");
+      } catch (error) {
+        if (!isDemoSpace(currentSpace.id)) {
+          setDocumentsError(
+            error instanceof ApiRequestError ? error.message : "搜索暂时无法完成。",
+          );
+          return;
+        }
+        const normalized = query.toLowerCase();
+        setDocuments(
+          demoDocuments.filter((document) =>
+            !normalized || document.original_filename.toLowerCase().includes(normalized),
+          ),
+        );
+      }
+    },
+    [currentSpace, isDemoSpace],
+  );
+  const handleSetDocumentTags = useCallback(
+    async (document: KnowledgeDocument, tagIds: string[]) => {
+      try {
+        await setDocumentTags(document.space_id, document.id, tagIds);
+        setToast({ tone: "success", message: "文档标签已更新。" });
+      } catch (error) {
+        if (!isDemoSpace(document.space_id)) {
+          setToast({
+            tone: "error",
+            message: error instanceof ApiRequestError ? error.message : "标签更新失败。",
+          });
+          return;
+        }
+        setToast({ tone: "info", message: "演示标签已更新；连接 API 后会保存。" });
+      }
+    },
+    [isDemoSpace],
+  );
+  const handleLoadDocumentTags = useCallback(
+    async (document: KnowledgeDocument) => {
+      try {
+        const items = await listDocumentTags(document.id);
+        return items.map((tag) => tag.id);
+      } catch (error) {
+        if (!isDemoSpace(document.space_id)) {
+          setToast({
+            tone: "warning",
+            message: error instanceof ApiRequestError ? error.message : "已有标签暂时无法读取。",
+          });
+        }
+        return [];
+      }
+    },
+    [isDemoSpace],
+  );
+  const handleAvailability = useCallback(
+    async (document: KnowledgeDocument, enabled: boolean) => {
+      try {
+        const updated = await updateDocumentAvailability(document.id, { is_enabled: enabled });
+        setDocuments((items) => items.map((item) => item.id === document.id ? updated : item));
+        setToast({ tone: "success", message: enabled ? "文档已重新启用。" : "文档已停用，不会进入新检索。" });
+      } catch (error) {
+        if (!isDemoSpace(document.space_id)) {
+          setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "文档状态更新失败。" });
+          return;
+        }
+        setDocuments((items) => items.map((item) => item.id === document.id ? { ...item, is_enabled: enabled } : item));
+        setToast({ tone: "info", message: "演示文档状态已更新。" });
+      }
+    },
+    [isDemoSpace],
+  );
   const handleDelete = useCallback(async (document: KnowledgeDocument) => {
     try {
       await deleteDocument(document.id);
@@ -2650,13 +3595,48 @@ export default function Index() {
     },
     [categories.length, currentSpace],
   );
-  const handleShare = useCallback(async () => {
+  const handleCreateTag = useCallback(async (name: string) => {
+    if (!currentSpace) return;
+    try {
+      const tag = await createTag(currentSpace.id, { name });
+      setTags((items) => [...items, tag]);
+      setToast({ tone: "success", message: `标签“${name}”已创建。` });
+    } catch (error) {
+      if (!isDemoSpace(currentSpace.id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "标签创建失败。" });
+        return;
+      }
+      const tag: KnowledgeTag = {
+        id: localId("tag"),
+        space_id: currentSpace.id,
+        name,
+        color: null,
+        created_at: now(),
+        updated_at: now(),
+      };
+      setTags((items) => [...items, tag]);
+      setToast({ tone: "info", message: "演示标签已创建。" });
+    }
+  }, [currentSpace, isDemoSpace]);
+  const handleDeleteTag = useCallback(async (tag: KnowledgeTag) => {
+    try {
+      await deleteTag(tag.id);
+    } catch (error) {
+      if (!isDemoSpace(tag.space_id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "标签删除失败。" });
+        return;
+      }
+    }
+    setTags((items) => items.filter((item) => item.id !== tag.id));
+    setToast({ tone: "success", message: `标签“${tag.name}”已删除。` });
+  }, [isDemoSpace]);
+  const handleShare = useCallback(async (options?: { password?: string; visitor_question_limit?: number | null; allowed_origins?: string[] }) => {
     if (!currentSpace) return null;
     const ids = categories
       .filter((category) => category.is_open)
       .map((category) => category.id);
     try {
-      const created = await createShareLink(currentSpace.id, ids);
+      const created = await createShareLink(currentSpace.id, ids, options);
       setShareLinks((items) => [created.link, ...items]);
       setToast({
         tone: "success",
@@ -2673,6 +3653,8 @@ export default function Index() {
           created_at: now(),
           revoked_at: null,
           expires_at: null,
+          visitor_question_limit: options?.visitor_question_limit ?? null,
+          allowed_origins: options?.allowed_origins ?? [],
         },
         token: "demo-share-token",
       };
@@ -2723,6 +3705,130 @@ export default function Index() {
     },
     [currentSpace],
   );
+  const handlePlanChange = useCallback(
+    async (plan: SpacePlan) => {
+      if (!currentSpace || currentSpace.plan === plan) return;
+      try {
+        const updated = await updateSpace(currentSpace.id, { plan });
+        setCurrentSpace(updated);
+        setSpaces((items) => items.map((item) => item.id === updated.id ? updated : item));
+        await loadUsage(updated);
+        setToast({ tone: "success", message: "套餐权益已更新。" });
+      } catch (error) {
+        if (!isDemoSpace(currentSpace.id)) {
+          setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "套餐更新失败。" });
+          return;
+        }
+        const updated = { ...currentSpace, plan };
+        setCurrentSpace(updated);
+        setSpaces((items) => items.map((item) => item.id === updated.id ? updated : item));
+        setUsage((value) => value ? { ...value, plan, limits: value.limits } : value);
+        setToast({ tone: "info", message: "演示套餐已切换；连接 API 后会按真实额度校验。" });
+      }
+    },
+    [currentSpace, isDemoSpace, loadUsage],
+  );
+  const handleModerateQuestion = useCallback(async (item: PublicQuestionRecord) => {
+    try {
+      const updated = await moderatePublicQuestion(item.id, {
+        is_hidden: !item.is_hidden,
+        moderation_note: item.is_hidden ? null : "由空间管理员隐藏",
+      });
+      setPublicQuestions((items) => items.map((current) => current.id === updated.id ? updated : current));
+      setToast({ tone: "success", message: updated.is_hidden ? "访客问题已隐藏。" : "访客问题已恢复显示。" });
+    } catch (error) {
+      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "访客问题审核失败。" });
+    }
+  }, []);
+  const handleCreateSource = useCallback(async (input: { kind: SourceKind; locator: string; name?: string }) => {
+    if (!currentSpace) return;
+    try {
+      const created = await createSource(currentSpace.id, input);
+      setSources((items) => [created, ...items]);
+      setToast({ tone: "success", message: "知识来源已登记。" });
+    } catch (error) {
+      if (!isDemoSpace(currentSpace.id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "来源登记失败。" });
+        return;
+      }
+      const created: KnowledgeSource = {
+        id: localId("source"),
+        space_id: currentSpace.id,
+        kind: input.kind,
+        locator: input.locator,
+        name: input.name ?? null,
+        status: "ACTIVE",
+        last_checksum: null,
+        last_synced_at: null,
+        last_error: null,
+        created_at: now(),
+        updated_at: now(),
+      };
+      setSources((items) => [created, ...items]);
+      setToast({ tone: "info", message: "演示来源已登记；连接 API 后会执行真实同步。" });
+    }
+  }, [currentSpace, isDemoSpace]);
+  const handleSyncSource = useCallback(async (source: KnowledgeSource) => {
+    try {
+      setSources((items) => items.map((item) => item.id === source.id ? { ...item, status: "SYNCING" } : item));
+      const result = await syncSource(source.id);
+      setSources((items) => items.map((item) => item.id === source.id ? result.source : item));
+      setToast({ tone: result.failed ? "warning" : "success", message: result.skipped ? "来源内容没有变化，已跳过导入。" : `来源同步完成，导入 ${result.uploaded} 个文档。` });
+    } catch (error) {
+      if (!isDemoSpace(source.space_id)) {
+        setSources((items) => items.map((item) => item.id === source.id ? { ...item, status: "FAILED" } : item));
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "来源同步失败。" });
+        return;
+      }
+      setSources((items) => items.map((item) => item.id === source.id ? { ...item, status: "READY", last_synced_at: now() } : item));
+      setToast({ tone: "info", message: "演示来源已标记为同步完成；连接 API 后会导入文档。" });
+    }
+  }, [isDemoSpace]);
+  const handleToggleSource = useCallback(async (source: KnowledgeSource) => {
+    const next: SourceStatus = source.status === "DISABLED" ? "ACTIVE" : "DISABLED";
+    try {
+      const updated = await setSourceStatus(source.id, next);
+      setSources((items) => items.map((item) => item.id === source.id ? updated : item));
+      setToast({ tone: "success", message: next === "ACTIVE" ? "知识来源已启用。" : "知识来源已停用。" });
+    } catch (error) {
+      if (!isDemoSpace(source.space_id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "来源状态更新失败。" });
+        return;
+      }
+      setSources((items) => items.map((item) => item.id === source.id ? { ...item, status: next } : item));
+      setToast({ tone: "info", message: "演示来源状态已更新。" });
+    }
+  }, [isDemoSpace]);
+  const handleAddMember = useCallback(async (email: string, role: "EDITOR" | "MEMBER") => {
+    if (!currentSpace) return;
+    try {
+      const member = await addMember(currentSpace.id, { email, role });
+      setMembers((items) => [...items, member]);
+      setToast({ tone: "success", message: "成员已添加。" });
+    } catch (error) {
+      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "成员添加失败。" });
+    }
+  }, [currentSpace]);
+  const handleChangeMemberRole = useCallback(async (member: SpaceMember, role: "EDITOR" | "MEMBER") => {
+    if (!currentSpace) return;
+    try {
+      const updated = await changeMemberRole(currentSpace.id, member.user_id, role);
+      setMembers((items) => items.map((item) => item.user_id === updated.user_id ? updated : item));
+      setToast({ tone: "success", message: "成员权限已更新。" });
+    } catch (error) {
+      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "成员权限更新失败。" });
+    }
+  }, [currentSpace]);
+  const handleRemoveMember = useCallback(async (member: SpaceMember) => {
+    if (!currentSpace) return;
+    try {
+      await removeMember(currentSpace.id, member.user_id);
+      setMembers((items) => items.filter((item) => item.user_id !== member.user_id));
+      setToast({ tone: "success", message: "成员已移除。" });
+    } catch (error) {
+      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "成员移除失败。" });
+    }
+  }, [currentSpace]);
   const loadFeedbackData = useCallback(async () => {
     if (!currentSpace) return;
     setLoadingFeedback(true);
@@ -2741,12 +3847,25 @@ export default function Index() {
     } catch {
       setEvalCases(currentSpace.id === demoSpaceId ? demoEvalCases : []);
     }
+    try {
+      setEvalRuns(await listEvalRuns(currentSpace.id));
+    } catch {
+      setEvalRuns([]);
+    }
+    try {
+      setEvalVersions(await listEvalVersions(currentSpace.id));
+    } catch {
+      setEvalVersions([]);
+    }
+    setEvalComparison(null);
   }, [currentSpace]);
   const handleRunEval = useCallback(async () => {
     if (!currentSpace) return;
     setLoadingEval(true);
     try {
-      setEvalResult(await runEvaluation(currentSpace.id));
+      const nextResult = await runEvaluation(currentSpace.id);
+      setEvalResult(nextResult);
+      setEvalRuns((items) => [nextResult.run, ...items.filter((item) => item.id !== nextResult.run.id)]);
       setToast({ tone: "success", message: "质量自测已完成。" });
     } catch {
       setEvalResult({
@@ -2772,6 +3891,9 @@ export default function Index() {
           reviewed_correct: 9,
           reviewed_partial: 2,
           reviewed_incorrect: 1,
+          answered_rate: 0.75,
+          citation_rate: 0.83,
+          reviewed_accuracy: 0.83,
         },
       });
       setToast({
@@ -2782,6 +3904,88 @@ export default function Index() {
       setLoadingEval(false);
     }
   }, [currentSpace, evalCases.length]);
+  const handleCreateEvalCase = useCallback(async (input: { question: string; expected_answer?: string | null; scope: EvalCase["scope"] }) => {
+    if (!currentSpace) return;
+    const categoryIds = input.scope === "OWNER"
+      ? []
+      : categories.filter((category) => category.is_open).slice(0, 1).map((category) => category.id);
+    try {
+      const created = await createEvalCase(currentSpace.id, { ...input, category_ids: categoryIds });
+      setEvalCases((items) => [...items, created]);
+      setToast({ tone: "success", message: "测试题已添加。" });
+    } catch (error) {
+      if (!isDemoSpace(currentSpace.id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "测试题添加失败。" });
+        return;
+      }
+      const created: EvalCase = {
+        id: localId("case"),
+        space_id: currentSpace.id,
+        question: input.question,
+        expected_answer: input.expected_answer ?? null,
+        expected_document_ids: [],
+        scope: input.scope,
+        category_ids: categoryIds,
+        created_at: now(),
+      };
+      setEvalCases((items) => [...items, created]);
+      setToast({ tone: "info", message: "演示测试题已添加。" });
+    }
+  }, [categories, currentSpace, isDemoSpace]);
+  const handleCreateEvalVersion = useCallback(async (label: string) => {
+    if (!currentSpace) return;
+    try {
+      const version = await createEvalVersion(currentSpace.id, label);
+      setEvalVersions((items) => [version, ...items.filter((item) => item.id !== version.id)]);
+      setToast({ tone: "success", message: `评测集 v${version.version_number} 已保存。` });
+    } catch (error) {
+      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "评测集版本保存失败。" });
+    }
+  }, [currentSpace]);
+  const handleRunEvalVersion = useCallback(async (version: EvalSetVersion) => {
+    setLoadingEval(true);
+    try {
+      const nextResult = await runEvalVersion(version.id);
+      setEvalResult(nextResult);
+      setEvalRuns((items) => [nextResult.run, ...items.filter((item) => item.id !== nextResult.run.id)]);
+      setToast({ tone: "success", message: `评测集 v${version.version_number} 已运行。` });
+    } catch (error) {
+      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "评测集版本运行失败。" });
+    } finally {
+      setLoadingEval(false);
+    }
+  }, []);
+  const handleCompareEvalRuns = useCallback(async (baselineRunId: string, candidateRunId: string) => {
+    if (!currentSpace) return;
+    try {
+      const comparison = await compareEvalRuns(currentSpace.id, baselineRunId, candidateRunId);
+      setEvalComparison(comparison);
+      setToast({ tone: "success", message: "评测运行对比已生成。" });
+    } catch (error) {
+      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "评测运行对比失败。" });
+    }
+  }, [currentSpace]);
+  const handleDeleteEvalCase = useCallback(async (item: EvalCase) => {
+    try {
+      await deleteEvalCase(item.id);
+    } catch (error) {
+      if (!isDemoSpace(item.space_id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "测试题删除失败。" });
+        return;
+      }
+    }
+    setEvalCases((items) => items.filter((current) => current.id !== item.id));
+    setToast({ tone: "success", message: "测试题已删除。" });
+  }, [isDemoSpace]);
+  const handleReviewEvalResult = useCallback(async (item: EvalResult, score: 0 | 0.5 | 1) => {
+    try {
+      const updated = await reviewEvalResult(item.id, { reviewer_score: score });
+      setEvalResult((current) => current ? { ...current, results: current.results.map((result) => result.id === updated.id ? updated : result) } : current);
+      setToast({ tone: "success", message: "人工复核已保存。" });
+    } catch (error) {
+      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "人工复核保存失败。" });
+    }
+  }, []);
   const selectPage = useCallback(
     (page: WorkspacePage) => {
       if (page !== "spaces" && !currentSpace) {
@@ -2792,9 +3996,15 @@ export default function Index() {
       if (page === "feedback") void loadFeedbackData();
       if (page === "eval") void loadEvalData();
       if (page === "settings" && currentSpace)
-        void loadShareLinks(currentSpace);
+        {
+          void loadShareLinks(currentSpace);
+          void loadMembers(currentSpace);
+          void loadPublicQuestions(currentSpace);
+          void loadPublicAnalytics(currentSpace);
+          void loadSources(currentSpace);
+        }
     },
-    [currentSpace, loadEvalData, loadFeedbackData, loadShareLinks],
+    [currentSpace, loadEvalData, loadFeedbackData, loadMembers, loadPublicAnalytics, loadPublicQuestions, loadShareLinks, loadSources],
   );
 
   const content = useMemo(() => {
@@ -2809,6 +4019,8 @@ export default function Index() {
           onSelect={(space) => {
             void loadSpaceData(space);
             void loadShareLinks(space);
+            void loadUsage(space);
+            void loadSources(space);
           }}
           onCreate={handleCreateSpace}
           onRetry={() => void loadSpaces()}
@@ -2827,10 +4039,15 @@ export default function Index() {
             space={currentSpace}
             documents={documents}
             categories={categories}
+            tags={tags}
             error={documentsError}
             onUpload={handleUpload}
             onDelete={handleDelete}
             onRetry={handleRetry}
+            onSearch={handleDocumentSearch}
+            onLoadTags={handleLoadDocumentTags}
+            onSetTags={handleSetDocumentTags}
+            onAvailability={handleAvailability}
           />
         )}
         {activePage === "qa" && (
@@ -2849,15 +4066,33 @@ export default function Index() {
             feedback={feedback}
             loading={loadingFeedback}
             onRetry={() => void loadFeedbackData()}
+            onReview={async (item, input) => {
+              try {
+                const updated = await reviewFeedback(item.id, input);
+                setFeedback((items) => items.map((current) => current.id === updated.id ? updated : current));
+                setToast({ tone: "success", message: "反馈审核结果已保存。" });
+              } catch (error) {
+                setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "反馈审核保存失败。" });
+              }
+            }}
           />
         )}
         {activePage === "eval" && (
           <EvalView
             cases={evalCases}
+            runs={evalRuns}
+            versions={evalVersions}
             result={evalResult}
             loading={loadingEval}
             onRun={handleRunEval}
             onRetry={() => void loadEvalData()}
+            onCreateCase={handleCreateEvalCase}
+            onDeleteCase={handleDeleteEvalCase}
+            onReviewResult={handleReviewEvalResult}
+            onCreateVersion={handleCreateEvalVersion}
+            onRunVersion={handleRunEvalVersion}
+            comparison={evalComparison}
+            onCompare={handleCompareEvalRuns}
           />
         )}
         {activePage === "settings" && (
@@ -2865,15 +4100,31 @@ export default function Index() {
             <SettingsView
               space={currentSpace}
               onVisibilityChange={handleVisibilityChange}
+              onPlanChange={handlePlanChange}
+              sources={sources}
+              onCreateSource={handleCreateSource}
+              onSyncSource={handleSyncSource}
+              onToggleSource={handleToggleSource}
+              members={members}
+              onAddMember={handleAddMember}
+              onChangeMemberRole={handleChangeMemberRole}
+              onRemoveMember={handleRemoveMember}
+              usage={usage}
             />
             <PublicSettingsView
               space={currentSpace}
               categories={categories}
+              tags={tags}
               links={shareLinks}
+              publicQuestions={publicQuestions}
+              publicAnalytics={publicAnalytics}
               onToggle={handleToggleCategory}
               onCreateCategory={handleCreateCategory}
+              onCreateTag={handleCreateTag}
+              onDeleteTag={handleDeleteTag}
               onShare={handleShare}
               onRevoke={handleRevoke}
+              onModerateQuestion={handleModerateQuestion}
             />
           </>
         )}
@@ -2882,27 +4133,56 @@ export default function Index() {
   }, [
     activePage,
     categories,
+    tags,
     creating,
     currentSpace,
     documents,
     documentsError,
     evalCases,
+    evalVersions,
+    evalRuns,
     evalResult,
+    evalComparison,
     feedback,
     feedbackBusy,
+    members,
+    publicQuestions,
+    publicAnalytics,
+    sources,
+    usage,
     handleCreateCategory,
+    handleCreateTag,
+    handleDeleteTag,
     handleCreateSpace,
     handleCancel,
     handleDelete,
+    handleDocumentSearch,
+    handleLoadDocumentTags,
+    handleSetDocumentTags,
+    handleAvailability,
     handleFeedback,
     handleRetry,
     handleRunEval,
+    handleCreateEvalCase,
+    handleDeleteEvalCase,
+    handleReviewEvalResult,
+    handleCreateEvalVersion,
+    handleRunEvalVersion,
+    handleCompareEvalRuns,
     handleSend,
     handleShare,
     handleToggleCategory,
     handleUpload,
     handleRevoke,
     handleVisibilityChange,
+    handlePlanChange,
+    handleModerateQuestion,
+    handleCreateSource,
+    handleSyncSource,
+    handleToggleSource,
+    handleAddMember,
+    handleChangeMemberRole,
+    handleRemoveMember,
     loadingEval,
     loadingFeedback,
     loadingSpaces,
@@ -2910,6 +4190,8 @@ export default function Index() {
     loadFeedbackData,
     loadSpaceData,
     loadShareLinks,
+    loadUsage,
+    loadSources,
     loadSpaces,
     messages,
     pageError,
@@ -2923,7 +4205,10 @@ export default function Index() {
     return (
       <>
         <AuthView
-          onEnter={() => setLoggedIn(true)}
+          onEnter={(user) => {
+            setAuthUser(user);
+            setLoggedIn(true);
+          }}
           onPublic={() => {
             void Taro.navigateTo({ url: "/pages/public/public" });
           }}
@@ -2939,6 +4224,15 @@ export default function Index() {
         spaceName={currentSpace?.name}
         onOpenPublic={() => {
           void Taro.navigateTo({ url: "/pages/public/public" });
+        }}
+        user={authUser ?? undefined}
+        onLogout={() => {
+          void logout().finally(() => {
+            setAuthUser(null);
+            setLoggedIn(false);
+            setCurrentSpace(null);
+            setSpaces([]);
+          });
         }}
       >
         {content}

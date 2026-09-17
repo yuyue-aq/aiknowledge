@@ -24,6 +24,9 @@ export default defineConfig<'vite'>(async (merge) => {
     },
     copy: {
       patterns: [
+        // Vite's Taro root is `src`, so static assets must be resolved from
+        // the source root rather than the project-level `public` directory.
+        { from: 'static/aiknowledge-embed.js', to: 'aiknowledge-embed.js' },
       ],
       options: {
       }

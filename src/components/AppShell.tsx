@@ -1,5 +1,6 @@
 import { Button, Input, Text, View } from "@tarojs/components";
 import { Icon, type IconName } from "./Icon";
+import type { AuthUser } from "../api/client";
 
 export type WorkspacePage =
   | "spaces"
@@ -24,6 +25,8 @@ type AppShellProps = {
   spaceName?: string;
   children: React.ReactNode;
   onOpenPublic?: () => void;
+  user?: AuthUser;
+  onLogout?: () => void;
 };
 
 export function AppShell({
@@ -32,6 +35,8 @@ export function AppShell({
   spaceName,
   children,
   onOpenPublic,
+  user,
+  onLogout,
 }: AppShellProps) {
   return (
     <View className='app-shell'>
@@ -86,10 +91,15 @@ export function AppShell({
               <Icon name='bell' />
             </Button>
             <View className='avatar' aria-hidden='true'>
-              林
+              {(user?.display_name || "知").slice(0, 1)}
             </View>
-            <Text className='user-name'>林辰</Text>
+            <Text className='user-name'>{user?.display_name || "知识管理员"}</Text>
             <Text className='user-caret'>⌄</Text>
+            {onLogout && (
+              <Button className='text-button shell-logout' onClick={onLogout} aria-label='退出登录'>
+                退出
+              </Button>
+            )}
           </View>
         </View>
         <View className='workspace-content'>

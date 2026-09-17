@@ -6,3 +6,6 @@
 /* Async feedback keeps public failures visible without replacing the answer history. */
 .boundary-inline.boundary-error { color: var(--red); }
 .public-question-error { display: flex; align-items: center; gap: 7px; margin-top: 14px; padding: 10px 13px; border: 1px solid #F2C5CB; border-radius: 10px; background: #FFF6F7; color: var(--red); font-size: 12px; line-height: 1.5; }
+.public-secret-input { position: relative; display: flex; align-items: center; padding-right: 8px; }
+.public-secret-input input { min-width: 0; flex: 1; }
+.public-secret-input .secret-toggle { flex: none; min-height: 34px; padding: 0 7px; color: #6D829F; font-size: 12px; }
