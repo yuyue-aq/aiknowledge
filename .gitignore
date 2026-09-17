@@ -7,6 +7,3 @@
 /aiknowledge/.uv-cache/
 /aiknowledge/.venv-local/
 /aiknowledge/runtime-logs/
-
-# The Taro frontend is maintained as a separate Git repository in this workspace.
-/aiknowledge_frontend/
