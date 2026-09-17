@@ -1,0 +1,971 @@
+import Taro from '@tarojs/taro'
+
+export type SpaceVisibility = 'PRIVATE' | 'PUBLIC'
+export type SpacePlan = 'FREE' | 'PRO' | 'TEAM'
+export type Space = {
+  id: string
+  owner_user_id?: string | null
+  name: string
+  description: string | null
+  visibility: SpaceVisibility
+  guest_feedback_enabled: boolean
+  plan?: SpacePlan
+  created_at: string
+  updated_at: string
+}
+
+export type Category = {
+  id: string
+  space_id: string
+  name: string
+  description: string | null
+  display_name?: string | null
+  display_description?: string | null
+  is_open: boolean
+  sort_order: number
+  is_default?: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type DocumentStatus = 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED' | 'DELETED'
+export type KnowledgeDocument = {
+  id: string
+  space_id: string
+  owner_user_id?: string | null
+  category_id: string | null
+  original_filename: string
+  mime_type: string
+  size_bytes: number
+  status: DocumentStatus
+  active_version_id: string | null
+  failure_code: string | null
+  failure_message: string | null
+  is_enabled?: boolean
+  effective_at?: string | null
+  expires_at?: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type UploadFile = File | {
+  name: string
+  size: number
+  path: string
+  type?: string
+}
+
+export type Conversation = {
+  id: string
+  space_id: string
+  title: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type ConversationSummary = Conversation
+
+export type Citation = {
+  document_name: string
+  quoted_text: string
+  page_number: number | null
+  ordinal: number
+  score: number
+}
+
+export type AnswerStatus = 'ANSWERED' | 'INSUFFICIENT_EVIDENCE' | 'OUT_OF_SCOPE' | 'CONFLICT' | 'FAILED'
+export type OwnerAnswer = {
+  message_id: string
+  status: AnswerStatus
+  answer: string
+  model: string | null
+  citations: Citation[]
+}
+
+export type HistoryMessage = {
+  id: string
+  role: 'USER' | 'ASSISTANT' | string
+  content: string
+  status: AnswerStatus | null
+  model: string | null
+  created_at: string
+  citations: Citation[]
+}
+
+export type ConversationDetail = {
+  conversation: Conversation
+  messages: HistoryMessage[]
+}
+
+export type PublicSpace = {
+  name: string
+  description: string | null
+  categories: Array<{ name: string; description: string | null; display_name?: string | null; display_description?: string | null; is_default?: boolean }>
+}
+
+export type ShareLink = {
+  id: string
+  space_id: string
+  category_ids: string[]
+  status: string
+  created_at: string
+  revoked_at: string | null
+  expires_at: string | null
+  visitor_question_limit?: number | null
+  allowed_origins?: string[]
+}
+
+export type CreatedShareLink = { link: ShareLink; token: string }
+
+export type PublicQuestionRecord = {
+  id: string
+  share_link_id: string
+  visitor_id: string
+  conversation_id: string | null
+  question_hash: string
+  created_at: string
+  is_hidden: boolean
+  moderation_note: string | null
+  moderated_at: string | null
+}
+
+export type PublicAnalyticsDay = {
+  date: string
+  sessions: number
+  conversations: number
+  questions: number
+  unique_visitors: number
+}
+
+export type PublicAnalytics = {
+  space_id: string
+  period_start: string
+  period_end: string
+  sessions: number
+  conversations: number
+  questions: number
+  unique_visitors: number
+  daily: PublicAnalyticsDay[]
+  answer_count?: number
+  failed_answers?: number
+  latency_p50_ms?: number | null
+  latency_p95_ms?: number | null
+  input_tokens?: number
+  output_tokens?: number
+  estimated_cost?: number
+}
+
+export type PublicAnswer = {
+  message_id: string
+  status: AnswerStatus
+  answer: string
+}
+
+export type FeedbackRating = 'UP' | 'DOWN' | 'NEEDS_CORRECTION'
+export type FeedbackReason =
+  | 'OFF_TOPIC'
+  | 'SOURCE_MISMATCH'
+  | 'OUTDATED'
+  | 'INCOMPLETE'
+  | 'MISSING_MATERIAL'
+export type Feedback = {
+  id: string
+  message_id: string
+  rating: FeedbackRating
+  reason: FeedbackReason | null
+  comment: string | null
+  is_guest: boolean
+  created_at: string
+  review_status?: 'PENDING' | 'FIXED' | 'DEFERRED'
+  corrected_answer?: string | null
+  review_note?: string | null
+  reviewed_at?: string | null
+  data_usage_scope?: string
+  pii_status?: string
+}
+
+export type KnowledgeTag = {
+  id: string
+  space_id: string
+  name: string
+  color: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type SpaceMember = {
+  user_id: string
+  email: string
+  display_name: string
+  role: 'OWNER' | 'EDITOR' | 'MEMBER'
+  created_at: string
+}
+
+export type SpaceUsage = {
+  space_id: string
+  plan: SpacePlan
+  documents_used: number
+  documents_remaining: number
+  members_used: number
+  members_remaining: number
+  questions_used_today: number
+  questions_remaining_today: number
+  limits: { documents: number; members: number; questions_per_day: number }
+}
+
+export type SourceKind = 'WEBPAGE' | 'MARKDOWN_REPOSITORY' | 'FAQ_TABLE'
+export type SourceStatus = 'ACTIVE' | 'SYNCING' | 'READY' | 'FAILED' | 'DISABLED'
+export type KnowledgeSource = {
+  id: string
+  space_id: string
+  kind: SourceKind
+  locator: string
+  name: string | null
+  status: SourceStatus
+  last_checksum: string | null
+  last_synced_at: string | null
+  last_error: string | null
+  created_at: string
+  updated_at: string
+}
+export type SourceSyncResult = {
+  source: KnowledgeSource
+  uploaded: number
+  failed: number
+  skipped: boolean
+}
+
+export type EvalCase = {
+  id: string
+  space_id: string
+  question: string
+  expected_answer: string | null
+  expected_document_ids: string[]
+  scope: 'OWNER' | 'PUBLIC' | 'OUT_OF_SCOPE'
+  category_ids: string[]
+  created_at: string
+}
+
+export type EvalSetVersion = {
+  id: string
+  space_id: string
+  version_number: number
+  label: string
+  cases: EvalCase[]
+  created_at: string
+}
+
+export type EvalResult = {
+  id: string
+  eval_case_id: string
+  answer_status: string
+  answer: string
+  citation_count: number
+  reviewer_score: number | null
+  reviewer_note: string | null
+}
+
+export type EvalDetail = {
+  run: {
+    id: string
+    space_id: string
+    status: string
+    retrieval_config_snapshot: Record<string, unknown>
+    started_at: string | null
+    completed_at: string | null
+    failure_message: string | null
+    created_at: string
+  }
+  results: EvalResult[]
+  summary: {
+    total: number
+    answered: number
+    insufficient_evidence: number
+    out_of_scope: number
+    failed: number
+    citation_count: number
+    out_of_scope_violations: number
+    reviewed_correct: number
+    reviewed_partial: number
+    reviewed_incorrect: number
+    answered_rate: number
+    citation_rate: number
+    reviewed_accuracy: number | null
+  }
+}
+
+export type EvalRun = EvalDetail['run']
+export type EvalRunComparison = {
+  baseline: EvalRun
+  candidate: EvalRun
+  baseline_summary: EvalDetail['summary']
+  candidate_summary: EvalDetail['summary']
+  delta: Record<string, number | null>
+}
+
+type ApiOptions = {
+  method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE'
+  data?: unknown
+  headers?: Record<string, string>
+  skipAuthRefresh?: boolean
+}
+
+export type AuthUser = {
+  id: string
+  email: string
+  display_name: string
+  status: string
+  created_at: string
+  updated_at: string
+}
+
+export type AuthTokens = {
+  access_token: string
+  refresh_token: string
+  token_type: string
+  expires_in: number
+}
+
+export type AuthResponse = { user: AuthUser; tokens: AuthTokens }
+
+export type AuthSession = AuthResponse
+
+export class ApiRequestError extends Error {
+  status: number
+  code: string | null
+
+  constructor(message: string, status: number, code: string | null = null) {
+    super(message)
+    this.name = 'ApiRequestError'
+    this.status = status
+    this.code = code
+  }
+}
+
+const apiBase = (() => {
+  const configured = process.env.TARO_APP_API_BASE
+  if (configured) return configured.replace(/\/$/, '')
+  return '/api/v1'
+})()
+
+const urlFor = (path: string) => `${apiBase}${path.startsWith('/') ? path : `/${path}`}`
+
+const authStorageKey = 'aiknowledge.auth.session'
+let authSession: AuthSession | null | undefined
+let refreshPromise: Promise<boolean> | null = null
+
+function readAuthSession(): AuthSession | null {
+  if (authSession !== undefined) return authSession
+  try {
+    const stored = Taro.getStorageSync(authStorageKey)
+    authSession = stored && typeof stored === 'object' ? stored as AuthSession : null
+  } catch {
+    authSession = null
+  }
+  return authSession
+}
+
+export function saveAuthSession(session: AuthSession, remember = true): void {
+  authSession = session
+  try {
+    if (remember) Taro.setStorageSync(authStorageKey, session)
+    else Taro.removeStorageSync(authStorageKey)
+  } catch {
+    // The in-memory session keeps the current page usable when storage is unavailable.
+  }
+}
+
+export function clearAuthSession(): void {
+  authSession = null
+  try { Taro.removeStorageSync(authStorageKey) } catch { /* optional storage */ }
+}
+
+function authorizationHeader(): Record<string, string> {
+  const token = readAuthSession()?.tokens.access_token
+  return token ? { Authorization: `Bearer ${token}` } : {}
+}
+
+async function refreshAccessToken(): Promise<boolean> {
+  const current = readAuthSession()
+  if (!current?.tokens.refresh_token) return false
+  if (refreshPromise) return refreshPromise
+  refreshPromise = (async () => {
+    try {
+      const response = await Taro.request<AuthResponse>({
+        url: urlFor('/auth/refresh'),
+        method: 'POST',
+        data: { refresh_token: current.tokens.refresh_token },
+        header: { 'content-type': 'application/json' }
+      } as Parameters<typeof Taro.request<AuthResponse>>[0])
+      if (response.statusCode >= 400) return false
+      saveAuthSession(response.data, true)
+      return true
+    } catch {
+      return false
+    } finally {
+      refreshPromise = null
+    }
+  })()
+  return refreshPromise
+}
+
+const readError = (data: unknown, status: number) => {
+  if (typeof data === 'object' && data !== null) {
+    const value = data as { message?: unknown; detail?: unknown; code?: unknown }
+    const message = typeof value.message === 'string'
+      ? value.message
+      : typeof value.detail === 'string'
+        ? value.detail
+        : '请求暂时无法完成，请稍后重试。'
+    return new ApiRequestError(message, status, typeof value.code === 'string' ? value.code : null)
+  }
+  return new ApiRequestError('请求暂时无法完成，请稍后重试。', status)
+}
+
+export async function requestJson<T>(path: string, options: ApiOptions = {}): Promise<T> {
+  try {
+    const response = await Taro.request<T>({
+      url: urlFor(path),
+      method: options.method ?? 'GET',
+      data: options.data,
+      header: {
+        'content-type': 'application/json',
+        ...authorizationHeader(),
+        ...(options.headers ?? {})
+      },
+      credentials: 'include'
+    } as Parameters<typeof Taro.request<T>>[0])
+    if (response.statusCode === 401 && !options.skipAuthRefresh && !path.includes('/auth/')) {
+      if (await refreshAccessToken()) return requestJson<T>(path, { ...options, skipAuthRefresh: true })
+      clearAuthSession()
+    }
+    if (response.statusCode >= 400) throw readError(response.data, response.statusCode)
+    return response.data
+  } catch (error) {
+    if (error instanceof ApiRequestError) throw error
+    throw new ApiRequestError('网络连接失败，请确认后端服务已启动。', 0)
+  }
+}
+
+export async function register(input: {
+  email: string
+  password: string
+  display_name: string
+}, remember = true): Promise<AuthSession> {
+  const session = await requestJson<AuthResponse>('/auth/register', { method: 'POST', data: input, skipAuthRefresh: true })
+  saveAuthSession(session, remember)
+  return session
+}
+
+export async function login(input: { email: string; password: string }, remember = true): Promise<AuthSession> {
+  const session = await requestJson<AuthResponse>('/auth/login', { method: 'POST', data: input, skipAuthRefresh: true })
+  saveAuthSession(session, remember)
+  return session
+}
+
+export async function logout(): Promise<void> {
+  const refreshToken = readAuthSession()?.tokens.refresh_token
+  try {
+    if (refreshToken) await requestJson<unknown>('/auth/logout', { method: 'POST', data: { refresh_token: refreshToken }, skipAuthRefresh: true })
+  } finally {
+    clearAuthSession()
+  }
+}
+
+export async function getMe(): Promise<AuthUser> {
+  return requestJson<AuthUser>('/auth/me')
+}
+
+export async function listSpaces(): Promise<Space[]> {
+  const result = await requestJson<{ items: Space[] }>('/spaces')
+  return result.items
+}
+
+export async function createSpace(input: {
+  name: string
+  description?: string
+  visibility: SpaceVisibility
+  guest_feedback_enabled?: boolean
+}): Promise<Space> {
+  return requestJson<Space>('/spaces', { method: 'POST', data: input })
+}
+
+export async function updateSpace(spaceId: string, input: Partial<{
+  name: string
+  description: string
+  visibility: SpaceVisibility
+  guest_feedback_enabled: boolean
+  plan: SpacePlan
+}>): Promise<Space> {
+  return requestJson<Space>(`/spaces/${spaceId}`, { method: 'PATCH', data: input })
+}
+
+export async function listCategories(spaceId: string): Promise<Category[]> {
+  const result = await requestJson<{ items: Category[] }>(`/spaces/${spaceId}/categories`)
+  return result.items
+}
+
+export async function createCategory(spaceId: string, input: {
+  name: string
+  description?: string
+  is_open?: boolean
+  sort_order?: number
+}): Promise<Category> {
+  return requestJson<Category>(`/spaces/${spaceId}/categories`, { method: 'POST', data: input })
+}
+
+export async function updateCategory(categoryId: string, input: Partial<{
+  name: string
+  description: string
+  is_open: boolean
+  sort_order: number
+  display_name: string | null
+  display_description: string | null
+  is_default: boolean
+}>): Promise<Category> {
+  return requestJson<Category>(`/categories/${categoryId}`, { method: 'PATCH', data: input })
+}
+
+export async function updateDocumentAvailability(documentId: string, input: {
+  is_enabled?: boolean
+  effective_at?: string | null
+  expires_at?: string | null
+}): Promise<KnowledgeDocument> {
+  return requestJson<KnowledgeDocument>(`/documents/${documentId}/availability`, { method: 'PATCH', data: input })
+}
+
+export async function listShareLinks(spaceId: string): Promise<ShareLink[]> {
+  const result = await requestJson<{ items: ShareLink[] }>(`/spaces/${spaceId}/share-links`)
+  return result.items
+}
+
+export async function createShareLink(spaceId: string, categoryIds: string[], options?: {
+  expires_at?: string | null
+  password?: string | null
+  visitor_question_limit?: number | null
+  allowed_origins?: string[]
+}): Promise<CreatedShareLink> {
+  return requestJson<CreatedShareLink>(`/spaces/${spaceId}/share-links`, {
+    method: 'POST',
+    data: { category_ids: categoryIds, ...(options ?? {}) }
+  })
+}
+
+export async function revokeShareLink(linkId: string): Promise<void> {
+  await requestJson<unknown>(`/share-links/${linkId}`, { method: 'DELETE' })
+}
+
+export async function listDocuments(spaceId: string): Promise<KnowledgeDocument[]> {
+  const result = await requestJson<{ items: KnowledgeDocument[] }>(`/spaces/${spaceId}/documents`)
+  return result.items
+}
+
+export async function getDocument(documentId: string): Promise<KnowledgeDocument> {
+  return requestJson<KnowledgeDocument>(`/documents/${documentId}`)
+}
+
+export async function deleteDocument(documentId: string): Promise<void> {
+  await requestJson<unknown>(`/documents/${documentId}`, { method: 'DELETE' })
+}
+
+export async function retryDocument(documentId: string): Promise<KnowledgeDocument> {
+  const result = await requestJson<{ document: KnowledgeDocument }>(`/documents/${documentId}/retry`, { method: 'POST' })
+  return result.document
+}
+
+export async function uploadDocument(
+  spaceId: string,
+  file: UploadFile,
+  categoryId: string | null,
+  onProgress?: (progress: number) => void
+): Promise<{ document: KnowledgeDocument; version_id: string; processing_enqueued: boolean }> {
+  const isBrowserFile = typeof File !== 'undefined' && file instanceof File
+  if (process.env.TARO_ENV === 'h5' && isBrowserFile && typeof XMLHttpRequest !== 'undefined') {
+    return new Promise((resolve, reject) => {
+      const request = new XMLHttpRequest()
+      const body = new FormData()
+      body.append('file', file, file.name)
+      if (categoryId) body.append('category_id', categoryId)
+      request.open('POST', urlFor(`/spaces/${spaceId}/documents`))
+      request.withCredentials = true
+      const token = readAuthSession()?.tokens.access_token
+      if (token) request.setRequestHeader('Authorization', `Bearer ${token}`)
+      request.responseType = 'json'
+      request.upload.onprogress = (event) => {
+        if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100))
+      }
+      request.onload = () => {
+        if (request.status >= 200 && request.status < 300) {
+          resolve(request.response as { document: KnowledgeDocument; version_id: string; processing_enqueued: boolean })
+        } else {
+          reject(readError(request.response, request.status))
+        }
+      }
+      request.onerror = () => reject(new ApiRequestError('上传失败，请检查网络后重试。', 0))
+      request.onabort = () => reject(new ApiRequestError('上传已取消。', 0))
+      request.send(body)
+    })
+  }
+
+  if (!("path" in file)) {
+    throw new ApiRequestError("当前平台无法读取所选文件，请重新选择。", 0)
+  }
+  const task = Taro.uploadFile({
+    url: urlFor(`/spaces/${spaceId}/documents`),
+    filePath: file.path,
+    fileName: file.name,
+    name: 'file',
+    formData: categoryId ? { category_id: categoryId } : {},
+    withCredentials: true,
+    header: authorizationHeader()
+  })
+  task.progress?.((event) => onProgress?.(event.progress))
+  const result = await task
+  if (result.statusCode >= 400) throw readError(result.data, result.statusCode)
+  return typeof result.data === 'string' ? JSON.parse(result.data) as {
+    document: KnowledgeDocument
+    version_id: string
+    processing_enqueued: boolean
+  } : result.data as { document: KnowledgeDocument; version_id: string; processing_enqueued: boolean }
+}
+
+export async function createOwnerConversation(spaceId: string, title?: string): Promise<Conversation> {
+  return requestJson<Conversation>('/owner/conversations', { method: 'POST', data: { space_id: spaceId, title } })
+}
+
+export async function listOwnerConversations(spaceId: string): Promise<ConversationSummary[]> {
+  return requestJson<ConversationSummary[]>(
+    `/owner/conversations?space_id=${encodeURIComponent(spaceId)}`
+  )
+}
+
+export async function getOwnerConversation(conversationId: string): Promise<ConversationDetail> {
+  return requestJson<ConversationDetail>(`/owner/conversations/${conversationId}`)
+}
+
+export async function askOwner(conversationId: string, question: string): Promise<OwnerAnswer> {
+  return requestJson<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, {
+    method: 'POST',
+    data: { question, stream: false }
+  })
+}
+
+async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
+  path: string,
+  question: string,
+  onText: (text: string) => void,
+  signal?: AbortSignal
+): Promise<T> {
+  if (typeof fetch === 'undefined' || typeof ReadableStream === 'undefined') {
+    const data = await requestJson<T>(path, { method: 'POST', data: { question, stream: false } })
+    onText(data.answer)
+    return data
+  }
+  const response = await fetch(urlFor(path), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', ...authorizationHeader() },
+    credentials: 'include',
+    signal,
+    body: JSON.stringify({ question, stream: true })
+  })
+  if (response.status === 401 && await refreshAccessToken()) {
+    return streamAnswer<T>(path, question, onText, signal)
+  }
+  if (!response.ok) {
+    let data: unknown = null
+    try { data = await response.json() } catch { /* keep generic error */ }
+    throw readError(data, response.status)
+  }
+  const contentType = response.headers.get('content-type') ?? ''
+  if (!contentType.includes('text/event-stream')) {
+    const data = await response.json() as T
+    onText(data.answer)
+    return data
+  }
+  if (!response.body || typeof response.body.getReader !== 'function') {
+    // Some mini-program WebViews expose fetch but not a readable response
+    // stream. Re-issue the request in JSON mode so the mobile path remains
+    // usable instead of trying to parse an SSE document as JSON.
+    const data = await requestJson<T>(path, { method: 'POST', data: { question, stream: false } })
+    onText(data.answer)
+    return data
+  }
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer = ''
+  let answer: T | null = null
+  let streamedText = ''
+  while (true) {
+    const { done, value } = await reader.read()
+    buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done })
+    const events = buffer.split(/\n\n/)
+    buffer = done ? '' : (events.pop() ?? '')
+    for (const event of events) {
+      const dataLine = event.split('\n').find((line) => line.startsWith('data:'))
+      if (!dataLine) continue
+      const eventName = event.split('\n').find((line) => line.startsWith('event:'))?.slice(6).trim() ?? ''
+      const payload = dataLine.slice(5).trim()
+      if (!payload || payload === '[DONE]') continue
+      try {
+        const parsed = JSON.parse(payload) as T & { text?: unknown }
+        if (eventName === 'delta' && typeof parsed.text === 'string') {
+          streamedText += parsed.text
+          onText(streamedText)
+        } else if (typeof parsed.answer === 'string') {
+          answer = parsed
+          streamedText = parsed.answer
+          onText(parsed.answer)
+        }
+      } catch {
+        // The server may split an SSE event across network chunks; keep reading.
+      }
+    }
+    if (done) break
+  }
+  if (!answer) throw new ApiRequestError('回答流意外结束，请重试。', 502)
+  return answer
+}
+
+export async function streamOwnerAnswer(
+  conversationId: string,
+  question: string,
+  onText: (text: string) => void,
+  signal?: AbortSignal
+): Promise<OwnerAnswer> {
+  return streamAnswer<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, question, onText, signal)
+}
+
+export async function createPublicSession(token: string, password?: string): Promise<PublicSpace> {
+  return requestJson<PublicSpace>('/public/session', { method: 'POST', data: { token, ...(password ? { password } : {}) } })
+}
+
+export async function getPublicSpace(): Promise<PublicSpace> {
+  return requestJson<PublicSpace>('/public/space')
+}
+
+export async function createPublicConversation(title?: string): Promise<Conversation> {
+  return requestJson<Conversation>('/public/conversations', { method: 'POST', data: { title } })
+}
+
+export async function streamPublicAnswer(
+  conversationId: string,
+  question: string,
+  onText: (text: string) => void,
+  signal?: AbortSignal
+): Promise<PublicAnswer> {
+  return streamAnswer<PublicAnswer>(`/public/conversations/${conversationId}/messages`, question, onText, signal)
+}
+
+export async function queryPublicShare(input: { token: string; password?: string; question: string }): Promise<PublicAnswer> {
+  return requestJson<PublicAnswer>('/public/query', { method: 'POST', data: input })
+}
+
+export async function sendFeedback(
+  messageId: string,
+  payload: { rating: FeedbackRating; reason?: FeedbackReason; comment?: string },
+  isPublic = false
+): Promise<Feedback> {
+  return requestJson<Feedback>(`${isPublic ? '/public' : ''}/messages/${messageId}/feedback`, {
+    method: 'POST',
+    data: payload
+  })
+}
+
+export async function listFeedback(spaceId: string, filters?: {
+  review_status?: Feedback['review_status']
+  rating?: FeedbackRating
+  is_guest?: boolean
+}): Promise<Feedback[]> {
+  const query = new URLSearchParams()
+  if (filters?.review_status) query.set('review_status', filters.review_status)
+  if (filters?.rating) query.set('rating', filters.rating)
+  if (filters?.is_guest !== undefined) query.set('is_guest', String(filters.is_guest))
+  const suffix = query.toString() ? `?${query.toString()}` : ''
+  const result = await requestJson<{ items: Feedback[] }>(`/spaces/${spaceId}/feedback${suffix}`)
+  return result.items
+}
+
+export async function reviewFeedback(feedbackId: string, input: {
+  review_status: 'PENDING' | 'FIXED' | 'DEFERRED'
+  corrected_answer?: string | null
+  review_note?: string | null
+  data_usage_scope?: string
+  pii_status?: string
+}): Promise<Feedback> {
+  return requestJson<Feedback>(`/feedback/${feedbackId}`, { method: 'PATCH', data: input })
+}
+
+export async function listTags(spaceId: string): Promise<KnowledgeTag[]> {
+  const result = await requestJson<{ items: KnowledgeTag[] }>(`/spaces/${spaceId}/tags`)
+  return result.items
+}
+
+export async function createTag(spaceId: string, input: { name: string; color?: string | null }): Promise<KnowledgeTag> {
+  return requestJson<KnowledgeTag>(`/spaces/${spaceId}/tags`, { method: 'POST', data: input })
+}
+
+export async function updateTag(tagId: string, input: { name: string; color?: string | null }): Promise<KnowledgeTag> {
+  return requestJson<KnowledgeTag>(`/tags/${tagId}`, { method: 'PATCH', data: input })
+}
+
+export async function deleteTag(tagId: string): Promise<void> {
+  await requestJson<unknown>(`/tags/${tagId}`, { method: 'DELETE' })
+}
+
+export async function setDocumentTags(spaceId: string, documentId: string, tagIds: string[]): Promise<KnowledgeTag[]> {
+  const result = await requestJson<{ items: KnowledgeTag[] }>(`/spaces/${spaceId}/documents/${documentId}/tags`, {
+    method: 'PUT', data: { tag_ids: tagIds }
+  })
+  return result.items
+}
+
+export async function listDocumentTags(documentId: string): Promise<KnowledgeTag[]> {
+  const result = await requestJson<{ items: KnowledgeTag[] }>(`/documents/${documentId}/tags`)
+  return result.items
+}
+
+export async function searchDocuments(spaceId: string, query: string, tagId?: string): Promise<KnowledgeDocument[]> {
+  // The API names this filter `query`; keeping the same key here avoids a
+  // silent empty-result search when the browser sends the legacy `q` key.
+  const params = new URLSearchParams({ query })
+  if (tagId) params.set('tag_id', tagId)
+  const result = await requestJson<{ items: KnowledgeDocument[] }>(`/spaces/${spaceId}/documents/search?${params.toString()}`)
+  return result.items
+}
+
+export async function listMembers(spaceId: string): Promise<SpaceMember[]> {
+  return requestJson<SpaceMember[]>(`/spaces/${spaceId}/members`)
+}
+
+export async function addMember(spaceId: string, input: { email: string; role: 'EDITOR' | 'MEMBER' }): Promise<SpaceMember> {
+  return requestJson<SpaceMember>(`/spaces/${spaceId}/members`, { method: 'POST', data: input })
+}
+
+export async function changeMemberRole(spaceId: string, userId: string, role: 'EDITOR' | 'MEMBER'): Promise<SpaceMember> {
+  return requestJson<SpaceMember>(`/spaces/${spaceId}/members/${userId}`, { method: 'PATCH', data: { role } })
+}
+
+export async function removeMember(spaceId: string, userId: string): Promise<void> {
+  await requestJson<unknown>(`/spaces/${spaceId}/members/${userId}`, { method: 'DELETE' })
+}
+
+export async function getSpaceUsage(spaceId: string): Promise<SpaceUsage> {
+  return requestJson<SpaceUsage>(`/spaces/${spaceId}/usage`)
+}
+
+export async function listSources(spaceId: string): Promise<KnowledgeSource[]> {
+  const result = await requestJson<{ items: KnowledgeSource[] }>(`/spaces/${spaceId}/sources`)
+  return result.items
+}
+
+export async function createSource(spaceId: string, input: {
+  kind: SourceKind
+  locator: string
+  name?: string | null
+}): Promise<KnowledgeSource> {
+  return requestJson<KnowledgeSource>(`/spaces/${spaceId}/sources`, { method: 'POST', data: input })
+}
+
+export async function setSourceStatus(sourceId: string, sourceStatus: 'ACTIVE' | 'DISABLED'): Promise<KnowledgeSource> {
+  return requestJson<KnowledgeSource>(`/sources/${sourceId}`, { method: 'PATCH', data: { status: sourceStatus } })
+}
+
+export async function syncSource(sourceId: string): Promise<SourceSyncResult> {
+  return requestJson<SourceSyncResult>(`/sources/${sourceId}/sync`, { method: 'POST' })
+}
+
+export async function listPublicQuestionRecords(spaceId: string): Promise<PublicQuestionRecord[]> {
+  const result = await requestJson<{ items: PublicQuestionRecord[] }>(`/spaces/${spaceId}/public-questions`)
+  return result.items
+}
+
+export async function getPublicAnalytics(spaceId: string, days = 30): Promise<PublicAnalytics> {
+  return requestJson<PublicAnalytics>(`/spaces/${spaceId}/public-analytics?days=${days}`)
+}
+
+export async function moderatePublicQuestion(questionId: string, input: {
+  is_hidden: boolean
+  moderation_note?: string | null
+}): Promise<PublicQuestionRecord> {
+  return requestJson<PublicQuestionRecord>(`/public-questions/${questionId}`, {
+    method: 'PATCH', data: input
+  })
+}
+
+export async function listEvalCases(spaceId: string): Promise<EvalCase[]> {
+  const result = await requestJson<{ items: EvalCase[] }>(`/spaces/${spaceId}/eval-cases`)
+  return result.items
+}
+
+export async function createEvalCase(spaceId: string, input: {
+  question: string
+  expected_answer?: string | null
+  expected_document_ids?: string[]
+  scope?: EvalCase['scope']
+  category_ids?: string[]
+}): Promise<EvalCase> {
+  return requestJson<EvalCase>(`/spaces/${spaceId}/eval-cases`, { method: 'POST', data: input })
+}
+
+export async function updateEvalCase(caseId: string, input: Partial<{
+  question: string
+  expected_answer: string | null
+  expected_document_ids: string[]
+  scope: EvalCase['scope']
+  category_ids: string[]
+}>): Promise<EvalCase> {
+  return requestJson<EvalCase>(`/eval-cases/${caseId}`, { method: 'PATCH', data: input })
+}
+
+export async function deleteEvalCase(caseId: string): Promise<void> {
+  await requestJson<unknown>(`/eval-cases/${caseId}`, { method: 'DELETE' })
+}
+
+export async function reviewEvalResult(resultId: string, input: { reviewer_score: 0 | 0.5 | 1; reviewer_note?: string | null }): Promise<EvalResult> {
+  return requestJson<EvalResult>(`/eval-results/${resultId}`, { method: 'PATCH', data: input })
+}
+
+export async function runEvaluation(spaceId: string): Promise<EvalDetail> {
+  return requestJson<EvalDetail>(`/spaces/${spaceId}/eval-runs`, { method: 'POST' })
+}
+
+export async function listEvalRuns(spaceId: string, limit = 20): Promise<EvalDetail['run'][]> {
+  const result = await requestJson<{ items: EvalDetail['run'][] }>(`/spaces/${spaceId}/eval-runs?limit=${limit}`)
+  return result.items
+}
+
+export async function compareEvalRuns(spaceId: string, baselineRunId: string, candidateRunId: string): Promise<EvalRunComparison> {
+  const params = new URLSearchParams({
+    baseline_run_id: baselineRunId,
+    candidate_run_id: candidateRunId
+  })
+  return requestJson<EvalRunComparison>(`/spaces/${spaceId}/eval-runs/compare?${params.toString()}`)
+}
+
+export async function createEvalVersion(spaceId: string, label: string): Promise<EvalSetVersion> {
+  return requestJson<EvalSetVersion>(`/spaces/${spaceId}/eval-versions`, {
+    method: 'POST',
+    data: { label }
+  })
+}
+
+export async function listEvalVersions(spaceId: string, limit = 20): Promise<EvalSetVersion[]> {
+  const result = await requestJson<{ items: EvalSetVersion[] }>(`/spaces/${spaceId}/eval-versions?limit=${limit}`)
+  return result.items
+}
+
+export async function runEvalVersion(versionId: string): Promise<EvalDetail> {
+  return requestJson<EvalDetail>(`/eval-versions/${versionId}/runs`, { method: 'POST' })
+}
+
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+export function formatDate(value: string): string {
+  const date = new Date(value)
+  if (Number.isNaN(date.valueOf())) return value
+  return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
+}

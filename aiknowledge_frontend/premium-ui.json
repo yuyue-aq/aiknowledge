@@ -1,0 +1,28 @@
+{
+  "profile": "product-admin",
+  "canonicalMap": "UX-CONTRACT.md",
+  "requiredCapabilities": [
+    "Table Selection",
+    "Select/Listbox",
+    "Date",
+    "Form",
+    "Scrollbar",
+    "Toast",
+    "CRUD"
+  ],
+  "ownership": {
+    "Table Selection": "not-applicable",
+    "Select/Listbox": "authored",
+    "Date": "native",
+    "Form": "authored",
+    "Scrollbar": "css",
+    "Toast": "authored",
+    "CRUD": "authored"
+  },
+  "sourceRoots": ["src"],
+  "commands": {
+    "typecheck": "npx tsc --noEmit --skipLibCheck",
+    "build": "npm run build:h5"
+  },
+  "requiredCommands": ["typecheck", "build"]
+}

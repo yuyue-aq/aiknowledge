@@ -1,0 +1,65 @@
+.eval-compare-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e5edf6;
+}
+
+.compact-select {
+  min-width: 128px;
+  min-height: 34px;
+  padding: 0 9px;
+  font-size: 11px;
+}
+
+.eval-compare-card {
+  margin-top: 0;
+  border-color: #c9ddfc;
+  background: linear-gradient(120deg, #f7faff, #fff);
+}
+
+.eval-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.eval-compare-grid > view {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 11px;
+  border: 1px solid #e1eaf5;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.eval-compare-value {
+  color: var(--navy);
+  font-family: Inter, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .eval-compare-bar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .compact-select {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .eval-compare-bar > button {
+    width: 100%;
+  }
+
+  .eval-compare-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
