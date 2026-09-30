@@ -78,13 +78,14 @@ export function AppShell({
           <View className='topbar-search'>
             <Icon name='search' />
             <Input
+              className='topbar-search-input'
               aria-label='搜索空间、文档或问题'
               placeholder='搜索空间、文档或问题…'
             />
           </View>
           <View className='topbar-actions'>
             <Button
-              className='icon-button'
+              className='icon-button notification-button'
               disabled
               aria-label='查看通知（MVP 未接入）'
             >

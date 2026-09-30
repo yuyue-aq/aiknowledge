@@ -107,7 +107,7 @@
 - Offline/read-stale/write behavior: API errors show demo data only in explicit demo/local IDs; real-space mutations surface errors。
 - Retry/backoff/timeout behavior: document polling uses bounded 2s retries; model client has configured timeout/retry。
 - Version conflict and multi-tab behavior: server remains source of truth; refresh list after mutation。
-- Session expiry/re-authentication: auth UI directory is reserved; public session re-enters token on 401/403。
+- Session expiry/re-authentication: Owner 401 最多刷新重试一次，保持用户的“记住我”选择；退出或更换账户后，旧刷新响应不得恢复/覆盖会话；Public 401/403 只处理访客会话，不清除 Owner 登录。
 - Long-running progress and return path: document processing remains visible and can retry; generation shows incremental text。
 - Stale-request cancellation/invalidation and pending-state ownership: AbortController belongs to page; unmount and stop cancel active stream。
 - Dialog/form preservation and retry after mutation failure: retain values and show a targeted retry action。
@@ -138,3 +138,4 @@
 - Project audit command/result: `python .../frontend-design-premium/scripts/audit_project.py aiknowledge_frontend --mode strict` after this contract is committed。
 - CRUD full-flow evidence: backend pytest plus runtime scripts when Docker dependencies are available。
 - Failure-path evidence: API 401/403/404/429/5xx mappings, aborted stream, failed document and revoked share link tests。
+- 2026-09-30 regression evidence: `npm test`（18 项）；`tests/browser-v1-smoke.js`（合成 API 浏览器 7 项）。真实空间变更失败不得创建演示结果或宣称成功；创建空间/分类失败保留输入。分享/嵌入统一使用 `/#/pages/public/public?token=...`。

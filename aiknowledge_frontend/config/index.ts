@@ -60,6 +60,12 @@ export default defineConfig<'vite'>(async (merge) => {
         chunkFilename: 'css/[name].[chunkhash].css'
       },
       postcss: {
+        // H5 uses normal CSS pixels. Keep pxtransform enabled only for
+        // mini-program output so mobile web controls do not render at half
+        // their intended size because of the mini-program device ratio.
+        pxtransform: {
+          enable: false,
+        },
         autoprefixer: {
           enable: true,
           config: {}

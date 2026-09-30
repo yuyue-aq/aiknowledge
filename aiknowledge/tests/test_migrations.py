@@ -13,10 +13,25 @@ def test_alembic_has_one_linear_schema_head_and_preserves_initial_revision() -> 
     config = Config(str(PROJECT_ROOT / "alembic.ini"))
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_current_head() == "20260917_0015"
+    assert script.get_current_head() == "20260929_0016"
     revision = script.get_revision("20260911_0001")
     assert revision is not None
     assert revision.down_revision is None
+
+
+def test_latest_migration_accepts_all_document_failure_codes() -> None:
+    from io import StringIO
+    from alembic import command
+    from app.domain.documents import DocumentFailureCode
+
+    output = StringIO()
+    config = Config(str(PROJECT_ROOT / "alembic.ini"), output_buffer=output)
+    command.upgrade(config, "20260917_0015:head", sql=True)
+    sql = output.getvalue()
+    for code in DocumentFailureCode:
+        assert f"'{code.value}'" in sql
+    assert "DROP CONSTRAINT document_failure_code" in sql
+    assert "ADD CONSTRAINT document_failure_code CHECK" in sql
 
 
 def test_initial_migration_enables_pgvector_without_dropping_shared_extension() -> None:

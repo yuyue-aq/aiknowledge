@@ -352,6 +352,7 @@ const urlFor = (path: string) => `${apiBase}${path.startsWith('/') ? path : `/${
 
 const authStorageKey = 'aiknowledge.auth.session'
 let authSession: AuthSession | null | undefined
+let rememberAuthSession = false
 let refreshPromise: Promise<boolean> | null = null
 
 function readAuthSession(): AuthSession | null {
@@ -359,6 +360,7 @@ function readAuthSession(): AuthSession | null {
   try {
     const stored = Taro.getStorageSync(authStorageKey)
     authSession = stored && typeof stored === 'object' ? stored as AuthSession : null
+    rememberAuthSession = authSession !== null
   } catch {
     authSession = null
   }
@@ -367,6 +369,8 @@ function readAuthSession(): AuthSession | null {
 
 export function saveAuthSession(session: AuthSession, remember = true): void {
   authSession = session
+  rememberAuthSession = remember
+  refreshPromise = null
   try {
     if (remember) Taro.setStorageSync(authStorageKey, session)
     else Taro.removeStorageSync(authStorageKey)
@@ -377,6 +381,8 @@ export function saveAuthSession(session: AuthSession, remember = true): void {
 
 export function clearAuthSession(): void {
   authSession = null
+  rememberAuthSession = false
+  refreshPromise = null
   try { Taro.removeStorageSync(authStorageKey) } catch { /* optional storage */ }
 }
 
@@ -389,7 +395,8 @@ async function refreshAccessToken(): Promise<boolean> {
   const current = readAuthSession()
   if (!current?.tokens.refresh_token) return false
   if (refreshPromise) return refreshPromise
-  refreshPromise = (async () => {
+  const remember = rememberAuthSession
+  const pending = (async () => {
     try {
       const response = await Taro.request<AuthResponse>({
         url: urlFor('/auth/refresh'),
@@ -397,16 +404,19 @@ async function refreshAccessToken(): Promise<boolean> {
         data: { refresh_token: current.tokens.refresh_token },
         header: { 'content-type': 'application/json' }
       } as Parameters<typeof Taro.request<AuthResponse>>[0])
-      if (response.statusCode >= 400) return false
-      saveAuthSession(response.data, true)
+      if (response.statusCode >= 400 || readAuthSession() !== current) return false
+      saveAuthSession(response.data, remember)
       return true
     } catch {
       return false
-    } finally {
-      refreshPromise = null
     }
   })()
-  return refreshPromise
+  refreshPromise = pending
+  try {
+    return await pending
+  } finally {
+    if (refreshPromise === pending) refreshPromise = null
+  }
 }
 
 const readError = (data: unknown, status: number) => {
@@ -423,6 +433,8 @@ const readError = (data: unknown, status: number) => {
 }
 
 export async function requestJson<T>(path: string, options: ApiOptions = {}): Promise<T> {
+  const isPublic = path.startsWith('/public/')
+  const current = readAuthSession()
   try {
     const response = await Taro.request<T>({
       url: urlFor(path),
@@ -430,14 +442,14 @@ export async function requestJson<T>(path: string, options: ApiOptions = {}): Pr
       data: options.data,
       header: {
         'content-type': 'application/json',
-        ...authorizationHeader(),
+        ...(isPublic ? {} : authorizationHeader()),
         ...(options.headers ?? {})
       },
       credentials: 'include'
     } as Parameters<typeof Taro.request<T>>[0])
-    if (response.statusCode === 401 && !options.skipAuthRefresh && !path.includes('/auth/')) {
+    if (response.statusCode === 401 && !isPublic && !options.skipAuthRefresh && (!path.startsWith('/auth/') || path === '/auth/me')) {
       if (await refreshAccessToken()) return requestJson<T>(path, { ...options, skipAuthRefresh: true })
-      clearAuthSession()
+      if (readAuthSession() === current) clearAuthSession()
     }
     if (response.statusCode >= 400) throw readError(response.data, response.statusCode)
     return response.data
@@ -465,11 +477,8 @@ export async function login(input: { email: string; password: string }, remember
 
 export async function logout(): Promise<void> {
   const refreshToken = readAuthSession()?.tokens.refresh_token
-  try {
-    if (refreshToken) await requestJson<unknown>('/auth/logout', { method: 'POST', data: { refresh_token: refreshToken }, skipAuthRefresh: true })
-  } finally {
-    clearAuthSession()
-  }
+  clearAuthSession()
+  if (refreshToken) await requestJson<unknown>('/auth/logout', { method: 'POST', data: { refresh_token: refreshToken }, skipAuthRefresh: true })
 }
 
 export async function getMe(): Promise<AuthUser> {
@@ -654,22 +663,27 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
   path: string,
   question: string,
   onText: (text: string) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  skipAuthRefresh = false
 ): Promise<T> {
+  signal?.throwIfAborted()
   if (typeof fetch === 'undefined' || typeof ReadableStream === 'undefined') {
     const data = await requestJson<T>(path, { method: 'POST', data: { question, stream: false } })
     onText(data.answer)
     return data
   }
+  const isPublic = path.startsWith('/public/')
+  const current = readAuthSession()
   const response = await fetch(urlFor(path), {
     method: 'POST',
-    headers: { 'content-type': 'application/json', ...authorizationHeader() },
+    headers: { 'content-type': 'application/json', ...(isPublic ? {} : authorizationHeader()) },
     credentials: 'include',
     signal,
     body: JSON.stringify({ question, stream: true })
   })
-  if (response.status === 401 && await refreshAccessToken()) {
-    return streamAnswer<T>(path, question, onText, signal)
+  if (response.status === 401 && !isPublic && !skipAuthRefresh) {
+    if (await refreshAccessToken()) return streamAnswer<T>(path, question, onText, signal, true)
+    if (readAuthSession() === current) clearAuthSession()
   }
   if (!response.ok) {
     let data: unknown = null
@@ -682,29 +696,13 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
     onText(data.answer)
     return data
   }
-  if (!response.body || typeof response.body.getReader !== 'function') {
-    // Some mini-program WebViews expose fetch but not a readable response
-    // stream. Re-issue the request in JSON mode so the mobile path remains
-    // usable instead of trying to parse an SSE document as JSON.
-    const data = await requestJson<T>(path, { method: 'POST', data: { question, stream: false } })
-    onText(data.answer)
-    return data
-  }
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
   let answer: T | null = null
   let streamedText = ''
-  while (true) {
-    const { done, value } = await reader.read()
-    buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done })
-    const events = buffer.split(/\n\n/)
-    buffer = done ? '' : (events.pop() ?? '')
+  const consumeEvents = (events: string[]) => {
     for (const event of events) {
-      const dataLine = event.split('\n').find((line) => line.startsWith('data:'))
-      if (!dataLine) continue
-      const eventName = event.split('\n').find((line) => line.startsWith('event:'))?.slice(6).trim() ?? ''
-      const payload = dataLine.slice(5).trim()
+      const lines = event.split(/\r?\n/)
+      const eventName = lines.find((line) => line.startsWith('event:'))?.slice(6).trim() ?? ''
+      const payload = lines.filter((line) => line.startsWith('data:')).map((line) => line.slice(5).trimStart()).join('\n')
       if (!payload || payload === '[DONE]') continue
       try {
         const parsed = JSON.parse(payload) as T & { text?: unknown }
@@ -717,10 +715,30 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
           onText(parsed.answer)
         }
       } catch {
-        // The server may split an SSE event across network chunks; keep reading.
+        // Ignore malformed events; an absent final answer still fails below.
       }
     }
-    if (done) break
+  }
+  if (!response.body || typeof response.body.getReader !== 'function') {
+    // The server has already persisted the answer. Read this response instead
+    // of submitting the same question again and consuming quota twice.
+    consumeEvents((await response.text()).split(/\r?\n\r?\n/))
+  } else {
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        buffer += decoder.decode(value ?? new Uint8Array(), { stream: !done })
+        const events = buffer.split(/\r?\n\r?\n/)
+        buffer = done ? '' : (events.pop() ?? '')
+        consumeEvents(events)
+        if (done) break
+      }
+    } finally {
+      reader.releaseLock()
+    }
   }
   if (!answer) throw new ApiRequestError('回答流意外结束，请重试。', 502)
   return answer
@@ -737,6 +755,10 @@ export async function streamOwnerAnswer(
 
 export async function createPublicSession(token: string, password?: string): Promise<PublicSpace> {
   return requestJson<PublicSpace>('/public/session', { method: 'POST', data: { token, ...(password ? { password } : {}) } })
+}
+
+export function publicShareUrl(token: string, baseUrl = typeof window === 'undefined' ? '' : window.location.origin): string {
+  return `${baseUrl.replace(/\/$/, '')}/#/pages/public/public?token=${encodeURIComponent(token)}`
 }
 
 export async function getPublicSpace(): Promise<PublicSpace> {

@@ -17,13 +17,13 @@
       throw new Error('AiKnowledgeEmbed.mount requires publicUrl');
     }
     var iframe = document.createElement('iframe');
-    iframe.title = options.title || '知洲知识问答';
+    iframe.title = options.title || '知溯知识问答';
     iframe.loading = 'lazy';
     iframe.referrerPolicy = 'no-referrer';
     iframe.style.width = '100%';
     iframe.style.height = options.height || '560px';
     iframe.style.border = '0';
-    iframe.src = publicUrl + '/public/embed?token=' + encodeURIComponent(options.token);
+    iframe.src = publicUrl + '/#/pages/public/public?token=' + encodeURIComponent(options.token);
     target.innerHTML = '';
     target.appendChild(iframe);
     return iframe;

@@ -1,0 +1,134 @@
+const { test } = require('node:test')
+const assert = require('node:assert/strict')
+const fs = require('node:fs')
+const path = require('node:path')
+const vm = require('node:vm')
+const ts = require('typescript')
+
+const source = fs.readFileSync(path.join(__dirname, '../src/api/client.ts'), 'utf8')
+const compiled = ts.transpileModule(source, {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
+}).outputText
+const session = (token = 'old') => ({ user: { id: 'owner' }, tokens: { access_token: token, refresh_token: 'refresh' } })
+
+function loadClient(request, extras = {}) {
+  const storage = new Map()
+  const taro = {
+    request,
+    getStorageSync: (key) => storage.get(key),
+    setStorageSync: (key, value) => storage.set(key, value),
+    removeStorageSync: (key) => storage.delete(key)
+  }
+  const context = {
+    exports: {}, require: () => ({ default: taro }), process: { env: { TARO_ENV: 'h5' } },
+    ReadableStream, TextDecoder, Uint8Array, URLSearchParams, ...extras
+  }
+  vm.runInNewContext(compiled, context)
+  return { client: context.exports, storage }
+}
+
+for (const remember of [false, true]) {
+  test(`refresh preserves remember=${remember}`, async () => {
+    let calls = 0
+    const { client, storage } = loadClient(async ({ url }) => {
+      if (url.endsWith('/auth/refresh')) return { statusCode: 200, data: session('new') }
+      return ++calls === 1 ? { statusCode: 401 } : { statusCode: 200, data: [] }
+    })
+    client.saveAuthSession(session(), remember)
+    await client.listSpaces()
+    assert.equal(storage.has('aiknowledge.auth.session'), remember)
+  })
+}
+
+test('public 401 neither refreshes nor clears the owner session', async () => {
+  let refreshes = 0
+  const { client, storage } = loadClient(async ({ url }) => {
+    if (url.endsWith('/auth/refresh')) refreshes++
+    return { statusCode: 401, data: { message: '访客会话失效' } }
+  })
+  client.saveAuthSession(session())
+  await assert.rejects(client.getPublicSpace(), { status: 401 })
+  assert.equal(refreshes, 0)
+  assert.equal(storage.has('aiknowledge.auth.session'), true)
+})
+
+test('late refresh cannot sign a logged-out owner back in', async () => {
+  let resolveRefresh
+  let refreshStarted
+  const started = new Promise((resolve) => { refreshStarted = resolve })
+  const { client, storage } = loadClient(async ({ url }) => {
+    if (url.endsWith('/auth/refresh')) {
+      refreshStarted()
+      return new Promise((resolve) => { resolveRefresh = resolve })
+    }
+    return { statusCode: 401 }
+  })
+  client.saveAuthSession(session())
+  const request = client.listSpaces()
+  await started
+  client.clearAuthSession()
+  resolveRefresh({ statusCode: 200, data: session('new') })
+  await assert.rejects(request, { status: 401 })
+  assert.equal(storage.size, 0)
+})
+
+test('stream retries authentication only once', async () => {
+  let refreshes = 0
+  let requests = 0
+  const { client } = loadClient(async () => {
+    refreshes++
+    // Bound the regression even with the original recursive retry bug.
+    return refreshes <= 3 ? { statusCode: 200, data: session('new') } : { statusCode: 401 }
+  }, { fetch: async () => { requests++; return { status: 401, ok: false, json: async () => ({}) } } })
+  client.saveAuthSession(session())
+  await assert.rejects(client.streamOwnerAnswer('conversation', '问题', () => {}), { status: 401 })
+  assert.equal(refreshes, 1)
+  assert.equal(requests, 2)
+})
+
+test('unreadable SSE body uses the existing response without sending a duplicate question', async () => {
+  let requests = 0
+  let jsonRequests = 0
+  const answer = { answer: '已回答', status: 'ANSWERED', message_id: 'message' }
+  const { client } = loadClient(async () => { jsonRequests++; return { statusCode: 200, data: answer } }, {
+    fetch: async () => {
+      requests++
+      return { ok: true, status: 200, headers: new Headers({ 'content-type': 'text/event-stream' }),
+        body: null, text: async () => `event: answer\r\ndata: ${JSON.stringify(answer)}\r\n\r\nevent: done\r\ndata: {}\r\n\r\n` }
+    }
+  })
+  assert.equal((await client.streamOwnerAnswer('conversation', '问题', () => {})).answer, answer.answer)
+  assert.equal(requests, 1)
+  assert.equal(jsonRequests, 0)
+})
+
+test('SSE parser handles split CRLF frames', async () => {
+  const answer = { answer: '中文回答', status: 'ANSWERED' }
+  const bytes = new TextEncoder().encode(`event: delta\r\ndata: {"text":"中文"}\r\n\r\nevent: answer\r\ndata: ${JSON.stringify(answer)}\r\n\r\n`)
+  const { client } = loadClient(async () => { throw new Error('unexpected JSON request') }, {
+    fetch: async () => new Response(new ReadableStream({ start(controller) {
+      for (let i = 0; i < bytes.length; i += 3) controller.enqueue(bytes.slice(i, i + 3))
+      controller.close()
+    } }), { headers: { 'content-type': 'text/event-stream' } })
+  })
+  const updates = []
+  assert.equal((await client.streamPublicAnswer('conversation', '问题', (text) => updates.push(text))).answer, answer.answer)
+  assert.deepEqual(updates, ['中文', '中文回答'])
+})
+
+test('share URLs use the configured H5 page and encode the token', () => {
+  const { client } = loadClient(async () => {})
+  const url = new URL(client.publicShareUrl('token&x=1', 'https://example.com/'))
+  assert.equal(url.pathname, '/')
+  assert.equal(url.hash, '#/pages/public/public?token=token%26x%3D1')
+})
+
+test('embed and copied share link resolve to the same public page', () => {
+  const { client } = loadClient(async () => {})
+  const target = { appendChild(frame) { this.frame = frame } }
+  const context = { window: {}, document: { querySelector: () => target, createElement: () => ({ style: {} }) } }
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../src/static/aiknowledge-embed.js'), 'utf8'), context)
+  const iframe = context.window.AiKnowledgeEmbed.mount({ token: 'share-token', target: '#widget', publicUrl: 'https://example.com/' })
+  assert.equal(iframe.src, client.publicShareUrl('share-token', 'https://example.com/'))
+  assert.equal(target.frame, iframe)
+})

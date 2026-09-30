@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from dataclasses import replace
 from uuid import UUID, uuid4
 
 import pytest
 
 from app.domain.documents import (
+    DocumentFailureCode,
     DocumentStatus,
     DocumentVersionStatus,
     StoredDocument,
@@ -36,6 +38,13 @@ class FakeRepository:
 
     async def mark_document_deleted(self, document_id: UUID) -> None:
         self.deleted = document_id
+
+    async def fail_processing_version(self, *, version_id, code, message):
+        self.document = replace(self.document, status=DocumentStatus.FAILED, failure_code=code, failure_message=message)
+        self.version = replace(self.version, status=DocumentVersionStatus.FAILED)
+
+    async def get_processing_context(self, version_id):
+        return self.document, self.version
 
     async def commit(self) -> None:
         self.commits += 1
@@ -110,6 +119,28 @@ async def test_retry_commits_processing_state_before_dispatching_the_same_versio
     assert retried == (document, version)
     assert dispatcher.ids == [version.id]
     assert dispatcher.commits_at_dispatch == 1
+
+
+@pytest.mark.asyncio
+async def test_failed_retry_dispatch_can_be_retried_again() -> None:
+    document, version = build_records()
+    repository = FakeRepository(document, version)
+
+    class RecoveringDispatcher(FakeDispatcher):
+        async def enqueue_processing(self, version_id):
+            if not self.ids:
+                self.ids.append(version_id)
+                raise ConnectionError("broker unavailable")
+            self.ids.append(version_id)
+
+    dispatcher = RecoveringDispatcher(repository)
+    service = DocumentManagementService(repository=repository, dispatcher=dispatcher)
+    retried, failed_version = await service.retry(document.id)
+    assert retried.status is DocumentStatus.FAILED
+    assert retried.failure_code is DocumentFailureCode.QUEUE_UNAVAILABLE
+    assert failed_version.status is DocumentVersionStatus.FAILED
+    await service.retry(document.id)
+    assert dispatcher.ids == [version.id, version.id]
 
 
 @pytest.mark.asyncio

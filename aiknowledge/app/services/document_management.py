@@ -6,6 +6,7 @@ from typing import Protocol
 from uuid import UUID
 
 from app.domain.documents import (
+    DocumentFailureCode,
     DocumentSubmission,
     DocumentPermissionDeniedError,
     DocumentStatus,
@@ -43,6 +44,14 @@ class DocumentManagementRepository(Protocol):
 
     async def retry_failed_document(
         self, document_id: UUID
+    ) -> tuple[StoredDocument, StoredDocumentVersion] | None: ...
+
+    async def fail_processing_version(
+        self, *, version_id: UUID, code: DocumentFailureCode, message: str
+    ) -> None: ...
+
+    async def get_processing_context(
+        self, version_id: UUID
     ) -> tuple[StoredDocument, StoredDocumentVersion] | None: ...
 
     async def mark_document_deleted(self, document_id: UUID) -> None: ...
@@ -83,7 +92,7 @@ class DocumentManagementService:
     ) -> list[StoredDocument]:
         await self._require_owner_space(space_id, owner_user_id=owner_user_id)
         normalized = query.strip()
-        if not normalized:
+        if not normalized and tag_id is None:
             return await self._repository.list_documents(space_id)
         return await self._repository.search_documents(space_id, normalized, tag_id)
 
@@ -109,9 +118,15 @@ class DocumentManagementService:
         try:
             await self._dispatcher.enqueue_processing(retried[1].id)
         except Exception:
-            # The durable PROCESSING state can be retried by the same endpoint;
-            # never roll it back after a successful commit.
-            pass
+            await self._repository.fail_processing_version(
+                version_id=retried[1].id,
+                code=DocumentFailureCode.QUEUE_UNAVAILABLE,
+                message="处理队列暂不可用，请稍后重试。",
+            )
+            await self._repository.commit()
+            context = await self._repository.get_processing_context(retried[1].id)
+            if context is not None:
+                return context
         return retried
 
     async def delete(self, document_id: UUID, *, owner_user_id: UUID | None = None) -> StoredDocument:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from dataclasses import replace
 from uuid import UUID, uuid4
 
 import pytest
@@ -61,6 +62,7 @@ class FakeRepository:
 
     async def create_processing_document(self, document, version):  # type: ignore[no-untyped-def]
         self.created = (document, version)
+        self.context = (document, version)
 
     async def get_processing_context(self, version_id: UUID):  # type: ignore[no-untyped-def]
         return self.context
@@ -70,6 +72,12 @@ class FakeRepository:
 
     async def fail_processing_version(self, *, version_id: UUID, code: DocumentFailureCode, message: str):
         self.failed = (version_id, code, message)
+        if self.context is not None:
+            document, version = self.context
+            self.context = (
+                replace(document, status=DocumentStatus.FAILED, failure_code=code, failure_message=message),
+                replace(version, status=DocumentVersionStatus.FAILED),
+            )
 
     async def mark_document_deleted(self, document_id: UUID):
         self.deleted = document_id
@@ -138,6 +146,28 @@ def create_upload_service(
         key_factory=lambda: uuid4(),
         clock=lambda: datetime(2026, 9, 11, tzinfo=UTC),
     )
+
+
+@pytest.mark.asyncio
+async def test_broker_failure_leaves_uploaded_document_failed_and_retryable() -> None:
+    repository = FakeRepository()
+    storage = FakeStorage()
+
+    class UnavailableDispatcher(FakeDispatcher):
+        async def enqueue_processing(self, version_id):
+            raise ConnectionError("broker unavailable")
+
+    service = create_upload_service(repository, storage, UnavailableDispatcher(repository))
+    result = await service.upload(
+        space_id=uuid4(), category_id=None, filename="资料.txt",
+        content=b"source", content_type="text/plain",
+    )
+    assert result.processing_enqueued is False
+    assert result.document.status is DocumentStatus.FAILED
+    assert result.document.failure_code is DocumentFailureCode.QUEUE_UNAVAILABLE
+    assert result.version.status is DocumentVersionStatus.FAILED
+    assert result.document.storage_key in storage.objects
+    assert repository.commits == 2
 
 
 @pytest.mark.asyncio

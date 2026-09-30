@@ -1,4 +1,4 @@
-import { Button, Input, Picker, Text, Textarea, View } from "@tarojs/components";
+import { Button, Checkbox, Input, Label, Picker, Text, Textarea, View } from "@tarojs/components";
 import Taro, { useLoad, useRouter } from "@tarojs/taro";
 import {
   useCallback,
@@ -10,6 +10,7 @@ import {
 } from "react";
 import {
   ApiRequestError,
+  publicShareUrl,
   createCategory,
   createOwnerConversation,
   createShareLink,
@@ -176,6 +177,7 @@ function AuthView({
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -196,7 +198,7 @@ function AuthView({
     setBusy(true);
     try {
       const session = mode === "login"
-        ? await login({ email: email.trim(), password })
+        ? await login({ email: email.trim(), password }, rememberMe)
         : await register({ email: email.trim(), password, display_name: name.trim() });
       onEnter(session.user);
     } catch (requestError) {
@@ -317,10 +319,18 @@ function AuthView({
           </Field>
           {mode === "login" && (
             <View className='auth-options'>
-              <Text className='remember-copy'>
-                <Text className='checkbox-mock' aria-hidden='true' />
-                记住我
-              </Text>
+              <Label
+                className='remember-copy'
+                for='remember-me'
+              >
+                <Checkbox
+                  id='remember-me'
+                  value='remember-me'
+                  checked={rememberMe}
+                  onChange={() => setRememberMe((current) => !current)}
+                />
+                <Text>记住我</Text>
+              </Label>
               <Button
                 className='text-button'
                 onClick={() => setError("密码找回将在授权系统接入后开放。")}
@@ -488,7 +498,7 @@ function SpacesView({
     name: string;
     description: string;
     visibility: SpaceVisibility;
-  }) => Promise<void>;
+  }) => Promise<boolean>;
   onRetry: () => void;
 }) {
   const [showCreate, setShowCreate] = useState(false);
@@ -502,11 +512,12 @@ function SpacesView({
       return;
     }
     setFormError("");
-    await onCreate({
+    const created = await onCreate({
       name: name.trim(),
       description: description.trim(),
       visibility,
     });
+    if (!created) return;
     setName("");
     setDescription("");
     setShowCreate(false);
@@ -967,11 +978,11 @@ function DocumentsView({
         >
           选择文件
         </Button>
-        <Text className='drop-title'>
-          {uploading
-            ? `正在上传 ${progress ? `${progress}%` : ""}`
-            : "选择文件上传"}
-        </Text>
+        {uploading && (
+          <Text className='drop-title'>
+            {`正在上传 ${progress ? `${progress}%` : ""}`}
+          </Text>
+        )}
         <Text className='drop-hint'>
           支持 PDF、DOCX、Markdown、TXT、CSV/TSV、PPTX，单文件不超过 20 MB
         </Text>
@@ -1510,7 +1521,7 @@ function PublicSettingsView({
   publicQuestions: PublicQuestionRecord[];
   publicAnalytics: PublicAnalytics | null;
   onToggle: (category: Category) => Promise<void>;
-  onCreateCategory: (name: string) => Promise<void>;
+  onCreateCategory: (name: string) => Promise<boolean>;
   onCreateTag: (name: string) => Promise<void>;
   onDeleteTag: (tag: KnowledgeTag) => Promise<void>;
   onShare: (options?: { password?: string; visitor_question_limit?: number | null; allowed_origins?: string[] }) => Promise<CreatedShareLink | null>;
@@ -1531,7 +1542,7 @@ function PublicSettingsView({
     if (!shareResult) return;
     try {
       await Taro.setClipboardData({
-        data: `${typeof window !== "undefined" ? window.location.origin : ""}/public?token=${shareResult.token}`,
+        data: publicShareUrl(shareResult.token),
       });
       setLocalError("分享链接已复制到剪贴板。");
     } catch {
@@ -1539,7 +1550,7 @@ function PublicSettingsView({
     }
   };
   const embedSnippet = shareResult
-    ? `<div id="knowledge-widget"></div>\n<script src="${typeof window !== "undefined" ? window.location.origin : ""}/aiknowledge-embed.js"></script>\n<script>AiKnowledgeEmbed.mount({ token: "${shareResult.token}", target: "#knowledge-widget" });</script>`
+    ? `<div id="knowledge-widget"></div>\n<script src="${typeof window !== "undefined" ? window.location.origin : ""}/aiknowledge-embed.js"></script>\n<script>AiKnowledgeEmbed.mount({ token: "${shareResult.token}", target: "#knowledge-widget", publicUrl: "${typeof window !== "undefined" ? window.location.origin : ""}" });</script>`
     : "";
   const copyEmbed = async () => {
     if (!embedSnippet) return;
@@ -1554,8 +1565,7 @@ function PublicSettingsView({
     if (!categoryName.trim()) return;
     setBusy(true);
     try {
-      await onCreateCategory(categoryName.trim());
-      setCategoryName("");
+      if (await onCreateCategory(categoryName.trim())) setCategoryName("");
     } finally {
       setBusy(false);
     }
@@ -1615,6 +1625,7 @@ function PublicSettingsView({
         </View>
         <View className='add-category'>
           <Input
+            className='text-input'
             value={categoryName}
             placeholder='新增公开分类名称'
             onInput={(event) => setCategoryName(valueOf(event))}
@@ -1638,6 +1649,7 @@ function PublicSettingsView({
         </View>
         <View className='add-category'>
           <Input
+            className='text-input'
             value={tagName}
             placeholder='新增标签，例如：产品、合规'
             onInput={(event) => setTagName(valueOf(event))}
@@ -1690,7 +1702,7 @@ function PublicSettingsView({
               >{showSharePassword ? '隐藏' : '显示'}</Button>
             </View>
             <Input
-              className='share-limit-input'
+              className='text-input share-limit-input'
               type='number'
               value={questionLimit}
               placeholder='访客提问上限（可选）'
@@ -1698,7 +1710,7 @@ function PublicSettingsView({
               aria-label='访客提问上限'
             />
             <Input
-              className='share-origin-input'
+              className='text-input share-origin-input'
               value={shareOrigin}
               placeholder='允许来源（可选，如 https://example.com）'
               onInput={(event) => setShareOrigin(valueOf(event))}
@@ -1732,7 +1744,7 @@ function PublicSettingsView({
             <Text className='share-result-title'>
               链接已生成（仅显示一次 token）
             </Text>
-            <Text className='share-url'>/public?token={shareResult.token}</Text>
+            <Text className='share-url'>{publicShareUrl(shareResult.token)}</Text>
             <View className='share-actions'>
               <Button
                 className='outline-button compact'
@@ -2004,12 +2016,14 @@ function FeedbackView({
               {editingId === item.id && (
                 <View className='feedback-review-editor'>
                   <Textarea
+                    className='text-input resize-none'
                     value={correctedAnswer}
                     placeholder='人工修正答案（标记为已修正时必填）'
                     onInput={(event) => setCorrectedAnswer(valueOf(event))}
                     aria-label='人工修正答案'
                   />
                   <Input
+                    className='text-input'
                     value={reviewNote}
                     placeholder='审核说明（可选）'
                     onInput={(event) => setReviewNote(valueOf(event))}
@@ -2171,6 +2185,7 @@ function EvalView({
         </View>
         <View className='eval-version-create'>
           <Input
+            className='text-input eval-version-input'
             value={versionLabel}
             maxlength={120}
             placeholder='版本名称，例如：发布前基线'
@@ -2247,6 +2262,7 @@ function EvalView({
         </View>
         <View className='eval-case-create'>
           <Textarea
+            className='resize-none'
             value={newQuestion}
             maxlength={2000}
             placeholder='新增测试问题，例如：项目的交付周期是多少？'
@@ -2254,6 +2270,7 @@ function EvalView({
             aria-label='新增测试问题'
           />
           <Input
+            className='text-input'
             value={newExpected}
             maxlength={5000}
             placeholder='参考答案（可选）'
@@ -2892,8 +2909,8 @@ export default function Index() {
 
   const isDemoSpace = useCallback(
     (spaceId: string | null | undefined = currentSpace?.id) =>
-      usingDemo || isLocalDemoId(spaceId),
-    [currentSpace?.id, usingDemo],
+      isLocalDemoId(spaceId),
+    [currentSpace?.id],
   );
 
   const trackDocumentProcessing = useCallback(
@@ -3036,17 +3053,18 @@ export default function Index() {
       setSpaces(await listSpaces());
       setUsingDemo(false);
     } catch (error) {
-      setSpaces(demoSpaces);
-      setUsingDemo(true);
+      const allowDemo = router.params.view === "workspace" && !authUser;
+      if (allowDemo) setSpaces(demoSpaces);
+      setUsingDemo(allowDemo);
       setPageError(
         error instanceof ApiRequestError
           ? error.message
-          : "后端暂不可用，当前显示演示数据。",
+          : "空间列表加载失败，请重试。",
       );
     } finally {
       setLoadingSpaces(false);
     }
-  }, []);
+  }, [authUser, router.params.view]);
   useEffect(() => {
     if (loggedIn) void loadSpaces();
   }, [loggedIn, loadSpaces]);
@@ -3297,7 +3315,11 @@ export default function Index() {
           tone: "success",
           message: "反馈已记录，感谢帮助我们改进回答。",
         });
-      } catch {
+      } catch (error) {
+        if (!isDemoSpace()) {
+          setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "反馈保存失败，请重试。" });
+          return;
+        }
         setToast({
           tone: "info",
           message: "演示反馈已记录；连接 API 后会保存到反馈中心。",
@@ -3306,7 +3328,7 @@ export default function Index() {
         setFeedbackBusy(null);
       }
     },
-    [],
+    [isDemoSpace],
   );
   const handleCreateSpace = useCallback(
     async (input: {
@@ -3323,8 +3345,11 @@ export default function Index() {
         setSpaces((items) => [...items, created]);
         setToast({ tone: "success", message: "知识空间已创建。" });
         await loadSpaceData(created);
-      } catch {
-        setUsingDemo(true);
+      } catch (error) {
+        if (!usingDemo) {
+          setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "空间创建失败，请重试。" });
+          return false;
+        }
         const created: Space = {
           id: localId("space"),
           name: input.name,
@@ -3343,8 +3368,9 @@ export default function Index() {
       } finally {
         setCreating(false);
       }
+      return true;
     },
-    [loadSpaceData],
+    [loadSpaceData, usingDemo],
   );
   const handleUpload = useCallback(
     async (
@@ -3387,8 +3413,10 @@ export default function Index() {
           trackDocumentProcessing(result.document.id);
         }
         setToast({
-          tone: "success",
-          message: "资料已上传，正在处理并建立向量索引。",
+          tone: result.processing_enqueued ? "success" : "warning",
+          message: result.processing_enqueued
+            ? "资料已上传，正在处理并建立向量索引。"
+            : "资料已保存，但处理队列暂不可用，请点击重试。",
         });
       } catch (error) {
         const failureMessage =
@@ -3521,6 +3549,10 @@ export default function Index() {
       setDocuments((items) =>
         items.map((item) => (item.id === document.id ? updated : item)),
       );
+      if (updated.status === "FAILED") {
+        setToast({ tone: "error", message: updated.failure_message || "处理队列暂不可用，请稍后重试。" });
+        return;
+      }
       trackDocumentProcessing(updated.id);
       setToast({ tone: "success", message: "已重新加入处理队列。" });
     } catch (error) {
@@ -3551,8 +3583,11 @@ export default function Index() {
     const next = !category.is_open;
     try {
       await updateCategory(category.id, { is_open: next });
-    } catch {
-      /* local fallback */
+    } catch (error) {
+      if (!isDemoSpace(category.space_id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "分类状态更新失败，请重试。" });
+        return;
+      }
     }
     setCategories((items) =>
       items.map((item) =>
@@ -3565,10 +3600,10 @@ export default function Index() {
         ? `已开放分类“${category.name}”。`
         : `已关闭分类“${category.name}”。`,
     });
-  }, []);
+  }, [isDemoSpace]);
   const handleCreateCategory = useCallback(
     async (name: string) => {
-      if (!currentSpace) return;
+      if (!currentSpace) return false;
       try {
         const created = await createCategory(currentSpace.id, {
           name,
@@ -3576,7 +3611,11 @@ export default function Index() {
           sort_order: categories.length + 1,
         });
         setCategories((items) => [...items, created]);
-      } catch {
+      } catch (error) {
+        if (!isDemoSpace(currentSpace.id)) {
+          setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "分类创建失败，请重试。" });
+          return false;
+        }
         setCategories((items) => [
           ...items,
           {
@@ -3592,8 +3631,9 @@ export default function Index() {
         ]);
       }
       setToast({ tone: "success", message: `分类“${name}”已添加。` });
+      return true;
     },
-    [categories.length, currentSpace],
+    [categories.length, currentSpace, isDemoSpace],
   );
   const handleCreateTag = useCallback(async (name: string) => {
     if (!currentSpace) return;
@@ -3643,7 +3683,11 @@ export default function Index() {
         message: "分享链接已生成，请妥善保存 token。",
       });
       return created;
-    } catch {
+    } catch (error) {
+      if (!isDemoSpace(currentSpace.id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "分享链接生成失败，请重试。" });
+        return null;
+      }
       const created: CreatedShareLink = {
         link: {
           id: localId("link"),
@@ -3665,12 +3709,15 @@ export default function Index() {
       });
       return created;
     }
-  }, [categories, currentSpace]);
+  }, [categories, currentSpace, isDemoSpace]);
   const handleRevoke = useCallback(async (link: ShareLink) => {
     try {
       await revokeShareLink(link.id);
-    } catch {
-      /* local fallback */
+    } catch (error) {
+      if (!isDemoSpace(link.space_id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "分享链接撤销失败，请重试。" });
+        return;
+      }
     }
     setShareLinks((items) =>
       items.map((item) =>
@@ -3680,7 +3727,7 @@ export default function Index() {
       ),
     );
     setToast({ tone: "success", message: "分享链接已撤销。" });
-  }, []);
+  }, [isDemoSpace]);
   const handleVisibilityChange = useCallback(
     async (visibility: SpaceVisibility) => {
       if (!currentSpace || currentSpace.visibility === visibility) return;
@@ -3690,7 +3737,11 @@ export default function Index() {
         setSpaces((items) =>
           items.map((item) => (item.id === updated.id ? updated : item)),
         );
-      } catch {
+      } catch (error) {
+        if (!isDemoSpace(currentSpace.id)) {
+          setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "空间可见性更新失败，请重试。" });
+          return;
+        }
         const updated = { ...currentSpace, visibility };
         setCurrentSpace(updated);
         setSpaces((items) =>
@@ -3703,7 +3754,7 @@ export default function Index() {
           visibility === "PUBLIC" ? "空间已切换为公开。" : "空间已切换为私密。",
       });
     },
-    [currentSpace],
+    [currentSpace, isDemoSpace],
   );
   const handlePlanChange = useCallback(
     async (plan: SpacePlan) => {
@@ -3867,7 +3918,11 @@ export default function Index() {
       setEvalResult(nextResult);
       setEvalRuns((items) => [nextResult.run, ...items.filter((item) => item.id !== nextResult.run.id)]);
       setToast({ tone: "success", message: "质量自测已完成。" });
-    } catch {
+    } catch (error) {
+      if (!isDemoSpace(currentSpace.id)) {
+        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "质量自测失败，请重试。" });
+        return;
+      }
       setEvalResult({
         run: {
           id: localId("run"),
@@ -3903,7 +3958,7 @@ export default function Index() {
     } finally {
       setLoadingEval(false);
     }
-  }, [currentSpace, evalCases.length]);
+  }, [currentSpace, evalCases.length, isDemoSpace]);
   const handleCreateEvalCase = useCallback(async (input: { question: string; expected_answer?: string | null; scope: EvalCase["scope"] }) => {
     if (!currentSpace) return;
     const categoryIds = input.scope === "OWNER"

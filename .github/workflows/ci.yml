@@ -38,6 +38,7 @@ jobs:
           node-version: "22"
       - run: npm install --no-audit --no-fund
       - run: npx tsc --noEmit --skipLibCheck
+      - run: npm test
       - run: npx eslint src
       - run: npm run lint:style
       - run: npm run build:h5

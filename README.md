@@ -1,5 +1,7 @@
 # 知溯 AiKnowledge MVP
 
+> 2026-09-30 验收结论：V1 尚未全部完成。已修复问题、当前回归结果与 P0 缺口见 [V1验收报告](./V1验收报告.md)。最新迁移为 `20260929_0016`，部署本轮修复需执行 `alembic upgrade head`。
+
 这是一个以 DeepSeek Flash + `BAAI/bge-large-zh-v1.5` 为核心的可信知识工作台 MVP：资料进入私有对象存储，后台解析并生成 1024 维向量，所有者问答保留引用快照，公开访客只能检索分享链接当前开放分类。
 
 ## 当前交付范围
@@ -78,6 +80,7 @@ uv run python -m compileall -q app tests
 
 ```powershell
 cd ..\aiknowledge_frontend
+npm test
 npx tsc --noEmit --skipLibCheck
 npm run build:h5
 npx eslint src

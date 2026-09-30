@@ -263,9 +263,18 @@ class DocumentUploadService:
         try:
             await self._dispatcher.enqueue_processing(version.id)
         except Exception:
-            # The persisted PROCESSING state remains retryable through the
-            # document API and background recovery; do not claim upload loss.
+            # PROCESSING has no retry action. Persist a recoverable failure
+            # when the broker rejects the task instead of leaving it stuck.
             enqueued = False
+            await self._repository.fail_processing_version(
+                version_id=version.id,
+                code=DocumentFailureCode.QUEUE_UNAVAILABLE,
+                message="处理队列暂不可用，请稍后重试。",
+            )
+            await self._repository.commit()
+            context = await self._repository.get_processing_context(version.id)
+            if context is not None:
+                document, version = context
         return DocumentSubmission(
             document=document,
             version=version,

@@ -54,3 +54,22 @@ async def test_document_search_delegates_query_and_tag_filter() -> None:
     result = await service.search_documents(document.space_id, query="产品", tag_id=uuid4())
 
     assert result == [document]
+
+
+@pytest.mark.asyncio
+async def test_tag_only_search_keeps_the_tag_filter() -> None:
+    document = build_document("产品手册.md")
+    tag_id = uuid4()
+
+    class TaggedRepository(FakeRepository):
+        async def list_documents(self, space_id):
+            raise AssertionError("tag filter must not be discarded")
+
+        async def search_documents(self, space_id, query, tag_id=None):
+            assert query == ""
+            assert tag_id == expected_tag
+            return [self.document]
+
+    expected_tag = tag_id
+    service = DocumentManagementService(repository=TaggedRepository(document), dispatcher=FakeDispatcher())
+    assert await service.search_documents(document.space_id, query="  ", tag_id=tag_id) == [document]
