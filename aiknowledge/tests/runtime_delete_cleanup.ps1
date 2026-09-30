@@ -5,7 +5,9 @@ param(
 
 $ErrorActionPreference = "Stop"
 $space = $null
+$auth = $null
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
+. (Join-Path $PSScriptRoot "runtime_test_account.ps1")
 $composeFile = Join-Path $repoRoot "compose.yaml"
 $composeEnvFile = Join-Path $repoRoot "aiknowledge\.env"
 if ([string]::IsNullOrWhiteSpace($FixturePath)) {
@@ -36,20 +38,7 @@ try {
         throw "fixture not found: $FixturePath"
     }
 
-    $runtimeEmail = "aiknowledge-runtime-e2e@example.invalid"
-    try {
-        $auth = Invoke-JsonPost "$ApiBase/auth/register" @{
-            email = $runtimeEmail
-            password = "runtime-e2e-password-123"
-            display_name = "Runtime E2E"
-        }
-    }
-    catch {
-        $auth = Invoke-JsonPost "$ApiBase/auth/login" @{
-            email = $runtimeEmail
-            password = "runtime-e2e-password-123"
-        }
-    }
+    $auth = New-RuntimeTestAccount $ApiBase
     $ownerHeaders = @{ Authorization = "Bearer $($auth.tokens.access_token)" }
 
     $space = Invoke-JsonPost "$ApiBase/spaces" @{
@@ -91,14 +80,21 @@ try {
     Write-Output "deleted_document_hidden=true"
 }
 finally {
-    if ($null -ne $space) {
-        try {
-            Invoke-RestMethod "$ApiBase/spaces/$($space.id)" -Method Delete -Headers $ownerHeaders | Out-Null
-            Write-Output "temporary_space_deleted=true"
+    try {
+        if ($null -ne $space) {
+            try {
+                Invoke-RestMethod "$ApiBase/spaces/$($space.id)" -Method Delete -Headers $ownerHeaders | Out-Null
+                Write-Output "temporary_space_deleted=true"
+            }
+            catch {
+                Write-Output "temporary_space_deleted=false"
+                throw "Temporary space cleanup failed."
+            }
         }
-        catch {
-            Write-Output "temporary_space_deleted=false"
-            Write-Error $_
+    }
+    finally {
+        if ($null -ne $auth) {
+            Disable-RuntimeTestAccount $repoRoot $auth
         }
     }
 }

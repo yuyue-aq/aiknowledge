@@ -4,3 +4,9 @@ runtime-logs
 .idea
 .git
 *.local
+.env
+.env.*
+!.env.example
+playwright-report
+test-results
+.auth

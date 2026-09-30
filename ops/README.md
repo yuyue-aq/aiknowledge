@@ -2,6 +2,8 @@
 
 备份脚本针对本地 Docker Compose 环境，数据库和对象存储必须成对备份。脚本不会输出数据库密码或 MinIO 密钥。
 
+默认输出目录 `backups/` 和数据库 `.dump` 文件受仓库忽略规则保护。备份包含私有数据，应保存在受控位置；自定义输出目录也必须位于仓库外或加入忽略规则。
+
 ```powershell
 cd D:\develop\aiknowledge
 .\ops\backup.ps1 -OutputDir .\backups

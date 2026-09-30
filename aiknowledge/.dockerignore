@@ -1,4 +1,11 @@
 .env
+.env.*
+!.env.example
+.idea
+.git
+backups
+*.dump
+.auth
 .venv
 .uv-cache
 .pytest_cache

@@ -80,6 +80,7 @@ uv run python -m compileall -q app tests
 
 ```powershell
 cd ..\aiknowledge_frontend
+Copy-Item .env.example .env
 npm test
 npx tsc --noEmit --skipLibCheck
 npm run build:h5
@@ -98,6 +99,15 @@ $fixture = "D:\develop\aiknowledge\aiknowledge\tests\runtime_synthetic_public.tx
 ```
 
 `tests\runtime_eval_baseline.ps1` 会读取项目资料并调用配置的第三方 DeepSeek 服务，脚本默认拒绝执行；只有在明确授权资料外发后，才显式追加 `-AllowExternalData` 运行。
+
+两个 Compose 安全冒烟脚本每次生成独立账号与随机密码，结束时停用测试账号并撤销其刷新令牌；密码不会保存到文件或日志。清理会核对用户 ID、测试邮箱和显示名称。若曾运行旧版脚本，在后端环境执行以下命令，可停用旧固定测试账号（保留数据，重复执行安全）：
+
+```powershell
+cd aiknowledge
+uv run python ..\ops\disable_runtime_accounts.py --legacy
+```
+
+前端本地配置从 `.env.example` 复制；`TARO_APP_*` 会公开到浏览器，只能放 API 地址等公开配置。实际环境文件、IDE 设置、备份和浏览器测试产物已加入共享忽略规则。
 
 ## 主要接口
 

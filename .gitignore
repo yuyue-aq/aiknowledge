@@ -7,3 +7,23 @@
 /aiknowledge/.uv-cache/
 /aiknowledge/.venv-local/
 /aiknowledge/runtime-logs/
+
+# Local credentials and developer settings. Commit templates only.
+.env
+.env.*
+!.env.example
+!.env.*.example
+.idea/
+
+# Backups can contain the complete database and private source documents.
+backups/
+*.dump
+
+# Browser sessions, reports and other local tool output.
+playwright-report/
+test-results/
+.auth/
+.firecrawl/
+runtime-logs/
+*.log
+.pytest_cache/
