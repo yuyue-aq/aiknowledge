@@ -20,6 +20,7 @@ backups/
 *.dump
 
 # Browser sessions, reports and other local tool output.
+.playwright-mcp/
 playwright-report/
 test-results/
 .auth/
