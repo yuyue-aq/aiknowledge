@@ -1,5 +1,38 @@
 from __future__ import annotations
 
+
+def test_eval_case_api_accepts_typed_evidence_and_rejects_invalid_intervals():
+    import pytest
+    from uuid import uuid4
+    from pydantic import ValidationError
+    from app.api.v1.evaluations import EvalCaseCreateRequest
+    ref = {'document_id': str(uuid4()), 'document_version_id': str(uuid4()), 'source_block_id': 'block-1',
+           'char_start': 0, 'char_end': 3, 'text_hash': 'a'*64, 'required': True}
+    payload = EvalCaseCreateRequest(question='问题', answerable=True, expected_behavior='ANSWERED', evidence_refs=[ref])
+    assert payload.answerable is True
+    assert payload.evidence_refs[0].char_end == 3
+    with pytest.raises(ValidationError):
+        EvalCaseCreateRequest(question='问题', evidence_refs=[{**ref, 'char_end': 0}])
+
+
+def test_summary_keeps_unlabeled_unknown_and_reports_manual_scoring_coverage():
+    from dataclasses import replace
+    from app.api.v1.evaluations import _summary
+    from app.domain.conversations import EvaluationRunDetail, EvalResult
+    service = FakeEvaluationService()
+    detail = service._detail()
+    first = replace(detail.results[0], reviewer_score=1., retrieval_metrics={'document_recall_at_k': .5, 'document_hit_at_k': 1.})
+    second = replace(first, id=uuid4(), reviewer_score=.5, retrieval_metrics=None)
+    third = replace(first, id=uuid4(), reviewer_score=None, retrieval_metrics=None)
+    summary = _summary(EvaluationRunDetail(detail.run, (first, second, third), detail.cases_by_id))
+    assert summary.document_recall_at_k == .5
+    assert summary.retrieval_measured_count == 1
+    assert summary.answer_accuracy == .5
+    assert summary.reviewed_coverage == 2/3
+    empty = _summary(EvaluationRunDetail(detail.run, (), detail.cases_by_id))
+    assert empty.document_recall_at_k is None
+    assert empty.answer_accuracy is None
+
 from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID, uuid4

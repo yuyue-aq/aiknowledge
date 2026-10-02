@@ -1,6 +1,7 @@
-import { Button, Input, Text, Textarea, View } from "@tarojs/components";
+import { Input, Text, View } from "@tarojs/components";
 import Taro, { useLoad, useRouter } from "@tarojs/taro";
 import { useEffect, useRef, useState } from "react";
+import { Button } from '../../components/H5Button';
 import {
   ApiRequestError,
   createPublicConversation,
@@ -26,15 +27,6 @@ const now = () => new Date().toISOString();
 const valueOf = (event: any) =>
   event.detail?.value ?? event.currentTarget?.value ?? "";
 
-const demoSpace: PublicSpace = {
-  name: "项目与经历",
-  description: "围绕已开放内容提问，回答只基于当前公开范围。",
-  categories: [
-    { name: "项目经验", description: "包含项目方案、技术实现与成果。" },
-    { name: "产品介绍", description: "包含产品功能、使用说明与常见问题。" },
-  ],
-};
-
 export default function Public() {
   const router = useRouter();
   const [token, setToken] = useState(router.params.token ?? "");
@@ -45,7 +37,6 @@ export default function Public() {
     "entry",
   );
   const [error, setError] = useState("");
-  const [usingDemo, setUsingDemo] = useState(false);
   const [questionError, setQuestionError] = useState("");
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<PublicMessage[]>([]);
@@ -80,7 +71,6 @@ export default function Public() {
     try {
       const result = await getPublicSpace();
       setSpace(result);
-      setUsingDemo(false);
       setState("ready");
     } catch {
       setState("entry");
@@ -94,20 +84,12 @@ export default function Public() {
     setState("loading");
     setError("");
     setQuestionError("");
-    setUsingDemo(false);
     try {
       const result = await createPublicSession(nextToken.trim(), nextPassword.trim() || undefined);
       setSpace(result);
       setState("ready");
       setToken(nextToken.trim());
     } catch (requestError) {
-      if (nextToken.trim() === "demo-share-token") {
-        setSpace(demoSpace);
-        setUsingDemo(true);
-        setState("ready");
-        setToken(nextToken.trim());
-        return;
-      }
       setState("invalid");
       setError(
         requestError instanceof ApiRequestError
@@ -118,18 +100,9 @@ export default function Public() {
   };
   const ensureConversation = async () => {
     if (conversationId) return conversationId;
-    try {
-      const result = await createPublicConversation(
-        `${space?.name ?? "公开空间"}访客问答`,
-      );
-      setConversationId(result.id);
-      return result.id;
-    } catch (requestError) {
-      if (!usingDemo) throw requestError;
-      const id = "demo-public-conversation";
-      setConversationId(id);
-      return id;
-    }
+    const result = await createPublicConversation(`${space?.name ?? "公开空间"}访客问答`);
+    setConversationId(result.id);
+    return result.id;
   };
   const send = async (question: string) => {
     const cleaned = question.trim();
@@ -152,8 +125,6 @@ export default function Public() {
     streamAbort.current = controller;
     try {
       const id = await ensureConversation();
-      if (id === "demo-public-conversation")
-        throw new ApiRequestError("演示模式", 0);
       const result = await streamPublicAnswer(id, cleaned, setStreamingText, controller?.signal);
       setMessages((items) => [
         ...items,
@@ -167,44 +138,43 @@ export default function Public() {
       ]);
     } catch (requestError) {
       if (controller?.signal.aborted) return;
-      if (usingDemo) {
-        setMessages((items) => [
-          ...items,
-          {
-            id: localId("assistant"),
-            role: "ASSISTANT",
-            content:
-              "基于当前已开放的项目经验与产品介绍，我可以说明公开范围内的工作内容和产品能力；如果问题超出这些分类，我会明确提示无法回答。",
-            status: "ANSWERED",
-            createdAt: now(),
-          },
-        ]);
-      } else {
-        const message =
-          requestError instanceof ApiRequestError
-            ? requestError.message
-            : "公开回答暂时无法生成，请稍后重试。";
-        if (
-          requestError instanceof ApiRequestError &&
-          (requestError.status === 401 || requestError.status === 403)
-        ) {
-          setConversationId(null);
-          setSpace(null);
-          setState("invalid");
-          setError("公开访问已失效，请重新输入有效的分享 token。");
-        }
-        setQuestionError(message);
-        setMessages((items) => [
-          ...items,
-          {
-            id: localId("assistant"),
-            role: "ASSISTANT",
-            content: message,
-            status: "FAILED",
-            createdAt: now(),
-          },
-        ]);
+      setInput(cleaned);
+      const message =
+        requestError instanceof ApiRequestError
+          ? requestError.message
+          : "公开回答暂时无法生成，请稍后重试。";
+      if (
+        requestError instanceof ApiRequestError &&
+        (requestError.status === 401 || requestError.status === 403 || requestError.status === 404)
+      ) {
+        setConversationId(null);
+        setSpace(null);
+        setState("invalid");
+        setError("公开访问已失效，请重新输入有效的分享 token。");
       }
+      if (requestError instanceof ApiRequestError && requestError.status === 409) {
+        // Discard the old public scope after an in-flight revocation.
+        setConversationId(null);
+        setMessages([]);
+        setSpace(null);
+        try {
+          setSpace(await getPublicSpace());
+        } catch {
+          setState("invalid");
+          setError("公开访问已失效，请重新获取分享链接。");
+        }
+      }
+      setQuestionError(message);
+      setMessages((items) => [
+        ...items,
+        {
+          id: localId("assistant"),
+          role: "ASSISTANT",
+          content: message,
+          status: "FAILED",
+          createdAt: now(),
+        },
+      ]);
     } finally {
       if (streamAbort.current === controller) streamAbort.current = null;
       setStreaming(false);
@@ -391,11 +361,17 @@ export default function Public() {
         )}
         <View className='public-composer'>
           <Icon name='search' />
-          <Textarea
+          <textarea
+            data-public-input
             className='resize-none'
             value={input}
-            onInput={(event) => setInput(valueOf(event))}
-            onConfirm={() => void send(input)}
+            onChange={(event) => setInput(event.currentTarget.value)}
+            maxLength={2000}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+                event.preventDefault(); void send(input);
+              }
+            }}
             disabled={streaming}
             placeholder='输入你想了解的问题'
             aria-label='输入你想了解的问题'
@@ -436,7 +412,6 @@ function PublicHeader({
       ) : (
         <View className='public-header-links'>
           <Text className='header-link is-active'>公开问答</Text>
-          <Text className='header-link'>关于</Text>
         </View>
       )}
       <Button className='public-menu' onClick={onBack} aria-label='返回'>

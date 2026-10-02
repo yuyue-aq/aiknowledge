@@ -1,0 +1,16 @@
+{
+  "synthetic_accounts_only": true,
+  "llm_calls": 0,
+  "checks": [
+    "explicit_personal_and_team_creation",
+    "personal_has_only_owner_even_for_admin_invitation",
+    "one_owner_multiple_administrators",
+    "both_admins_manage_categories_evaluation_and_retrieval",
+    "both_admins_can_read_current_source_member_cannot",
+    "member_cannot_debug_or_write_evaluations",
+    "administrator_cannot_grant_ownership_or_delete_space",
+    "demotion_and_cross_space_access_rejected_immediately"
+  ],
+  "space_id": "6baf345c-8770-4481-9ad2-c1e3587a871d",
+  "status": "PASSED"
+}

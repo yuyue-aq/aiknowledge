@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import exists, or_, select
+from sqlalchemy import exists, or_, select, update, func, and_
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.conversations import EvalCase, EvalResult, EvalRun, EvalSetVersion, EvalScope
@@ -16,6 +17,13 @@ from app.infrastructure.database.models import (
     SpaceMembershipRecord,
 )
 from app.domain.users import SpaceRole
+from app.domain.evaluation import EvidenceRef
+from app.infrastructure.database.models import ChunkRecord, DocumentRecord
+from app.infrastructure.database.conversation_repository import SqlAlchemyConversationRepository
+from app.services.evaluation_metrics import evidence_coverage
+from app.services.evaluation_snapshot import knowledge_manifest
+from app.domain.conversations import EvalRunStatus
+from app.infrastructure.database.models import DocumentVersionRecord
 
 
 class SqlAlchemyEvaluationRepository:
@@ -80,6 +88,9 @@ class SqlAlchemyEvaluationRepository:
                 scope=case.scope,
                 category_ids=[str(value) for value in case.category_ids],
                 created_at=case.created_at,
+                answerable=case.answerable,
+                expected_behavior=case.expected_behavior,
+                evidence_refs=[ref.to_dict() for ref in case.evidence_refs],
             )
         )
         await self._session.flush()
@@ -105,6 +116,9 @@ class SqlAlchemyEvaluationRepository:
         record.expected_document_ids = [str(value) for value in case.expected_document_ids]
         record.scope = case.scope
         record.category_ids = [str(value) for value in case.category_ids]
+        record.answerable = case.answerable
+        record.expected_behavior = case.expected_behavior
+        record.evidence_refs = [ref.to_dict() for ref in case.evidence_refs]
         await self._session.flush()
 
     async def delete_case(self, case_id: UUID) -> None:
@@ -132,12 +146,13 @@ class SqlAlchemyEvaluationRepository:
                 completed_at=run.completed_at,
                 failure_message=run.failure_message,
                 created_at=run.created_at,
+                **{name: getattr(run, name) for name in ('progress_total', 'progress_completed', 'heartbeat_at', 'lease_owner', 'lease_expires_at', 'task_id', 'failure_code')},
             )
         )
         await self._session.flush()
 
     async def get_run(self, run_id: UUID) -> EvalRun | None:
-        record = await self._session.get(EvalRunRecord, run_id)
+        record = await self._session.get(EvalRunRecord, run_id, populate_existing=True)
         return self._to_run(record) if record is not None else None
 
     async def list_runs(self, space_id: UUID, limit: int = 20) -> list[EvalRun]:
@@ -184,6 +199,8 @@ class SqlAlchemyEvaluationRepository:
         record.started_at = run.started_at
         record.completed_at = run.completed_at
         record.failure_message = run.failure_message
+        for name in ('progress_total', 'progress_completed', 'heartbeat_at', 'lease_owner', 'lease_expires_at', 'task_id', 'failure_code'):
+            setattr(record, name, getattr(run, name))
         await self._session.flush()
 
     async def add_result(self, result: EvalResult) -> None:
@@ -197,6 +214,9 @@ class SqlAlchemyEvaluationRepository:
                 citation_count=result.citation_count,
                 reviewer_score=result.reviewer_score,
                 reviewer_note=result.reviewer_note,
+                execution_snapshot=result.execution_snapshot,
+                retrieval_metrics=result.retrieval_metrics,
+                failure_code=result.failure_code,
             )
         )
         await self._session.flush()
@@ -224,6 +244,119 @@ class SqlAlchemyEvaluationRepository:
     async def commit(self) -> None:
         await self._session.commit()
 
+    async def rollback(self):
+        await self._session.rollback()
+
+    async def capture_knowledge_manifest(self, space_id: UUID):
+        revision_query = select(KnowledgeSpaceRecord.access_revision, KnowledgeSpaceRecord.knowledge_revision).where(
+            KnowledgeSpaceRecord.id == space_id, KnowledgeSpaceRecord.deleted_at.is_(None))
+        before = (await self._session.execute(revision_query)).first()
+        if before is None:
+            raise ValueError('空间已不可用。')
+        statement = SqlAlchemyConversationRepository._base_retrieval_statement(None).join(
+            DocumentVersionRecord, DocumentVersionRecord.id == ChunkRecord.document_version_id
+        ).where(ChunkRecord.space_id == space_id).with_only_columns(
+            ChunkRecord.id, ChunkRecord.document_id, ChunkRecord.document_version_id, ChunkRecord.content_hash,
+            ChunkRecord.source_block_id, ChunkRecord.char_start, ChunkRecord.char_end, ChunkRecord.token_count,
+            DocumentRecord.sha256, DocumentVersionRecord.parser_version, DocumentVersionRecord.chunk_config,
+            DocumentVersionRecord.embedding_model, DocumentVersionRecord.embedding_dimension,
+        ).order_by(ChunkRecord.id)
+        rows = (await self._session.execute(statement)).all()
+        after = (await self._session.execute(revision_query)).first()
+        if before != after:
+            raise ValueError('资料正在变化，请稍后再创建运行。')
+        chunks = [{
+            'chunk_id': str(row.id), 'document_id': str(row.document_id), 'document_version_id': str(row.document_version_id),
+            'content_hash': row.content_hash, 'source_hash': row.sha256, 'source_block_id': row.source_block_id,
+            'char_start': row.char_start, 'char_end': row.char_end, 'token_count': row.token_count,
+            'parser_version': row.parser_version, 'chunk_config': row.chunk_config,
+            'embedding_model': row.embedding_model, 'embedding_dimension': row.embedding_dimension,
+        } for row in rows]
+        return knowledge_manifest(chunks, access_revision=before.access_revision, knowledge_revision=before.knowledge_revision)
+
+    async def list_recoverable_runs(self, *, limit: int = 20):
+        statement = select(EvalRunRecord.id).where(or_(
+            and_(EvalRunRecord.status == EvalRunStatus.PENDING,
+                EvalRunRecord.created_at < func.clock_timestamp()-timedelta(minutes=5)),
+            and_(EvalRunRecord.status == EvalRunStatus.RUNNING, or_(EvalRunRecord.lease_expires_at.is_(None),
+                EvalRunRecord.lease_expires_at < func.clock_timestamp())),
+        )).order_by(EvalRunRecord.created_at).limit(max(1, min(limit, 100)))
+        return list((await self._session.scalars(statement)).all())
+
+    async def mark_dispatch_failure(self, run_id: UUID):
+        await self._session.execute(update(EvalRunRecord).where(EvalRunRecord.id == run_id,
+            EvalRunRecord.status == EvalRunStatus.PENDING).values(failure_code='QUEUE_UNAVAILABLE',
+            failure_message='评测队列暂不可用，可稍后补投此任务。'))
+        return await self.get_run(run_id)
+
+    async def prepare_redispatch(self, run_id: UUID):
+        statement = update(EvalRunRecord).where(EvalRunRecord.id == run_id, or_(
+            EvalRunRecord.status.in_([EvalRunStatus.PENDING, EvalRunStatus.FAILED]),
+            and_(EvalRunRecord.status == EvalRunStatus.RUNNING, or_(EvalRunRecord.lease_expires_at.is_(None),
+                EvalRunRecord.lease_expires_at < func.clock_timestamp())),
+        )).values(status=EvalRunStatus.PENDING, lease_owner=None, lease_expires_at=None,
+            failure_code=None, failure_message=None, completed_at=None).returning(EvalRunRecord).execution_options(populate_existing=True)
+        row = (await self._session.execute(statement)).scalar_one_or_none()
+        return self._to_run(row) if row is not None else None
+
+    async def claim_run(self, run_id: UUID, *, lease_token: str, lease_seconds: int):
+        statement = update(EvalRunRecord).where(EvalRunRecord.id == run_id, or_(
+            EvalRunRecord.status == EvalRunStatus.PENDING,
+            EvalRunRecord.status == EvalRunStatus.FAILED,
+            and_(EvalRunRecord.status == EvalRunStatus.RUNNING, or_(EvalRunRecord.lease_expires_at.is_(None),
+                EvalRunRecord.lease_expires_at < func.clock_timestamp())),
+        )).values(status=EvalRunStatus.RUNNING, lease_owner=lease_token,
+            lease_expires_at=func.clock_timestamp()+timedelta(seconds=lease_seconds), heartbeat_at=func.clock_timestamp(),
+            started_at=func.coalesce(EvalRunRecord.started_at, func.clock_timestamp()),
+            failure_code=None, failure_message=None, completed_at=None,
+        ).returning(EvalRunRecord).execution_options(populate_existing=True)
+        row = (await self._session.execute(statement)).scalar_one_or_none()
+        return self._to_run(row) if row is not None else None
+
+    async def checkpoint_result(self, result: EvalResult, *, lease_token: str, lease_seconds: int) -> bool:
+        lease = update(EvalRunRecord).where(EvalRunRecord.id == result.eval_run_id,
+            EvalRunRecord.status == EvalRunStatus.RUNNING, EvalRunRecord.lease_owner == lease_token,
+            EvalRunRecord.lease_expires_at > func.clock_timestamp()).values(
+                heartbeat_at=func.clock_timestamp(), lease_expires_at=func.clock_timestamp()+timedelta(seconds=lease_seconds)
+            ).returning(EvalRunRecord.id)
+        if (await self._session.execute(lease)).scalar_one_or_none() is None:
+            return False
+        await self._session.execute(pg_insert(EvalResultRecord).values(
+            id=result.id, eval_run_id=result.eval_run_id, eval_case_id=result.eval_case_id,
+            answer_status=result.answer_status, answer=result.answer, citation_count=result.citation_count,
+            execution_snapshot=result.execution_snapshot, retrieval_metrics=result.retrieval_metrics,
+            failure_code=result.failure_code,
+        ).on_conflict_do_nothing(constraint='uq_eval_results_run_case'))
+        await self._session.execute(update(EvalRunRecord).where(EvalRunRecord.id == result.eval_run_id,
+            EvalRunRecord.lease_owner == lease_token).values(progress_completed=select(func.count(EvalResultRecord.id)).where(
+                EvalResultRecord.eval_run_id == result.eval_run_id).scalar_subquery()))
+        return True
+
+    async def finish_run(self, run: EvalRun, *, lease_token: str) -> bool:
+        statement = update(EvalRunRecord).where(EvalRunRecord.id == run.id,
+            EvalRunRecord.status == EvalRunStatus.RUNNING, EvalRunRecord.lease_owner == lease_token,
+            EvalRunRecord.lease_expires_at > func.clock_timestamp()).values(status=run.status,
+                progress_completed=run.progress_completed, heartbeat_at=func.clock_timestamp(),
+                completed_at=run.completed_at, failure_code=run.failure_code, failure_message=run.failure_message,
+                lease_owner=None, lease_expires_at=None).returning(EvalRunRecord.id)
+        return (await self._session.execute(statement)).scalar_one_or_none() is not None
+
+    async def validate_case_evidence(self, *, space_id: UUID, expected_document_ids, evidence_refs):
+        doc_ids = set(expected_document_ids) | {ref.document_id for ref in evidence_refs}
+        if not doc_ids:
+            return True
+        actual = await self._session.scalars(select(DocumentRecord.id).where(DocumentRecord.space_id == space_id,
+            DocumentRecord.id.in_(doc_ids), DocumentRecord.deleted_at.is_(None)))
+        if set(actual.all()) != doc_ids:
+            return False
+        if not evidence_refs:
+            return True
+        statement = SqlAlchemyConversationRepository._base_retrieval_statement(None).where(
+            ChunkRecord.space_id == space_id, ChunkRecord.document_id.in_(doc_ids)).order_by(None)
+        rows = (await self._session.execute(statement)).all()
+        chunks = SqlAlchemyConversationRepository._map_retrieval_rows(rows)
+        return all(evidence_coverage(ref, chunks)[1] for ref in evidence_refs)
+
     @staticmethod
     def _to_case(record: EvalCaseRecord) -> EvalCase:
         return EvalCase(
@@ -235,6 +368,9 @@ class SqlAlchemyEvaluationRepository:
             scope=record.scope,
             category_ids=tuple(UUID(value) for value in record.category_ids),
             created_at=record.created_at,
+            answerable=record.answerable,
+            expected_behavior=record.expected_behavior,
+            evidence_refs=tuple(EvidenceRef.from_dict(ref) for ref in (record.evidence_refs or [])),
         )
 
     @staticmethod
@@ -248,6 +384,7 @@ class SqlAlchemyEvaluationRepository:
             started_at=record.started_at,
             completed_at=record.completed_at,
             failure_message=record.failure_message,
+            **{name: getattr(record, name) for name in ('progress_total', 'progress_completed', 'heartbeat_at', 'lease_owner', 'lease_expires_at', 'task_id', 'failure_code')},
         )
 
     @staticmethod
@@ -261,6 +398,9 @@ class SqlAlchemyEvaluationRepository:
             citation_count=record.citation_count,
             reviewer_score=record.reviewer_score,
             reviewer_note=record.reviewer_note,
+            execution_snapshot=record.execution_snapshot,
+            retrieval_metrics=record.retrieval_metrics,
+            failure_code=record.failure_code,
         )
 
     @staticmethod
@@ -274,6 +414,9 @@ class SqlAlchemyEvaluationRepository:
             "scope": case.scope.value,
             "category_ids": [str(value) for value in case.category_ids],
             "created_at": case.created_at.isoformat(),
+            'answerable': case.answerable,
+            'expected_behavior': case.expected_behavior,
+            'evidence_refs': [ref.to_dict() for ref in case.evidence_refs],
         }
 
     @classmethod
@@ -303,4 +446,7 @@ class SqlAlchemyEvaluationRepository:
             scope=EvalScope(str(item["scope"])),
             category_ids=tuple(UUID(str(value)) for value in item.get("category_ids", [])),
             created_at=created_at,
+            answerable=item.get('answerable'),
+            expected_behavior=item.get('expected_behavior'),
+            evidence_refs=tuple(EvidenceRef.from_dict(ref) for ref in item.get('evidence_refs', [])),
         )

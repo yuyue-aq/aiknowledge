@@ -1,0 +1,23 @@
+{
+  "synthetic_sources_only": true,
+  "holdout_used": false,
+  "results": [
+    {
+      "question": "管理员怎样回看答案根据哪份资料产生？",
+      "expected_status": "ANSWERED",
+      "status": "ANSWERED",
+      "answer": "证据中没有“管理员”这一角色，只区分“拥有者”和“访客”。根据现有说明，拥有者回答会展示原文片段、文档名称与位置；访客回答不展示来源原文。因此，若以拥有者身份查看，可通过回答中展示的原文片段、文档名称与位置回看答案依据的资料；访客则看不到这些来源信息。",
+      "citations": [
+        "591cc73d-8601-43dd-8aff-9b50c27a96d8"
+      ]
+    },
+    {
+      "question": "松岚协作台的CEO是谁？",
+      "expected_status": "INSUFFICIENT_EVIDENCE",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "answer": "提供的证据未包含松岚协作台CEO的相关信息。",
+      "citations": []
+    }
+  ],
+  "status": "PASSED"
+}

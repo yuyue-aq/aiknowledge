@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from dataclasses import replace
 from typing import Sequence
 from uuid import UUID
 
-from sqlalchemy import Select, exists, func, or_, select
+from sqlalchemy import Select, exists, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.conversations import (
@@ -16,7 +17,7 @@ from app.domain.conversations import (
     RetrievedChunk,
 )
 from app.domain.documents import DocumentStatus
-from app.domain.spaces import PublicRetrievalScope, SpaceVisibility
+from app.domain.spaces import PublicRetrievalScope, SpaceVisibility, ShareLinkStatus
 from app.infrastructure.database.models import (
     CategoryRecord,
     ChunkRecord,
@@ -27,6 +28,8 @@ from app.infrastructure.database.models import (
     MessageRecord,
     RagRunRecord,
     SpaceMembershipRecord,
+    ShareLinkRecord,
+    share_link_categories,
 )
 
 
@@ -171,12 +174,13 @@ class SqlAlchemyConversationRepository:
     async def list_citations(self, message_ids: Sequence[UUID]) -> list[CitationSnapshot]:
         if not message_ids:
             return []
-        records = await self._session.scalars(
-            select(CitationRecord)
+        available = exists(self._base_retrieval_statement(None).where(ChunkRecord.id == CitationRecord.chunk_id).order_by(None))
+        records = await self._session.execute(
+            select(CitationRecord, available.label('source_available'))
             .where(CitationRecord.message_id.in_(message_ids))
             .order_by(CitationRecord.ordinal, CitationRecord.id)
         )
-        return [self._to_citation(record) for record in records.all()]
+        return [replace(self._to_citation(record), source_available=bool(current)) for record, current in records.all()]
 
     async def delete_conversation(self, conversation_id: UUID) -> None:
         record = await self._session.get(ConversationRecord, conversation_id)
@@ -223,8 +227,8 @@ class SqlAlchemyConversationRepository:
         await self._session.commit()
 
     @staticmethod
-    def _base_retrieval_statement(embedding: list[float]) -> Select:
-        distance = ChunkRecord.embedding.cosine_distance(embedding).label("distance")
+    def _base_retrieval_statement(embedding: list[float] | None) -> Select:
+        distance = (ChunkRecord.embedding.cosine_distance(embedding) if embedding is not None else literal(1.)).label('distance')
         return (
             select(
                 ChunkRecord.id,
@@ -233,6 +237,12 @@ class SqlAlchemyConversationRepository:
                 ChunkRecord.content,
                 ChunkRecord.page_number,
                 ChunkRecord.ordinal,
+                ChunkRecord.document_version_id,
+                ChunkRecord.source_block_id,
+                ChunkRecord.char_start,
+                ChunkRecord.char_end,
+                ChunkRecord.content_hash,
+                ChunkRecord.token_count,
                 distance,
             )
             .join(DocumentRecord, ChunkRecord.document_id == DocumentRecord.id)
@@ -246,12 +256,49 @@ class SqlAlchemyConversationRepository:
                 DocumentRecord.deleted_at.is_(None),
                 DocumentRecord.active_version_id == ChunkRecord.document_version_id,
                 DocumentRecord.is_enabled.is_(True),
-                or_(DocumentRecord.effective_at.is_(None), DocumentRecord.effective_at <= func.now()),
-                or_(DocumentRecord.expires_at.is_(None), DocumentRecord.expires_at > func.now()),
+                or_(DocumentRecord.effective_at.is_(None), DocumentRecord.effective_at <= func.clock_timestamp()),
+                or_(DocumentRecord.expires_at.is_(None), DocumentRecord.expires_at > func.clock_timestamp()),
                 KnowledgeSpaceRecord.deleted_at.is_(None),
             )
-            .order_by(distance)
+            .order_by(distance, ChunkRecord.id)
         )
+
+    async def generation_scope_snapshot(self, *, space_id: UUID, user_id: UUID | None, public_scope: PublicRetrievalScope | None):
+        statement = select(KnowledgeSpaceRecord.access_revision, KnowledgeSpaceRecord.knowledge_revision).where(
+            KnowledgeSpaceRecord.id == space_id, KnowledgeSpaceRecord.deleted_at.is_(None))
+        if public_scope is not None:
+            statement = statement.where(KnowledgeSpaceRecord.visibility == SpaceVisibility.PUBLIC)
+            if public_scope.share_link_id.int != 0:
+                statement = statement.where(exists(select(ShareLinkRecord.id).where(
+                    ShareLinkRecord.id == public_scope.share_link_id, ShareLinkRecord.space_id == space_id,
+                    ShareLinkRecord.status == ShareLinkStatus.ACTIVE,
+                    or_(ShareLinkRecord.expires_at.is_(None), ShareLinkRecord.expires_at > func.clock_timestamp()),
+                )))
+            categories = select(CategoryRecord.id).where(CategoryRecord.space_id == space_id,
+                CategoryRecord.deleted_at.is_(None), CategoryRecord.is_open.is_(True), CategoryRecord.id.in_(public_scope.category_ids))
+            if public_scope.share_link_id.int != 0:
+                categories = categories.join(share_link_categories, share_link_categories.c.category_id == CategoryRecord.id).where(
+                    share_link_categories.c.share_link_id == public_scope.share_link_id)
+            actual = await self._session.scalars(categories)
+            if set(actual.all()) != set(public_scope.category_ids) or not public_scope.category_ids:
+                return None
+        elif user_id is not None:
+            statement = statement.where(or_(KnowledgeSpaceRecord.owner_user_id == user_id,
+                exists(select(SpaceMembershipRecord.space_id).where(SpaceMembershipRecord.space_id == space_id,
+                    SpaceMembershipRecord.user_id == user_id))))
+        row = (await self._session.execute(statement)).first()
+        return tuple(row) if row is not None else None
+
+    async def validate_generation_chunks(self, *, space_id: UUID, public_scope: PublicRetrievalScope | None, chunk_ids: tuple[UUID, ...]) -> bool:
+        if not chunk_ids:
+            return True
+        statement = self._base_retrieval_statement(None).where(ChunkRecord.space_id == space_id, ChunkRecord.id.in_(chunk_ids)).order_by(None)
+        if public_scope is not None:
+            statement = statement.join(CategoryRecord, CategoryRecord.id == ChunkRecord.category_id).where(
+                ChunkRecord.category_id.in_(public_scope.category_ids), CategoryRecord.is_open.is_(True),
+                CategoryRecord.deleted_at.is_(None), CategoryRecord.space_id == space_id)
+        rows = (await self._session.execute(statement)).all()
+        return {row.id for row in rows} == set(chunk_ids)
 
     @staticmethod
     def _map_retrieval_rows(rows: Sequence[object]) -> list[RetrievedChunk]:
@@ -265,6 +312,12 @@ class SqlAlchemyConversationRepository:
                 ordinal=row.ordinal,  # type: ignore[attr-defined]
                 # pgvector cosine distance is 1 - cosine similarity.
                 score=1 - float(row.distance),  # type: ignore[attr-defined]
+                document_version_id=getattr(row, 'document_version_id', None),
+                source_block_id=getattr(row, 'source_block_id', None),
+                char_start=getattr(row, 'char_start', None),
+                char_end=getattr(row, 'char_end', None),
+                content_hash=getattr(row, 'content_hash', None),
+                token_count=getattr(row, 'token_count', None),
             )
             for row in rows
         ]

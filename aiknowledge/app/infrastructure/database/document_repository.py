@@ -1,15 +1,17 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from dataclasses import replace, asdict
 from uuid import UUID
 
-from sqlalchemy import exists, or_, select, update
+from sqlalchemy import exists, or_, select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.documents import (
     DocumentFailureCode,
     DocumentStatus,
     DocumentVersionStatus,
+    DocumentVersionConflictError,
     PersistedChunk,
     StoredDocument,
     StoredDocumentVersion,
@@ -135,6 +137,28 @@ class SqlAlchemyDocumentRepository:
         await self._session.flush()
         return self._to_document(document), self._to_version(version)
 
+    async def retry_failed_version(self, document_id: UUID, version_id: UUID) -> tuple[StoredDocument, StoredDocumentVersion] | None:
+        document = await self._session.get(DocumentRecord, document_id, with_for_update=True, populate_existing=True)
+        if document is None or document.deleted_at is not None or document.status is DocumentStatus.DELETED:
+            return None
+        version = await self._session.get(DocumentVersionRecord, version_id, with_for_update=True, populate_existing=True)
+        if version is None or version.document_id != document_id or version.status is not DocumentVersionStatus.FAILED:
+            return None
+        if document.active_version_id is not None and not (version.source_snapshot or {}).get('storage_key'):
+            return None
+        pending = await self._session.scalar(select(DocumentVersionRecord.id).where(
+            DocumentVersionRecord.document_id == document_id, DocumentVersionRecord.status == DocumentVersionStatus.PROCESSING))
+        if pending is not None:
+            return None
+        version.status = DocumentVersionStatus.PROCESSING
+        if document.active_version_id is None:
+            document.status = DocumentStatus.PROCESSING
+            document.failure_code = None
+            document.failure_message = None
+        document.updated_at = datetime.now(UTC)
+        await self._session.flush()
+        return self._to_document(document), self._to_version(version)
+
     async def is_valid_document_scope(
         self, *, space_id: UUID, category_id: UUID | None
     ) -> bool:
@@ -200,12 +224,28 @@ class SqlAlchemyDocumentRepository:
                 embedding_model=version.embedding_model,
                 embedding_dimension=version.embedding_dimension,
                 chunk_config=version.chunk_config,
+                source_snapshot=version.source_snapshot,
                 status=version.status,
                 created_at=version.created_at,
                 activated_at=version.activated_at,
             )
         )
         await self._session.flush()
+
+    async def create_replacement_version(self, document: StoredDocument, version: StoredDocumentVersion) -> StoredDocumentVersion:
+        current = await self._session.get(DocumentRecord, document.id, with_for_update=True, populate_existing=True)
+        if current is None or current.deleted_at is not None or current.active_version_id != document.active_version_id:
+            raise DocumentVersionConflictError('资料版本已变化，请刷新后重试。')
+        pending = await self._session.scalar(select(DocumentVersionRecord.id).where(
+            DocumentVersionRecord.document_id == document.id, DocumentVersionRecord.status == DocumentVersionStatus.PROCESSING).limit(1))
+        if pending is not None:
+            raise DocumentVersionConflictError('新版本正在处理中，请等待完成。')
+        latest = await self._session.scalar(select(func.max(DocumentVersionRecord.version_number)).where(
+            DocumentVersionRecord.document_id == document.id))
+        saved = replace(version, version_number=int(latest or 0)+1)
+        self._session.add(DocumentVersionRecord(**asdict(saved)))
+        await self._session.flush()
+        return saved
 
     async def get_processing_context(
         self, version_id: UUID
@@ -222,7 +262,11 @@ class SqlAlchemyDocumentRepository:
         )
         if document is None:
             return None
-        return self._to_document(document), self._to_version(version)
+        stored_document, stored_version = self._to_document(document), self._to_version(version)
+        if stored_version.source_snapshot:
+            stored_document = replace(stored_document, **{name: stored_version.source_snapshot[name]
+                for name in ('storage_key', 'original_filename', 'mime_type', 'size_bytes', 'sha256') if name in stored_version.source_snapshot})
+        return stored_document, stored_version
 
     async def activate_processed_version(
         self, *, version_id: UUID, chunks: tuple[PersistedChunk, ...]
@@ -255,6 +299,9 @@ class SqlAlchemyDocumentRepository:
                     content=chunk.content,
                     content_hash=chunk.content_hash,
                     token_count=chunk.token_count,
+                    source_block_id=chunk.source_block_id,
+                    char_start=chunk.char_start,
+                    char_end=chunk.char_end,
                     embedding=chunk.embedding,
                     is_active=True,
                 )
@@ -263,6 +310,10 @@ class SqlAlchemyDocumentRepository:
         version.status = DocumentVersionStatus.READY
         version.activated_at = now
         document.status = DocumentStatus.READY
+        if version.source_snapshot:
+            for name in ('storage_key', 'original_filename', 'mime_type', 'size_bytes', 'sha256'):
+                if name in version.source_snapshot:
+                    setattr(document, name, version.source_snapshot[name])
         document.active_version_id = version.id
         document.failure_code = None
         document.failure_message = None
@@ -321,6 +372,30 @@ class SqlAlchemyDocumentRepository:
         await self._session.flush()
         return self._to_document(document)
 
+    async def list_pending_cleanup(self, limit: int = 20) -> list[tuple[UUID, list[str]]]:
+        records = await self._session.scalars(select(DocumentRecord).where(
+            DocumentRecord.deleted_at.is_not(None), DocumentRecord.status == DocumentStatus.DELETED,
+            DocumentRecord.cleanup_completed_at.is_(None)).order_by(DocumentRecord.deleted_at).limit(max(1, min(limit, 100))))
+        pending = []
+        for record in records.all():
+            versions = await self._session.scalars(select(DocumentVersionRecord).where(DocumentVersionRecord.document_id == record.id))
+            keys = [record.storage_key]
+            for version in versions.all():
+                key = (version.source_snapshot or {}).get('storage_key')
+                if isinstance(key, str) and key and key not in keys:
+                    keys.append(key)
+            pending.append((record.id, keys))
+        return pending
+
+    async def mark_cleanup_completed(self, document_id: UUID) -> None:
+        record = await self._session.get(DocumentRecord, document_id, with_for_update=True, populate_existing=True)
+        if record is not None and record.status is DocumentStatus.DELETED and record.deleted_at is not None:
+            record.cleanup_completed_at = datetime.now(UTC)
+            await self._session.flush()
+
+    async def rollback(self) -> None:
+        await self._session.rollback()
+
     async def commit(self) -> None:
         await self._session.commit()
 
@@ -362,4 +437,5 @@ class SqlAlchemyDocumentRepository:
             status=record.status,
             created_at=record.created_at,
             activated_at=record.activated_at,
+            source_snapshot=dict(record.source_snapshot) if record.source_snapshot else None,
         )

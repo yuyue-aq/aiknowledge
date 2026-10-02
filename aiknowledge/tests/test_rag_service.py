@@ -44,6 +44,17 @@ class ReverseReranker:
 
 
 @pytest.mark.asyncio
+async def test_rag_execution_records_actual_prompt_context_even_without_citations():
+    llm = FakeLlmClient(json.dumps({'status': 'INSUFFICIENT_EVIDENCE', 'answer': '资料不足', 'citations': []}))
+    service = EvidenceRagService(embedding_client=FakeEmbeddingClient(), llm_client=llm, config=RetrievalConfig(top_k=1))
+    chunks = [RankedSourceChunk(SourceChunk('low', '低相关', '低相关证据'), .4),
+              RankedSourceChunk(SourceChunk('high', '高相关', '实际证据'), .95)]
+    answer = await service.answer_ranked('问题', chunks)
+    assert answer.execution_snapshot['context_chunk_ids'] == ['high']
+    assert answer.citations == []
+
+
+@pytest.mark.asyncio
 async def test_rag_service_returns_only_valid_retrieved_citations() -> None:
     llm = FakeLlmClient(
         json.dumps(

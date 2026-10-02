@@ -40,7 +40,7 @@ textarea { resize: none; }
 ::-webkit-scrollbar-thumb:hover { background: #8FAEDB; }
 * { scrollbar-color: #B8CBE7 #EAF1FB; scrollbar-width: thin; }
 
-.glyph { display: inline-block; font-family: Arial, sans-serif; font-weight: 700; font-style: normal; line-height: 1; }
+.glyph { display: inline-block; flex-shrink: 0; width: 1em; height: 1em; vertical-align: middle; }
 .brand-mark { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(145deg, #3F8CFF, #1258CF); color: #FFF; font-family: "HarmonyOS Sans SC", sans-serif; font-size: 18px; font-weight: 800; box-shadow: 0 5px 12px rgba(47, 111, 237, .28); }
 .brand-mark-large { width: 42px; height: 42px; border-radius: 13px; font-size: 24px; }
 .brand-name { display: block; font-family: "HarmonyOS Sans SC", "PingFang SC", sans-serif; font-size: 21px; line-height: 1.15; font-weight: 800; letter-spacing: .04em; }
@@ -60,7 +60,8 @@ textarea { resize: none; }
 .sidebar-version { padding: 0 12px; color: #7891B2; font-size: 11px; }
 .workspace { width: calc(100% - 198px); min-height: 100vh; margin-left: 198px; }
 .topbar { position: sticky; z-index: var(--z-topbar); top: 0; display: flex; align-items: center; justify-content: space-between; height: 74px; padding: 0 40px; border-bottom: 1px solid rgba(217, 228, 243, .75); background: rgba(255, 255, 255, .92); backdrop-filter: blur(14px); }
-.topbar-search { display: flex; align-items: center; gap: 10px; width: min(410px, 50%); height: 40px; padding: 0 13px; border: 1px solid #E0E9F4; border-radius: 9px; background: #F6F9FD; color: #8AA0BC; line-height: 1; }
+.topbar-breadcrumb { display: flex; align-items: center; gap: 12px; min-width: 0; color: var(--muted); font-size: 13px; }
+.topbar-breadcrumb > :last-child { overflow: hidden; color: var(--navy); text-overflow: ellipsis; white-space: nowrap; }
 .topbar-search input { width: 100%; height: 38px; min-height: 38px; padding: 0; border: 0; outline: 0; background: transparent; font-size: 13px; line-height: 38px; }
 .topbar-search taro-input-core, .topbar-search .h5-input { display: flex; align-items: center; width: 100%; height: 38px; min-height: 38px; min-width: 0; padding: 0; line-height: 1.4; }
 .topbar-search taro-input-core > .weui-input, .topbar-search .h5-input > .weui-input { height: 38px; min-height: 38px; line-height: 38px; }
@@ -285,6 +286,8 @@ button:disabled { cursor: not-allowed; opacity: .58; transform: none; }
 
 .text-input:focus,
 .text-input:focus-within { border-color: var(--cobalt); box-shadow: 0 0 0 3px rgba(47,111,237,.11); }
+
+[data-feedback-answer] { min-height: 112px; padding: 10px 11px; resize: none; font: inherit; }
 .editor-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 .segmented-control { display: flex; gap: 5px; padding: 4px; border: 1px solid #D6E2F1; border-radius: 10px; background: #F4F8FD; }
 .segment { min-height: 34px; padding: 0 12px; border-radius: 7px; background: transparent; color: #6C819C; font-size: 12px; font-weight: 700; }
@@ -491,3 +494,7 @@ taro-button-core.tag-filter {
     justify-content: flex-end;
   }
 }
+
+/* Attribute selectors survive Taro's H5 tag-selector conversion. */
+:where([data-native-button]) { box-sizing: border-box; border: 0; font: inherit; line-height: 1.2; appearance: none; }
+[data-native-button]:focus-visible, [data-v2-control]:focus-visible { outline: 3px solid rgba(47, 111, 237, .38); outline-offset: 2px; }

@@ -1,0 +1,15 @@
+{
+  "status": "PASSED",
+  "synthetic_sources_only": true,
+  "answer": {
+    "message_id": "548c3e6d-9316-4ddd-92fa-444473912f05",
+    "status": "OUT_OF_SCOPE",
+    "answer": "公开访问仅提供开放分类内的归纳回答，不能输出或恢复原始资料。"
+  },
+  "persisted_usage": {
+    "model": null,
+    "prompt_tokens": null,
+    "completion_tokens": null
+  },
+  "llm_called": false
+}

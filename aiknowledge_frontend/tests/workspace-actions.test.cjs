@@ -27,7 +27,6 @@ for (const [name, api, args] of [
   ['handleVisibilityChange', 'updateSpace', ['PRIVATE']],
   ['handleCreateCategory', 'createCategory', ['分类']],
   ['handleShare', 'createShareLink', []],
-  ['handleRunEval', 'runEvaluation', []],
   ['handleFeedback', 'sendFeedback', ['real-message', 'HELPFUL']],
   ['handleCreateSpace', 'createSpace', [{ name: '空间', description: '', visibility: 'PRIVATE' }]]
 ]) {

@@ -1,13 +1,13 @@
-# 知溯 AiKnowledge MVP
+# 知溯 AiKnowledge V2 MVP
 
-> 2026-09-30 验收结论：V1 尚未全部完成。已修复问题、当前回归结果与 P0 缺口见 [V1验收报告](./V1验收报告.md)。最新迁移为 `20260929_0016`，部署本轮修复需执行 `alembic upgrade head`。
+> 2026-10-02：V2 核心前后端已实现并通过单元回归，真实运行时验收尚未完成。见 [交付说明](./V2MVP交付说明.md)、[验收记录](./V2MVP开发验收记录.md) 与 [27 场景映射](./eval/v2/ui/验收映射.md)。最新迁移为 `20261001_0021`，已在隔离空库与历史合成数据测试库执行，未修改现有 V1 数据。真实运行时进展见 [续验收](./eval/v2/runtime/README.md)。
 
 这是一个以 DeepSeek Flash + `BAAI/bge-large-zh-v1.5` 为核心的可信知识工作台 MVP：资料进入私有对象存储，后台解析并生成 1024 维向量，所有者问答保留引用快照，公开访客只能检索分享链接当前开放分类。
 
 ## 当前交付范围
 
 - 后端：`aiknowledge/`，FastAPI、SQLAlchemy async、pgvector、Redis/Celery、MinIO。
-- 前端：`aiknowledge_frontend/`，Taro 4.2.1 + React + TypeScript，可构建 H5/小程序。
+- 前端：`aiknowledge_frontend/`，Taro 4.2.1 + React + TypeScript，本轮只验收 H5，未开发小程序。
 - 模型：DeepSeek `deepseek-flash`（瞬时网络/5xx 错误有限重试）；Embedding `BAAI/bge-large-zh-v1.5`，默认 1024 维，支持批量生成。
 - 问答：普通 JSON 与 SSE 增量事件；前端支持 `AbortController` 停止生成、SSE 不可用时降级 JSON；连续追问只使用最近用户问题，不把回答当作事实证据。
 - 安全：公开会话/提问进程级限流、可信 Origin 校验、安全响应头、公开响应不包含来源字段。
@@ -34,6 +34,8 @@
 
    仓库已有 `models\embedding\bge-large-zh-v1.5`；若重新部署，需要把同名模型目录挂载到 Compose 的 `/models/bge-large-zh-v1.5`。
 
+beat 每 60 秒补投异常评测任务与重试对象清理；必须与 worker 一同启动。
+
 3. 一次性构建并启动全部运行时容器（Postgres、Redis、MinIO、API、Worker、前端）：
 
    ```powershell
@@ -48,7 +50,7 @@
 4. 查看应用日志：
 
    ```powershell
-   docker compose --env-file aiknowledge\.env logs -f api worker frontend
+   docker compose --env-file aiknowledge\.env logs -f api worker beat frontend
    ```
 
 5. 停止运行时（不会删除 Postgres/MinIO 命名卷）：
@@ -81,11 +83,11 @@ uv run python -m compileall -q app tests
 ```powershell
 cd ..\aiknowledge_frontend
 Copy-Item .env.example .env
-npm test
+yarn test
 npx tsc --noEmit --skipLibCheck
-npm run build:h5
-npx eslint src
-npm run lint:style
+yarn build:h5
+node node_modules/eslint/bin/eslint.js src/components src/pages/index/index.tsx src/pages/public/public.tsx
+yarn lint:style
 ```
 
 后端测试采用 TDD，覆盖模型客户端、Embedding 维度/重试、文档解析与生命周期、空间/分类/分享权限、owner/public RAG scope、引用快照、连续追问、对话列表/删除、SSE、限流和 Origin 安全策略。Docker 不可用时仍可运行完整单元/API 测试；依赖恢复后再运行 `tests\runtime_public_e2e.ps1` 与 `tests\runtime_delete_cleanup.ps1` 做真实 Postgres/Redis/MinIO 验证。
@@ -171,3 +173,12 @@ POST   /api/v1/public/conversations/{conversation_id}/messages
 ## Docker 故障排查
 
 `no configuration file provided` 表示当前目录不是仓库根目录；先 `cd D:\develop\aiknowledge`。如果出现 `dockerDesktopLinuxEngine ... system cannot find the file specified`，说明 Docker Desktop Linux 引擎尚未启动，先从 Docker Desktop 重新启动引擎，再重试 `docker info`。如果旧 MinIO 标签被镜像源拒绝，当前 Compose 已使用 Quay 的固定 digest，不要改回不存在的 Docker Hub release 标签。
+
+
+## 2026-10-02 个人与团队权限检查结论
+
+前文“角色待确认、暂不推送”是历史检查记录。用户现已明确个人仅拥有者管理，团队一位拥有者、多位管理员；团队管理员可查看原文引用、使用检索调试、管理资料与评测。新建空间提供个人/团队选择，成员设置仅向团队拥有者显示角色调整，后台统一校验。新迁移 `20261002_0022` 保留既有协作并约束唯一拥有者。
+
+最新后端348项、前端25项、类型/静态/样式检查、strict audit及H5生产构建通过。真实角色8项与旧数据升级/唯一拥有者约束通过，见 `eval/v2/runtime/space-roles-report.json`、`role-migration-report.json`。角色政策合成资料04/08按用户决议修订；旧冻结版本/失败及中间结果保留。最新35题真实回归 `flash-tune-role-policy.json` 返回状态全部匹配、调用失败及越权引用均0、正例文档/证据Recall@12=1.0。35题为调优集结果；重复15题明确标记回归，不视为新的盲测。人工答案评分仍未完成。
+
+本次提交不表示正式部署、真实用户试用、全场景原型逐屏对照或公开SSE并发撤销验收已完成。最终提交与推送结果以远程分支及最终回复为准。

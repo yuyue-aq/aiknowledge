@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from typing import Protocol
 from uuid import UUID
 
-from app.domain.spaces import SpaceNotFoundError
+from app.domain.spaces import SpaceNotFoundError, SpaceKind
 from app.domain.users import SpaceMembership, SpaceRole, User, UserNotFoundError
 from app.services.usage import UsageService
 
@@ -69,6 +69,9 @@ class MembershipService:
         await self._require_role(space_id=space_id, actor_user_id=actor_user_id, minimum=SpaceRole.OWNER)
         if role == SpaceRole.OWNER:
             raise MembershipAccessDeniedError("一个空间只能有一个负责人。")
+        space = await self._repository.get_space(space_id)
+        if space.kind == SpaceKind.PERSONAL:
+            raise MembershipAccessDeniedError("个人空间仅拥有者负责管理，不能添加其他成员。")
         if self._usage_service is not None:
             await self._usage_service.ensure_member_allowed(
                 space_id, owner_user_id=actor_user_id
@@ -144,7 +147,7 @@ class MembershipService:
 
     @staticmethod
     def _role_at_least(actual: SpaceRole, minimum: SpaceRole) -> bool:
-        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.ADMIN: 2, SpaceRole.OWNER: 3}
         return order[actual] >= order[minimum]
 
     def _now(self) -> datetime:

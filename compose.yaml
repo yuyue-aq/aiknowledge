@@ -151,6 +151,20 @@ services:
         condition: service_started
     networks: [aiknowledge_dev]
 
+  beat:
+    build:
+      context: ./aiknowledge
+      dockerfile: Dockerfile
+    command: ["celery", "-A", "app.workers.celery_app:celery_app", "beat", "--loglevel=INFO", "--schedule=/tmp/aiknowledge-celerybeat"]
+    environment: *app_environment
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [aiknowledge_dev]
+
   frontend:
     build:
       context: ./aiknowledge_frontend

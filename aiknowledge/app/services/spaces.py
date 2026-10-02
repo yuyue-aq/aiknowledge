@@ -24,6 +24,7 @@ from app.domain.spaces import (
     SpaceNotFoundError,
     SpaceRuleViolationError,
     SpacePlan,
+    SpaceKind,
     SpaceVisibility,
 )
 from app.domain.users import SpaceMembership, SpaceRole
@@ -101,12 +102,15 @@ class SpaceService:
         visibility: SpaceVisibility,
         guest_feedback_enabled: bool = False,
         owner_user_id: UUID | None = None,
+        kind: SpaceKind = SpaceKind.PERSONAL,
     ) -> KnowledgeSpace:
         normalized_name = self._normalize_required(name, field="空间名称", maximum=120)
         now = self._now()
         space = KnowledgeSpace(
             id=uuid4(),
             owner_user_id=owner_user_id,
+            kind=kind,
+            plan=SpacePlan.TEAM if kind == SpaceKind.TEAM else SpacePlan.FREE,
             name=normalized_name,
             description=self._normalize_optional(description, maximum=2000),
             visibility=visibility,
@@ -446,7 +450,7 @@ class SpaceService:
 
     @staticmethod
     def _role_at_least(actual: SpaceRole, minimum: SpaceRole) -> bool:
-        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.ADMIN: 2, SpaceRole.OWNER: 3}
         return order[actual] >= order[minimum]
 
     async def _require_category(self, category_id: UUID) -> Category:

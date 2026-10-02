@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     deepseek_api_key: SecretStr | None = None
     deepseek_base_url: str = "https://api.deepseek.com"
-    deepseek_model: str = "deepseek-v4-flash"
+    deepseek_model: str = "deepseek-flash"
     deepseek_thinking_enabled: bool = False
     deepseek_timeout_seconds: float = Field(default=60.0, gt=0)
     deepseek_max_retries: int = Field(default=1, ge=0, le=3)

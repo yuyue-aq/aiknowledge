@@ -23,6 +23,15 @@ class UnhealthyProbe:
         raise DependencyUnavailable("A required service is not ready.")
 
 
+def test_prompt_version_is_shared_by_live_answers_and_frozen_evaluation():
+    app = create_app(rag_service=object(), readiness_probe=HealthyProbe())
+    conversation = app.state.conversation_service_factory(None)
+    evaluation = app.state.evaluation_service_factory(None)
+    assert conversation._prompt_version == 'rag-prompt-v2-roles'
+    assert evaluation._run_snapshot['prompt_version'] == conversation._prompt_version
+    assert evaluation._runner._prompt_version == conversation._prompt_version
+
+
 @pytest.mark.asyncio
 async def test_ready_health_check_uses_the_injected_dependency_probe() -> None:
     probe = HealthyProbe()

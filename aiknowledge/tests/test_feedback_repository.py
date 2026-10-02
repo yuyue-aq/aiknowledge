@@ -69,3 +69,19 @@ async def test_feedback_repository_maps_answer_context_and_structured_feedback_r
     assert session.added[0].reason is FeedbackReason.OUTDATED  # type: ignore[attr-defined]
     assert session.added[0].is_guest is True  # type: ignore[attr-defined]
     assert session.flushes == 1
+
+
+@pytest.mark.asyncio
+async def test_owner_feedback_list_includes_saved_question_and_original_answer():
+    session = FakeSession()
+    now = datetime.now(UTC)
+    record = FeedbackRecord(id=uuid4(), message_id=uuid4(), rating=FeedbackRating.NEEDS_CORRECTION,
+        reason=FeedbackReason.OUTDATED, comment='更新', is_guest=False, created_at=now,
+        review_status='PENDING', data_usage_scope='INTERNAL_ONLY', pii_status='UNKNOWN')
+    async def execute(statement):
+        assert 'rag_runs' in str(statement)
+        return SimpleNamespace(all=lambda: [(record, '试用多久？', '旧回答')])
+    session.execute = execute
+    result = await SqlAlchemyFeedbackRepository(session).list_feedback(uuid4())
+    assert result[0].question == '试用多久？'
+    assert result[0].original_answer == '旧回答'

@@ -1,0 +1,32 @@
+{
+  "mode": "real_isolated_version_and_async_no_llm",
+  "checks": [
+    "initial_real_version_ready",
+    "invalid_file_signature_rejected",
+    "new_submission_keeps_old_activity",
+    "parse_failure_retains_old_source",
+    "parse_failure_retains_old_chunks",
+    "failed_version_retry_queued",
+    "successful_update_switches_source",
+    "only_current_version_chunks_visible",
+    "retrieval_reads_updated_fact",
+    "async_returns_pending",
+    "worker_persists_case_checkpoint",
+    "missing_model_remains_generation_failure",
+    "generation_failure_retains_retrieval_metrics",
+    "saved_execution_evidence_available",
+    "expired_source_not_retrieved",
+    "saved_evidence_rechecks_expiry",
+    "deleted_source_immediately_excluded"
+  ],
+  "llm_calls": 0,
+  "space_id": "4379aa96-027d-44c4-bd90-af30cb10589f",
+  "document_id": "8fb1aa3e-54e2-4866-977d-3e9795e80a17",
+  "async_run_id": "4cf2cd45-6c66-4bad-bf28-1cb5b9bab9fd",
+  "version_ids": [
+    "ce6a40c7-df63-4199-b1d7-2db5bc8b2a65",
+    "7d89b6b7-0a8a-41be-b64a-cc4fe124b248",
+    "3af106ed-a63e-47c8-9eae-284b2140ffc7"
+  ],
+  "status": "PASSED"
+}

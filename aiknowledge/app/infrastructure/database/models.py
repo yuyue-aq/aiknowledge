@@ -8,6 +8,7 @@ from pgvector import Vector as PgVector
 from pgvector.sqlalchemy import VECTOR
 from sqlalchemy import (
     Boolean,
+    BigInteger,
     Column,
     DateTime,
     Enum,
@@ -36,7 +37,7 @@ from app.domain.conversations import (
 )
 from app.domain.documents import DocumentFailureCode, DocumentStatus, DocumentVersionStatus
 from app.domain.rag import AnswerStatus
-from app.domain.spaces import ShareLinkStatus, SpacePlan, SpaceVisibility
+from app.domain.spaces import ShareLinkStatus, SpacePlan, SpaceVisibility, SpaceKind
 from app.domain.sources import SourceKind, SourceStatus
 from app.domain.users import SpaceRole, UserStatus
 
@@ -146,6 +147,10 @@ class KnowledgeSpaceRecord(Base):
         default=SpacePlan.FREE,
         server_default=SpacePlan.FREE.value,
     )
+    kind: Mapped[SpaceKind] = mapped_column(
+        _enum_column(SpaceKind, "space_kind"), nullable=False,
+        default=SpaceKind.PERSONAL, server_default=SpaceKind.PERSONAL.value,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -153,6 +158,8 @@ class KnowledgeSpaceRecord(Base):
         DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()
     )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    access_revision: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0, server_default='0')
+    knowledge_revision: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0, server_default='0')
 
     __table_args__ = (
         Index("ix_knowledge_spaces_active", "visibility", postgresql_where=text("deleted_at IS NULL")),
@@ -178,6 +185,8 @@ class SpaceMembershipRecord(Base):
 
     __table_args__ = (
         Index("ix_space_memberships_user", "user_id", "role"),
+        Index("uq_space_memberships_owner", "space_id", unique=True,
+              postgresql_where=text("role = 'OWNER'")),
     )
 
 
@@ -442,8 +451,11 @@ class DocumentRecord(Base):
     )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
+    cleanup_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
     __table_args__ = (
         Index("ix_documents_space_status", "space_id", "status"),
+        Index("ix_documents_cleanup_pending", "deleted_at", postgresql_where=text("deleted_at IS NOT NULL AND cleanup_completed_at IS NULL")),
         Index("ix_documents_availability", "space_id", "is_enabled", "effective_at", "expires_at"),
         Index(
             "uq_documents_active_space_sha256",
@@ -470,6 +482,7 @@ class DocumentVersionRecord(Base):
     embedding_model: Mapped[str] = mapped_column(String(255), nullable=False)
     embedding_dimension: Mapped[int] = mapped_column(Integer, nullable=False)
     chunk_config: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+    source_snapshot: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     status: Mapped[DocumentVersionStatus] = mapped_column(
         _enum_column(DocumentVersionStatus, "document_version_status"),
         nullable=False,
@@ -516,6 +529,9 @@ class ChunkRecord(Base):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     token_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    source_block_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    char_start: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    char_end: Mapped[int | None] = mapped_column(Integer, nullable=True)
     embedding: Mapped[list[float]] = mapped_column(AsyncpgVector(1024), nullable=False)
     is_active: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
@@ -532,6 +548,26 @@ class ChunkRecord(Base):
             postgresql_ops={"embedding": "vector_cosine_ops"},
         ),
     )
+
+
+class RetrievalRunRecord(Base):
+    __tablename__ = 'retrieval_runs'
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
+    space_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey('knowledge_spaces.id', ondelete='CASCADE'), nullable=False)
+    user_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    top_k: Mapped[int] = mapped_column(Integer, nullable=False)
+    access_revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    knowledge_revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    resolved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    chunk_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False)
+    scores: Mapped[list[float]] = mapped_column(JSONB, nullable=False)
+    timings_ms: Mapped[dict[str, float]] = mapped_column(JSONB, nullable=False)
+    model_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    __table_args__ = (Index('ix_retrieval_runs_owner_space_created', 'user_id', 'space_id', 'created_at'),)
 
 
 class ConversationRecord(Base):
@@ -690,6 +726,9 @@ class EvalCaseRecord(Base):
     question: Mapped[str] = mapped_column(Text, nullable=False)
     expected_answer: Mapped[str | None] = mapped_column(Text, nullable=True)
     expected_document_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
+    answerable: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    expected_behavior: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    evidence_refs: Mapped[list[dict] | None] = mapped_column(JSONB, nullable=True)
     scope: Mapped[EvalScope] = mapped_column(
         _enum_column(EvalScope, "eval_scope"), nullable=False, default=EvalScope.OWNER
     )
@@ -741,9 +780,18 @@ class EvalRunRecord(Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     failure_message: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    progress_total: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default='0')
+    progress_completed: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default='0')
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    lease_owner: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    task_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    failure_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
+
+    __table_args__ = (Index('ix_eval_runs_recovery', 'status', 'lease_expires_at'),)
 
 
 class EvalResultRecord(Base):
@@ -770,6 +818,9 @@ class EvalResultRecord(Base):
     citation_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
     reviewer_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     reviewer_note: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    execution_snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    retrieval_metrics: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    failure_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("eval_run_id", "eval_case_id", name="uq_eval_results_run_case"),

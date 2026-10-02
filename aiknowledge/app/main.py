@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.model import router as model_router
+from app.api.v1.retrieval import router as retrieval_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.memberships import router as memberships_router
 from app.api.v1.conversations import router as conversations_router
@@ -57,8 +58,12 @@ from app.infrastructure.health import (
 from app.infrastructure.llm.deepseek import DeepSeekChatClient
 from app.infrastructure.queue.redis import RedisReadinessProbe
 from app.infrastructure.queue.document_dispatcher import CeleryDocumentDispatcher
+from app.infrastructure.queue.evaluation_dispatcher import CeleryEvaluationDispatcher
 from app.infrastructure.storage.minio import MinioObjectStorage
-from app.services.rag import EvidenceRagService, RetrievalConfig
+from app.services.rag import EvidenceRagService, RetrievalConfig, PROMPT_VERSION
+from app.services.retrieval import RetrievalService
+from app.services.owner_retrieval import OwnerRetrievalService
+from app.infrastructure.database.retrieval_repository import SqlAlchemyRetrievalRepository
 from app.services.conversations import ConversationService
 from app.services.public_access import PublicSessionCodec
 from app.services.auth import AccessTokenCodec, AuthService
@@ -100,6 +105,7 @@ def create_app(
     public_question_limit_service_factory: Callable[[AsyncSession], object] | None = None,
     public_analytics_service_factory: Callable[[AsyncSession], object] | None = None,
     source_service_factory: Callable[[AsyncSession], object] | None = None,
+    retrieval_service_factory: Callable[[AsyncSession], object] | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     database = database or Database(
@@ -292,7 +298,9 @@ def create_app(
         return EvaluationService(
             repository=SqlAlchemyEvaluationRepository(session),
             runner=runner,
+            dispatcher=CeleryEvaluationDispatcher(celery_app),
             run_snapshot={
+                "prompt_version": PROMPT_VERSION,
                 "embedding_model": settings.bge_model_name,
                 "embedding_dimension": settings.bge_embedding_dimension,
                 "chat_model": settings.deepseek_model,
@@ -327,6 +335,12 @@ def create_app(
         return {"status": "ok"}
 
     app.include_router(model_router, prefix="/api/v1")
+    app.state.retrieval_service_factory = retrieval_service_factory or (lambda session: OwnerRetrievalService(
+        repository=SqlAlchemyRetrievalRepository(session),
+        retrieval=RetrievalService(app.state.query_embedding_client, expected_dimension=settings.bge_embedding_dimension),
+        model_name=settings.bge_model_name,
+    ))
+    app.include_router(retrieval_router, prefix='/api/v1')
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(memberships_router, prefix="/api/v1")
     app.include_router(spaces_router, prefix="/api/v1")

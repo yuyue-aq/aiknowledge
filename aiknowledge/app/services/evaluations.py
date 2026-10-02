@@ -5,6 +5,7 @@ from dataclasses import replace
 from datetime import UTC, datetime
 from typing import Protocol
 from uuid import UUID, uuid4
+import asyncio
 
 from app.domain.conversations import (
     EvalAccessDeniedError,
@@ -24,9 +25,19 @@ from app.domain.conversations import (
 )
 from app.domain.users import SpaceRole
 from app.domain.rag import AnswerStatus, RagAnswer
+from app.domain.evaluation import EvidenceRef
+from app.services.evaluation_metrics import retrieval_metrics, refusal_correct
 
 
 _UNSET = object()
+
+
+class EvaluationSnapshotError(ValueError):
+    pass
+
+
+class EvaluationConfigurationError(ValueError):
+    pass
 
 
 class EvaluationRepository(Protocol):
@@ -92,12 +103,14 @@ class EvaluationService:
         run_snapshot: dict[str, object],
         id_factory: Callable[[], UUID] = uuid4,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        dispatcher=None,
     ) -> None:
         self._repository = repository
         self._runner = runner
         self._run_snapshot = dict(run_snapshot)
         self._id_factory = id_factory
         self._clock = clock
+        self._dispatcher = dispatcher
 
     async def create_case(
         self,
@@ -109,6 +122,9 @@ class EvaluationService:
         scope: EvalScope,
         category_ids: Sequence[UUID],
         owner_user_id: UUID | None = None,
+        answerable: bool | None = None,
+        expected_behavior: str | None = None,
+        evidence_refs: Sequence[EvidenceRef] = (),
     ) -> EvalCase:
         await self._require_owner_space(
             space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.EDITOR
@@ -122,7 +138,11 @@ class EvaluationService:
             scope=scope,
             category_ids=self._validate_scope_categories(scope, category_ids),
             created_at=self._now(),
+            answerable=answerable,
+            expected_behavior=expected_behavior,
+            evidence_refs=tuple(evidence_refs),
         )
+        await self._validate_labels(case)
         await self._repository.add_case(case)
         await self._repository.commit()
         return case
@@ -141,6 +161,9 @@ class EvaluationService:
         scope: EvalScope | None = None,
         category_ids: Sequence[UUID] | None = None,
         owner_user_id: UUID | None = None,
+        answerable: bool | None | object = _UNSET,
+        expected_behavior: str | None | object = _UNSET,
+        evidence_refs: Sequence[EvidenceRef] | None = None,
     ) -> EvalCase:
         case = await self._require_case(case_id)
         await self._require_owner_space(
@@ -169,7 +192,11 @@ class EvaluationService:
             ),
             scope=next_scope,
             category_ids=next_categories,
+            answerable=case.answerable if answerable is _UNSET else answerable,
+            expected_behavior=case.expected_behavior if expected_behavior is _UNSET else expected_behavior,
+            evidence_refs=case.evidence_refs if evidence_refs is None else tuple(evidence_refs),
         )
+        await self._validate_labels(updated)
         await self._repository.update_case(updated)
         await self._repository.commit()
         return updated
@@ -199,27 +226,126 @@ class EvaluationService:
         cases: Sequence[EvalCase],
         snapshot: dict[str, object] | None = None,
     ) -> EvaluationRunDetail:
+        run = await self._prepare_run(space_id=space_id, cases=cases, snapshot=snapshot)
+        detail = await self.execute_pending(run.id)
+        if detail is None:
+            raise RuntimeError('评测任务已由其他 Worker 接管。')
+        return detail
+
+    async def _prepare_run(self, *, space_id: UUID, cases: Sequence[EvalCase], snapshot=None, owner_user_id=None) -> EvalRun:
+        if not cases:
+            raise ValueError('至少需要一条测试题才能运行评测。')
         started_at = self._now()
         run_snapshot = dict(snapshot or self._run_snapshot)
         # Keep the exact questions and scope used by this run alongside the
         # model/retrieval settings.  This makes historical runs reproducible
         # even after the editable live test set changes or a case is deleted.
         run_snapshot["eval_cases"] = [self._case_to_snapshot(case) for case in cases]
+        manifest_reader = getattr(self._repository, 'capture_knowledge_manifest', None)
+        if manifest_reader is not None:
+            run_snapshot['knowledge_manifest'] = await manifest_reader(space_id)
+        if owner_user_id is not None:
+            run_snapshot['owner_user_id'] = str(owner_user_id)
+        run_id = self._id_factory()
         run = EvalRun(
-            id=self._id_factory(),
+            id=run_id,
             space_id=space_id,
-            status=EvalRunStatus.RUNNING,
+            status=EvalRunStatus.PENDING,
             retrieval_config_snapshot=run_snapshot,
             created_at=started_at,
-            started_at=started_at,
+            progress_total=len(cases),
+            task_id=str(run_id),
         )
         await self._repository.add_run(run)
         # A model timeout or process crash must never make the run invisible.
         await self._repository.commit()
+        return run
+
+    async def enqueue_run(self, *, space_id: UUID | None = None, version_id: UUID | None = None, owner_user_id: UUID | None = None) -> EvalRun:
+        snapshot = dict(self._run_snapshot)
+        if version_id is not None:
+            version = await self.get_version(version_id, owner_user_id=owner_user_id)
+            space_id, cases = version.space_id, version.cases
+            snapshot.update({'eval_set_version_id': str(version.id), 'eval_set_version_number': version.version_number})
+        else:
+            if space_id is None:
+                raise ValueError('请选择知识空间。')
+            await self._require_owner_space(space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.EDITOR)
+            cases = tuple(await self._repository.list_cases(space_id))
+        await self._require_owner_space(space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.EDITOR)
+        run = await self._prepare_run(space_id=space_id, cases=cases, snapshot=snapshot, owner_user_id=owner_user_id)
+        return await self._dispatch(run)
+
+    async def _dispatch(self, run: EvalRun) -> EvalRun:
         try:
-            results: list[EvalResult] = []
+            if self._dispatcher is None:
+                raise RuntimeError('queue unavailable')
+            await self._dispatcher.enqueue_evaluation(run.id)
+        except Exception:
+            marker = getattr(self._repository, 'mark_dispatch_failure', None)
+            if marker is not None:
+                run = await marker(run.id)
+            else:
+                current = await self._repository.get_run(run.id)
+                run = current or run
+                if run.status is EvalRunStatus.PENDING:
+                    run = replace(run, failure_code='QUEUE_UNAVAILABLE', failure_message='评测队列暂不可用，可稍后补投此任务。')
+                    await self._repository.update_run(run)
+            await self._repository.commit()
+        return run
+
+    async def execute_pending(self, run_id: UUID) -> EvaluationRunDetail | None:
+        lease_token = str(uuid4())
+        claimer = getattr(self._repository, 'claim_run', None)
+        if claimer is not None:
+            run = await claimer(run_id, lease_token=lease_token, lease_seconds=1200)
+            await self._repository.commit()
+        else:
+            run = await self._repository.get_run(run_id)
+            if run is not None and run.status is not EvalRunStatus.COMPLETED:
+                run = replace(run, status=EvalRunStatus.RUNNING, started_at=run.started_at or self._now(), lease_owner=lease_token)
+                await self._repository.update_run(run)
+                await self._repository.commit()
+            else:
+                run = None
+        if run is None:
+            return None
+        cases_by_id = self._cases_from_run_snapshot(run)
+        cases = tuple(cases_by_id.values())
+        results = list(await self._repository.list_results(run.id))
+        completed_ids = {result.eval_case_id for result in results}
+        run_snapshot = run.retrieval_config_snapshot
+        manifest_reader = getattr(self._repository, 'capture_knowledge_manifest', None)
+
+        async def verify_manifest():
+            owner_id = run_snapshot.get('owner_user_id')
+            if owner_id is not None:
+                await self._require_owner_space(run.space_id, owner_user_id=UUID(owner_id), minimum_role=SpaceRole.EDITOR)
+            if manifest_reader is not None:
+                current = await manifest_reader(run.space_id)
+                saved = run_snapshot.get('knowledge_manifest')
+                if not saved or current.get('manifest_digest') != saved.get('manifest_digest'):
+                    raise EvaluationSnapshotError('知识集合已变化，请创建新运行。')
+                # Do not retain a DB transaction while waiting for embeddings/LLM.
+                await self._repository.commit()
+
+        try:
+            if any(run_snapshot.get(key) != value for key, value in self._run_snapshot.items()):
+                raise EvaluationConfigurationError('评测配置已变化，请恢复原配置或创建新运行。')
+            if len(cases) != run.progress_total:
+                raise EvaluationSnapshotError('题集快照无效，请创建新运行。')
             for case in cases:
-                answer = await self._run_case(case)
+                if case.id in completed_ids:
+                    continue
+                await verify_manifest()
+                answer = await asyncio.wait_for(self._run_case(case), timeout=900)
+                await verify_manifest()
+                manifest = run_snapshot.get('knowledge_manifest') or {}
+                versions = {UUID(value) for value in manifest.get('document_versions', [])} if manifest else None
+                metrics = retrieval_metrics(case, list(answer.retrieval_chunks), k=int(run_snapshot.get('candidate_limit', 12)),
+                    available_versions=versions) if answer.execution_snapshot is not None else None
+                if metrics is not None:
+                    metrics['refusal_correct'] = refusal_correct(case, answer.status)
                 result = EvalResult(
                     id=self._id_factory(),
                     eval_run_id=run.id,
@@ -227,31 +353,83 @@ class EvaluationService:
                     answer_status=answer.status,
                     answer=answer.answer,
                     citation_count=len(answer.citations),
+                    execution_snapshot=answer.execution_snapshot,
+                    retrieval_metrics=metrics,
+                    failure_code=(answer.execution_snapshot or {}).get('failure_code') or ('MODEL_FAILED' if answer.status is AnswerStatus.FAILED else None),
                 )
-                await self._repository.add_result(result)
+                checkpoint = getattr(self._repository, 'checkpoint_result', None)
+                if checkpoint is not None:
+                    if not await checkpoint(result, lease_token=lease_token, lease_seconds=1200):
+                        return None
+                else:
+                    await self._repository.add_result(result)
+                    await self._repository.update_run(replace(run, progress_completed=len(results)+1, heartbeat_at=self._now()))
+                await self._repository.commit()
                 results.append(result)
+                run = replace(run, progress_completed=len(results), heartbeat_at=self._now())
             completed = replace(
                 run,
                 status=EvalRunStatus.COMPLETED,
                 completed_at=self._now(),
+                failure_code=None,
+                failure_message=None,
+                lease_owner=None,
+                lease_expires_at=None,
             )
-            await self._repository.update_run(completed)
+            finisher = getattr(self._repository, 'finish_run', None)
+            if finisher is not None:
+                if not await finisher(completed, lease_token=lease_token):
+                    return None
+            else:
+                await self._repository.update_run(completed)
             await self._repository.commit()
             return EvaluationRunDetail(
                 run=completed,
                 results=tuple(results),
                 cases_by_id={case.id: case for case in cases},
             )
-        except Exception:
+        except Exception as exc:
+            rollback = getattr(self._repository, 'rollback', None)
+            if rollback is not None:
+                await rollback()
             failed = replace(
                 run,
                 status=EvalRunStatus.FAILED,
                 completed_at=self._now(),
-                failure_message="评测执行失败，请稍后重试。",
+                failure_message=('评测配置已变化，请恢复原配置或创建新运行。' if isinstance(exc, EvaluationConfigurationError)
+                    else '知识集合或题集快照已变化，请创建新运行。' if isinstance(exc, EvaluationSnapshotError)
+                    else '评测执行失败，可恢复未完成的题目。'),
+                failure_code=('EVAL_CONFIG_MISMATCH' if isinstance(exc, EvaluationConfigurationError)
+                    else 'EVAL_SNAPSHOT_INVALID' if isinstance(exc, EvaluationSnapshotError) else 'EVAL_EXECUTION_FAILED'),
+                lease_owner=None,
+                lease_expires_at=None,
             )
-            await self._repository.update_run(failed)
+            finisher = getattr(self._repository, 'finish_run', None)
+            if finisher is not None:
+                if not await finisher(failed, lease_token=lease_token):
+                    return None
+            else:
+                await self._repository.update_run(failed)
             await self._repository.commit()
-            raise
+            return EvaluationRunDetail(run=failed, results=tuple(results), cases_by_id=cases_by_id)
+
+    async def redispatch_run(self, run_id: UUID, *, owner_user_id: UUID | None = None) -> EvalRun:
+        detail = await self.get_run(run_id, owner_user_id=owner_user_id)
+        await self._require_owner_space(detail.run.space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.EDITOR)
+        if detail.run.status is EvalRunStatus.COMPLETED:
+            raise ValueError('已完成的运行请通过新运行进行复测。')
+        preparer = getattr(self._repository, 'prepare_redispatch', None)
+        if preparer is not None:
+            run = await preparer(run_id)
+            if run is None:
+                raise ValueError('任务仍在执行中，请稍后检查进度。')
+        else:
+            if detail.run.status is EvalRunStatus.RUNNING:
+                raise ValueError('任务仍在执行中，请稍后检查进度。')
+            run = replace(detail.run, status=EvalRunStatus.PENDING, failure_code=None, failure_message=None)
+            await self._repository.update_run(run)
+        await self._repository.commit()
+        return await self._dispatch(run)
 
     async def get_run(self, run_id: UUID, *, owner_user_id: UUID | None = None) -> EvaluationRunDetail:
         run = await self._repository.get_run(run_id)
@@ -304,6 +482,7 @@ class EvaluationService:
         *,
         space_id: UUID,
         label: str,
+        case_ids: Sequence[UUID] | None = None,
         owner_user_id: UUID | None = None,
     ) -> EvalSetVersion:
         """Freeze the current test set so future edits cannot change a run."""
@@ -313,6 +492,13 @@ class EvaluationService:
         )
         normalized_label = self._normalize_required(label, field="版本名称", maximum=120)
         cases = tuple(await self._repository.list_cases(space_id))
+        if case_ids is not None:
+            if not case_ids or len(case_ids) > 50 or len(set(case_ids)) != len(case_ids):
+                raise ValueError("选择 1—50 条不重复的测试题。")
+            available = {case.id: case for case in cases}
+            if any(case_id not in available for case_id in case_ids):
+                raise ValueError("只能选择当前空间的测试题。")
+            cases = tuple(available[case_id] for case_id in case_ids)
         if not cases:
             raise ValueError("至少需要一条测试题才能创建版本。")
         versions_reader = getattr(self._repository, "list_versions", None)
@@ -410,6 +596,20 @@ class EvaluationService:
             question=case.question,
         )
 
+    async def _validate_labels(self, case: EvalCase):
+        if case.answerable is not None and not isinstance(case.answerable, bool):
+            raise ValueError('可回答性必须为布尔值。')
+        if case.expected_behavior is not None and case.expected_behavior not in {'ANSWERED', 'INSUFFICIENT_EVIDENCE', 'OUT_OF_SCOPE', 'CONFLICT'}:
+            raise ValueError('预期行为无效。')
+        if case.answerable is False and case.expected_behavior == 'ANSWERED':
+            raise ValueError('不可回答的题目不能标为应回答。')
+        if len(case.evidence_refs) > 100 or any(not isinstance(ref, EvidenceRef) for ref in case.evidence_refs):
+            raise ValueError('证据标注无效。')
+        validator = getattr(self._repository, 'validate_case_evidence', None)
+        if validator is not None and not await validator(space_id=case.space_id,
+            expected_document_ids=case.expected_document_ids, evidence_refs=case.evidence_refs):
+            raise ValueError('证据不属于当前空间、已失效或原文区间不匹配。')
+
     async def _require_active_space(self, space_id: UUID) -> None:
         if not await self._repository.has_active_space(space_id):
             raise EvalCaseNotFoundError("知识空间不存在。")
@@ -429,7 +629,7 @@ class EvaluationService:
             role = await role_reader(space_id=space_id, user_id=owner_user_id)
             if role is None:
                 raise EvalCaseNotFoundError("知识空间不存在。")
-            order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+            order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.ADMIN: 2, SpaceRole.OWNER: 3}
             if order[role] < order[minimum_role]:
                 raise EvalAccessDeniedError("你没有执行评测操作的权限。")
             return
@@ -489,6 +689,9 @@ class EvaluationService:
             "scope": case.scope.value,
             "category_ids": [str(value) for value in case.category_ids],
             "created_at": case.created_at.isoformat(),
+            'answerable': case.answerable,
+            'expected_behavior': case.expected_behavior,
+            'evidence_refs': [ref.to_dict() for ref in case.evidence_refs],
         }
 
     @classmethod
@@ -526,4 +729,7 @@ class EvaluationService:
                 UUID(str(value)) for value in raw.get("category_ids", [])  # type: ignore[union-attr]
             ),
             created_at=datetime.fromisoformat(str(raw["created_at"])),
+            answerable=raw.get('answerable'),
+            expected_behavior=raw.get('expected_behavior'),
+            evidence_refs=tuple(EvidenceRef.from_dict(ref) for ref in raw.get('evidence_refs', [])),
         )

@@ -23,6 +23,8 @@ from app.domain.conversations import (
 from app.domain.rag import AnswerStatus, RagAnswer, RankedSourceChunk, SourceChunk
 from app.domain.spaces import PublicRetrievalScope
 from app.services.usage import UsageService
+from app.services.retrieval import RetrievalService
+from app.services.rag import PROMPT_VERSION
 
 
 class ConversationQuestionError(ValueError):
@@ -158,7 +160,7 @@ class ConversationService:
         retrieval_candidate_limit: int,
         rag_snapshot: dict[str, object] | None = None,
         retrieval_config_snapshot: dict[str, object] | None = None,
-        prompt_version: str = "rag-prompt-v1",
+        prompt_version: str = PROMPT_VERSION,
         question_rewriter: QuestionRewriterPort | None = None,
         history_limit: int = 6,
         id_factory: Callable[[], UUID] = uuid4,
@@ -171,6 +173,9 @@ class ConversationService:
             raise ValueError("history_limit must not be negative")
         self._repository = repository
         self._embedding_client = embedding_client
+        dimension = (rag_snapshot or {}).get('embedding_dimension')
+        self._retrieval = RetrievalService(embedding_client,
+            expected_dimension=int(dimension) if dimension is not None else None, maximum_k=50)
         self._rag_service = rag_service
         self._retrieval_candidate_limit = retrieval_candidate_limit
         self._rag_snapshot = dict(rag_snapshot or {})
@@ -236,6 +241,7 @@ class ConversationService:
                 limit=self._retrieval_candidate_limit,
             ),
             public_request=False,
+            scope_check=self._scope_checker(conversation.space_id, owner_user_id=owner_user_id),
         )
 
     async def get_owner_conversation(
@@ -316,6 +322,7 @@ class ConversationService:
                 limit=self._retrieval_candidate_limit,
             ),
             public_request=True,
+            scope_check=self._scope_checker(scope.space_id, public_scope=scope),
         )
 
     async def answer_owner(self, *, space_id: UUID, question: str) -> RagAnswer:
@@ -330,6 +337,7 @@ class ConversationService:
                 limit=self._retrieval_candidate_limit,
             ),
             public_request=False,
+            scope_check=self._scope_checker(space_id),
         )
         return answer
 
@@ -360,6 +368,7 @@ class ConversationService:
                 limit=self._retrieval_candidate_limit,
             ),
             public_request=True,
+            scope_check=self._scope_checker(space_id, public_scope=scope),
         )
         return answer
 
@@ -370,6 +379,7 @@ class ConversationService:
         question: str,
         retrieve: Callable[[list[float]], Awaitable[list[RetrievedChunk]]],
         public_request: bool,
+        scope_check: Callable | None = None,
     ) -> ConversationAnswer:
         normalized_question = self._normalize_question(question)
         history = await self._repository.list_messages(conversation.id)
@@ -396,6 +406,7 @@ class ConversationService:
             question=rewritten_question,
             retrieve=retrieve,
             public_request=public_request,
+            scope_check=scope_check,
         )
         assistant_message = ConversationMessage(
             id=self._id_factory(),
@@ -451,6 +462,7 @@ class ConversationService:
             user=user_message,
             assistant=assistant_message,
             citations=citations,
+            scope_snapshot=getattr(scope_check, 'snapshot', None),
         )
 
     async def _generate_answer(
@@ -459,6 +471,7 @@ class ConversationService:
         question: str,
         retrieve: Callable[[list[float]], Awaitable[list[RetrievedChunk]]],
         public_request: bool,
+        scope_check: Callable | None = None,
     ) -> tuple[RagAnswer, tuple[RetrievedChunk, ...]]:
         if public_request and self._is_public_recovery_request(question):
             return (
@@ -468,11 +481,13 @@ class ConversationService:
                 ),
                 (),
             )
+        if scope_check is not None:
+            await scope_check(())
         try:
-            vectors = await self._embedding_client.embed_queries([question])
-            if len(vectors) != 1 or not vectors[0]:
-                raise ValueError("Embedding client must return one non-empty query vector")
-            candidates = await retrieve(vectors[0])
+            async def fetch(vector, limit):
+                return await retrieve(vector)
+            result = await self._retrieval.search(question=question, fetch=fetch, top_k=self._retrieval_candidate_limit)
+            candidates = result.items
         except (RuntimeError, ValueError):
             return (
                 RagAnswer(
@@ -483,6 +498,8 @@ class ConversationService:
             )
 
         immutable_candidates = self._deduplicate_candidates(candidates)
+        if scope_check is not None:
+            await scope_check(immutable_candidates)
         ranked = [
             RankedSourceChunk(
                 source=SourceChunk(
@@ -497,17 +514,52 @@ class ConversationService:
         try:
             answer = await self._rag_service.answer_ranked(question, ranked)
         except (RuntimeError, ValueError):
-            return (
-                RagAnswer(
-                    status=AnswerStatus.FAILED,
-                    answer="模型服务暂时不可用，请稍后重试。",
-                ),
-                immutable_candidates,
+            answer = RagAnswer(
+                status=AnswerStatus.FAILED,
+                answer="模型服务暂时不可用，请稍后重试。",
+                execution_snapshot={'failure_code': 'GENERATION_UNAVAILABLE'},
             )
+        if scope_check is not None:
+            await scope_check(immutable_candidates)
+        answer = self._ensure_citations_are_retrieved(answer, immutable_candidates)
+        answer.execution_snapshot = {
+            **(answer.execution_snapshot or {}),
+            'schema_version': 2,
+            'question': question,
+            'timings_ms': result.timings_ms,
+            'retrieved_chunks': [{
+                'chunk_id': str(item.id), 'document_id': str(item.document_id),
+                'document_version_id': str(item.document_version_id) if item.document_version_id else None,
+                'rank': rank, 'score': item.score, 'content_hash': item.content_hash,
+                'source_block_id': item.source_block_id, 'char_start': item.char_start, 'char_end': item.char_end,
+            } for rank, item in enumerate(immutable_candidates, 1)],
+        }
+        answer.retrieval_chunks = immutable_candidates
         return (
-            self._ensure_citations_are_retrieved(answer, immutable_candidates),
+            answer,
             immutable_candidates,
         )
+
+    def _scope_checker(self, space_id: UUID, *, owner_user_id: UUID | None = None, public_scope: PublicRetrievalScope | None = None):
+        reader = getattr(self._repository, 'generation_scope_snapshot', None)
+        validator = getattr(self._repository, 'validate_generation_chunks', None)
+        if reader is None or validator is None:
+            # Compatibility for injected V1 test ports. The production SQL
+            # repository implements both methods and always checks live scope.
+            return None
+        initial = None
+        async def check(chunks):
+            nonlocal initial
+            snapshot = await reader(space_id=space_id, user_id=owner_user_id, public_scope=public_scope)
+            if snapshot is None or (initial is not None and snapshot != initial):
+                raise ConversationAccessDeniedError('资料或访问范围已变化，请重新提问。')
+            if initial is None:
+                initial = snapshot
+                check.snapshot = snapshot
+            if not await validator(space_id=space_id, public_scope=public_scope, chunk_ids=tuple(x.id for x in chunks)):
+                raise ConversationAccessDeniedError('引用资料已不可用，请重新提问。')
+            await self._repository.commit()
+        return check
 
     def _citation_snapshots(
         self,
@@ -587,6 +639,7 @@ class ConversationService:
             answer="当前资料中没有足够依据回答这个问题。",
             model=answer.model,
             usage=answer.usage,
+            execution_snapshot=answer.execution_snapshot,
         )
 
     async def _require_active_space(self, space_id: UUID) -> None:
@@ -610,7 +663,14 @@ class ConversationService:
     @staticmethod
     def _is_public_recovery_request(question: str) -> bool:
         normalized = question.casefold()
-        return any(pattern in normalized for pattern in _PUBLIC_RECOVERY_REQUESTS)
+        if any(pattern in normalized for pattern in _PUBLIC_RECOVERY_REQUESTS):
+            return True
+        # Reject explicit imperatives before retrieval/generation. Explanatory
+        # questions about the permission policy still use scoped retrieval.
+        command = normalized.lstrip('请')
+        return command.startswith(('忽略权限', '绕过权限', '无视权限')) and any(
+            marker in command for marker in ('私密资料', '私有资料', '内部密钥', '内部口令')
+        )
 
     @staticmethod
     def _normalize_question(question: str) -> str:

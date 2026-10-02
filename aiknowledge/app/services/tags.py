@@ -168,7 +168,7 @@ class TagService:
         role = await reader(space_id=space_id, user_id=user_id)
         if role is None:
             raise TagNotFoundError("标签不存在。")
-        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.ADMIN: 2, SpaceRole.OWNER: 3}
         if order[role] < order[minimum]:
             raise TagPermissionDeniedError("你没有执行此标签操作的权限。")
 

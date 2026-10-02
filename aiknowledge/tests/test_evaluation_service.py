@@ -15,6 +15,86 @@ from app.domain.conversations import (
 )
 from app.domain.rag import AnswerStatus, Citation, RagAnswer
 from app.services.evaluations import EvaluationService
+from app.domain.evaluation import EvidenceRef
+
+
+@pytest.mark.asyncio
+async def test_version_can_freeze_only_selected_cases_and_rejects_foreign_ids():
+    service, repo, _ = build_service()
+    first = await service.create_case(space_id=repo.space_id, question='调优题', expected_answer='答案',
+        expected_document_ids=(), scope=EvalScope.OWNER, category_ids=())
+    await service.create_case(space_id=repo.space_id, question='保留题', expected_answer='答案',
+        expected_document_ids=(), scope=EvalScope.OWNER, category_ids=())
+    version = await service.create_version(space_id=repo.space_id, label='调优集', case_ids=(first.id,))
+    assert [item.id for item in version.cases] == [first.id]
+    with pytest.raises(ValueError, match='当前空间'):
+        await service.create_version(space_id=repo.space_id, label='错误', case_ids=(uuid4(),))
+    with pytest.raises(ValueError, match='重复'):
+        await service.create_version(space_id=repo.space_id, label='错误', case_ids=(first.id, first.id))
+
+
+@pytest.mark.asyncio
+async def test_case_evidence_survives_version_and_run_snapshots():
+    service, repo, _ = build_service()
+    evidence = EvidenceRef(uuid4(), uuid4(), 'block-1', 0, 3, 'a'*64)
+    async def valid(**kwargs):
+        return True
+    repo.validate_case_evidence = valid
+    question = await service.create_case(space_id=repo.space_id, question='问题', expected_answer='答案',
+        expected_document_ids=(evidence.document_id,), scope=EvalScope.OWNER, category_ids=(),
+        answerable=True, expected_behavior='ANSWERED', evidence_refs=(evidence,))
+    version = await service.create_version(space_id=repo.space_id, label='基线')
+    assert version.cases[0].evidence_refs == (evidence,)
+    detail = await service.run_version(version.id)
+    frozen = (await service.get_run(detail.run.id)).cases_by_id[question.id]
+    assert frozen.answerable is True
+    assert frozen.expected_behavior == 'ANSWERED'
+    assert frozen.evidence_refs == (evidence,)
+    updated = await service.update_case(question.id, answerable=False, expected_behavior='INSUFFICIENT_EVIDENCE', evidence_refs=())
+    assert updated.answerable is False
+    assert updated.evidence_refs == ()
+    assert version.cases[0].answerable is True
+
+
+@pytest.mark.asyncio
+async def test_case_rejects_unavailable_or_cross_space_evidence_before_write():
+    service, repo, _ = build_service()
+    async def invalid(**kwargs):
+        return False
+    repo.validate_case_evidence = invalid
+    with pytest.raises(ValueError):
+        await service.create_case(space_id=repo.space_id, question='问题', expected_answer='答案',
+            expected_document_ids=(), scope=EvalScope.OWNER, category_ids=(), answerable=True,
+            evidence_refs=(EvidenceRef(uuid4(), uuid4(), 'block-1', 0, 2, 'a'*64),))
+    assert not repo.cases
+
+
+@pytest.mark.asyncio
+async def test_run_metrics_use_same_execution_candidates_and_known_manifest():
+    from app.domain.conversations import RetrievedChunk
+    from hashlib import sha256
+    service, repo, runner = build_service()
+    doc, version = uuid4(), uuid4()
+    evidence = EvidenceRef(doc, version, 'block-1', 0, 2, sha256('依据'.encode()).hexdigest())
+    async def valid(**kwargs):
+        return True
+    async def manifest(space_id):
+        return {'document_versions': [str(version)], 'manifest_digest': 'known'}
+    async def answer(**kwargs):
+        hit = RetrievedChunk(uuid4(), doc, '资料', '依据', None, 1, .9, document_version_id=version,
+            source_block_id='block-1', char_start=0, char_end=2)
+        return RagAnswer(status=AnswerStatus.INSUFFICIENT_EVIDENCE, answer='资料不足',
+            execution_snapshot={'retrieved_chunks': [{'chunk_id': str(hit.id)}]}, retrieval_chunks=(hit,))
+    repo.validate_case_evidence = valid
+    repo.capture_knowledge_manifest = manifest
+    runner.answer_owner = answer
+    await service.create_case(space_id=repo.space_id, question='问题', expected_answer='答案',
+        expected_document_ids=(doc,), scope=EvalScope.OWNER, category_ids=(), answerable=True, evidence_refs=(evidence,))
+    detail = await service.run(space_id=repo.space_id)
+    assert detail.results[0].citation_count == 0
+    assert detail.results[0].retrieval_metrics['document_recall_at_k'] == 1.
+    assert detail.results[0].retrieval_metrics['evidence_recall_at_k'] == 1.
+    assert detail.results[0].execution_snapshot['retrieved_chunks']
 
 
 class FakeEvaluationRepository:
@@ -161,9 +241,9 @@ async def test_evaluation_run_reuses_owner_and_public_answer_paths_and_records_s
         AnswerStatus.INSUFFICIENT_EVIDENCE,
     ]
     assert detail.results[0].citation_count == 1
-    # Persist RUNNING before model work so an interrupted run is observable,
-    # then atomically persist results and COMPLETED status afterwards.
-    assert repository.commits == 4
+    # Two case writes, durable PENDING, claim, two per-case checkpoints and
+    # terminal state. Model work no longer hides all results until completion.
+    assert repository.commits == 7
 
 
 @pytest.mark.asyncio
@@ -277,6 +357,10 @@ async def test_evaluation_runs_can_be_compared_without_reusing_live_case_edits()
     assert compared.candidate.run.id == candidate.run.id
     assert compared.baseline.cases_by_id[case.id].question == "版本对比问题"
     assert compared.candidate.cases_by_id[case.id].question == "修改后的版本对比问题"
+    assert compared.same_test_set is False
+    assert compared.question_changes[0]['baseline_question'] == '版本对比问题'
+    assert compared.question_changes[0]['candidate_question'] == '修改后的版本对比问题'
+    assert compared.question_changes[0]['comparable'] is False
 
 
 @pytest.mark.asyncio

@@ -1,0 +1,12 @@
+{
+  "mode": "real_postgresql_populated_legacy_upgrade",
+  "status": "PASSED",
+  "checks": [
+    "populated_0016_upgraded_to_0021",
+    "legacy_versions_chunks_preserved",
+    "only_active_legacy_source_backfilled",
+    "legacy_unknown_coordinates_remain_unknown",
+    "concurrent_revision_increments_not_lost",
+    "pgvector_cosine_known_basis"
+  ]
+}

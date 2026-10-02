@@ -1,0 +1,16 @@
+{
+  "checked_date": "2026-10-02",
+  "source": "https://api-docs.deepseek.com/zh-cn/quick_start/pricing/",
+  "currency": "CNY",
+  "unit": "per_1000000_tokens",
+  "model": "deepseek-flash",
+  "idle_input_cache_miss": 1,
+  "idle_output": 4,
+  "peak_input_cache_miss": 2,
+  "peak_output": 8,
+  "user_unit_price_limit": null,
+  "authorized_llm_calls": true,
+  "authorization": "2026-10-02 用户取消预算限制并指定 DeepSeek Flash",
+  "actual_llm_calls_before_authorization": 0,
+  "post_authorization_results": "flash-*.json"
+}

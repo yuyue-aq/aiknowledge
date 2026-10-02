@@ -62,6 +62,20 @@ class FakeSession:
 
 
 @pytest.mark.asyncio
+async def test_history_citations_mark_unavailable_sources_using_current_version_and_time():
+    session = FakeSession()
+    record = CitationRecord(id=uuid4(), message_id=uuid4(), chunk_id=None, document_name='已删除.txt',
+        quoted_text='历史引用', page_number=None, ordinal=1, score=.9)
+    session.query_rows = [(record, False)]
+    citations = await SqlAlchemyConversationRepository(session).list_citations([record.message_id])
+    assert citations[0].source_available is False
+    sql = str(session.executed[0])
+    assert 'active_version_id' in sql
+    assert 'clock_timestamp()' in sql
+    assert 'deleted_at IS NULL' in sql
+
+
+@pytest.mark.asyncio
 async def test_conversation_repository_persists_conversation_messages_and_citation_snapshots() -> None:
     session = FakeSession()
     repository = SqlAlchemyConversationRepository(session)  # type: ignore[arg-type]

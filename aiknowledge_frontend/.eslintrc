@@ -3,5 +3,9 @@
   "rules": {
     "react/jsx-uses-react": "off",
     "react/react-in-jsx-scope": "off"
-  }
+  },
+  "overrides": [{
+    "files": ["src/components/EvaluationView.tsx", "src/components/RetrievalView.tsx"],
+    "rules": { "react/forbid-elements": "off" }
+  }]
 }

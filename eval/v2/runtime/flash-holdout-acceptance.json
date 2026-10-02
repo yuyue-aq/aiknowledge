@@ -1,0 +1,4021 @@
+{
+  "date": "2026-10-02T06:31:18.452437+00:00",
+  "model": "deepseek-flash",
+  "thinking_enabled": false,
+  "split": "holdout",
+  "label": "acceptance",
+  "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+  "synthetic_sources_only": true,
+  "human_review_performed": false,
+  "checks": [
+    "frozen_holdout_case_count",
+    "async_holdout_completed",
+    "no_out_of_scope_citations"
+  ],
+  "frozen_version": {
+    "id": "7cc5258f-efeb-425a-befa-064860e48773",
+    "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+    "version_number": 2,
+    "label": "V2-holdout",
+    "cases": [
+      {
+        "id": "df8813cd-fad3-47bc-8662-fa2b12069708",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "客服在工作日几点在线？",
+        "expected_answer": "09:00至18:00；首次响应目标4个工作小时。",
+        "expected_document_ids": [
+          "5438c618-6bf3-495a-ab95-79e1b8671a1b"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.281936Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+            "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 38,
+            "text_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "2838f45a-b9ff-4bbc-989c-6a2db167a877",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "工作日能在哪个时段联系支持？",
+        "expected_answer": "09:00至18:00；首次响应目标4个工作小时。",
+        "expected_document_ids": [
+          "5438c618-6bf3-495a-ab95-79e1b8671a1b"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.313265Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+            "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 38,
+            "text_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "2c8b493d-1fca-4232-a2d6-0f367a0e9650",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "导出文件保留多久？",
+        "expected_answer": "7天；下载前校验身份。",
+        "expected_document_ids": [
+          "ded31cea-4c8b-49b9-8de9-447869f3fcd0"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.337559Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+            "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 34,
+            "text_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "e0f70805-84cf-4ed5-ad21-80467543dbfa",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "导出的资料过多久就不能下载了？",
+        "expected_answer": "7天；下载前校验身份。",
+        "expected_document_ids": [
+          "ded31cea-4c8b-49b9-8de9-447869f3fcd0"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.364776Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+            "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 34,
+            "text_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "fb370991-4c00-40aa-9629-e00d6a9ad407",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "备份什么时候执行？",
+        "expected_answer": "凌晨02:00；保留最近7次。",
+        "expected_document_ids": [
+          "20a55650-d9a7-4f79-bb73-22bf1224972f"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.394333Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+            "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 27,
+            "text_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "0fc288ac-a12d-431b-8f46-b987bab07827",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "每天几点保存备份，保留几次？",
+        "expected_answer": "凌晨02:00；保留最近7次。",
+        "expected_document_ids": [
+          "20a55650-d9a7-4f79-bb73-22bf1224972f"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.415134Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+            "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 27,
+            "text_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "189042ec-fd15-437e-a2c1-da52ee1e18c3",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "成员邀请多久过期？",
+        "expected_answer": "48小时；只能使用一次。",
+        "expected_document_ids": [
+          "ba4f0461-c239-44ed-ac84-43657c956b22"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.438795Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+            "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 24,
+            "text_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "dac222c7-2675-448b-a883-82c466354756",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "发送的成员邀请能重复使用吗？",
+        "expected_answer": "48小时；只能使用一次。",
+        "expected_document_ids": [
+          "ba4f0461-c239-44ed-ac84-43657c956b22"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.463679Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+            "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 24,
+            "text_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "7482385a-10b5-44d3-bf61-3bfb7fe2cd7b",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "个人空间每日问答额度是多少？",
+        "expected_answer": "每天100次；次日00:00恢复。",
+        "expected_document_ids": [
+          "830b085f-5f25-4526-8a4f-fe323eb6aa57"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.485215Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+            "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 32,
+            "text_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "bb5eab8e-354d-41a4-ade1-8db76a558d61",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "一天能提多少问题，何时重置？",
+        "expected_answer": "每天100次；次日00:00恢复。",
+        "expected_document_ids": [
+          "830b085f-5f25-4526-8a4f-fe323eb6aa57"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.505646Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+            "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 32,
+            "text_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "07af6c02-783f-4a08-8731-2d68817cc86d",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "维护通常在哪个时段？",
+        "expected_answer": "周日03:00至04:00；提前24小时通知。",
+        "expected_document_ids": [
+          "7e3b6044-2944-436a-a386-fb16e00c2279"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.526105Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+            "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 37,
+            "text_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "ea9a5ee7-ba4f-48ad-8712-800b88eb4362",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "计划维护会提前多久告知管理员？",
+        "expected_answer": "周日03:00至04:00；提前24小时通知。",
+        "expected_document_ids": [
+          "7e3b6044-2944-436a-a386-fb16e00c2279"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:02.564865Z",
+        "answerable": true,
+        "expected_behavior": "ANSWERED",
+        "evidence_refs": [
+          {
+            "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+            "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 37,
+            "text_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "ef31c20c-ed57-4d57-828c-941720b4dab3",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "内部报销的审核口令是什么？",
+        "expected_answer": "公开分类无内部报销资料，不得泄露关闭分类内容。",
+        "expected_document_ids": [],
+        "scope": "PUBLIC",
+        "category_ids": [
+          "23ec2e3d-4f0f-4527-bb2b-1ce89de5650e"
+        ],
+        "created_at": "2026-10-02T05:21:06.376341Z",
+        "answerable": false,
+        "expected_behavior": "INSUFFICIENT_EVIDENCE",
+        "evidence_refs": []
+      },
+      {
+        "id": "9b462535-516a-46bf-9036-5832bd1d0e9a",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "灰度计划的正式上线日是哪天？",
+        "expected_answer": "两份有效资料分别写10月20日和10月27日；应指出冲突，不选择其中一个。",
+        "expected_document_ids": [
+          "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+          "febe8a75-d674-427c-a621-8fd8367fb46b"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:06.398687Z",
+        "answerable": false,
+        "expected_behavior": "CONFLICT",
+        "evidence_refs": [
+          {
+            "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+            "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 22,
+            "text_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+            "required": true
+          },
+          {
+            "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+            "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 22,
+            "text_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+            "required": true
+          }
+        ]
+      },
+      {
+        "id": "1a1af413-f1f5-4ae1-8aa9-b634a781be19",
+        "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+        "question": "灰度计划到底在20号还是27号发布？",
+        "expected_answer": "两份有效资料不一致，应指出冲突。",
+        "expected_document_ids": [
+          "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+          "febe8a75-d674-427c-a621-8fd8367fb46b"
+        ],
+        "scope": "OWNER",
+        "category_ids": [],
+        "created_at": "2026-10-02T05:21:06.421947Z",
+        "answerable": false,
+        "expected_behavior": "CONFLICT",
+        "evidence_refs": [
+          {
+            "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+            "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 22,
+            "text_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+            "required": true
+          },
+          {
+            "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+            "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab",
+            "source_block_id": "block-1",
+            "char_start": 0,
+            "char_end": 22,
+            "text_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+            "required": true
+          }
+        ]
+      }
+    ],
+    "created_at": "2026-10-02T05:21:06.489719Z"
+  },
+  "run_id": "068a1a63-ce01-4c64-b6a3-a41d9a8099ce",
+  "detail": {
+    "run": {
+      "id": "068a1a63-ce01-4c64-b6a3-a41d9a8099ce",
+      "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+      "status": "COMPLETED",
+      "retrieval_config_snapshot": {
+        "chat_model": "deepseek-flash",
+        "eval_cases": [
+          {
+            "id": "df8813cd-fad3-47bc-8662-fa2b12069708",
+            "scope": "OWNER",
+            "question": "客服在工作日几点在线？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.281936+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 38,
+                "required": true,
+                "text_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+                "char_start": 0,
+                "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+                "source_block_id": "block-1",
+                "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+              }
+            ],
+            "expected_answer": "09:00至18:00；首次响应目标4个工作小时。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "5438c618-6bf3-495a-ab95-79e1b8671a1b"
+            ]
+          },
+          {
+            "id": "2838f45a-b9ff-4bbc-989c-6a2db167a877",
+            "scope": "OWNER",
+            "question": "工作日能在哪个时段联系支持？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.313265+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 38,
+                "required": true,
+                "text_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+                "char_start": 0,
+                "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+                "source_block_id": "block-1",
+                "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+              }
+            ],
+            "expected_answer": "09:00至18:00；首次响应目标4个工作小时。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "5438c618-6bf3-495a-ab95-79e1b8671a1b"
+            ]
+          },
+          {
+            "id": "2c8b493d-1fca-4232-a2d6-0f367a0e9650",
+            "scope": "OWNER",
+            "question": "导出文件保留多久？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.337559+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 34,
+                "required": true,
+                "text_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+                "char_start": 0,
+                "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+                "source_block_id": "block-1",
+                "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+              }
+            ],
+            "expected_answer": "7天；下载前校验身份。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "ded31cea-4c8b-49b9-8de9-447869f3fcd0"
+            ]
+          },
+          {
+            "id": "e0f70805-84cf-4ed5-ad21-80467543dbfa",
+            "scope": "OWNER",
+            "question": "导出的资料过多久就不能下载了？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.364776+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 34,
+                "required": true,
+                "text_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+                "char_start": 0,
+                "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+                "source_block_id": "block-1",
+                "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+              }
+            ],
+            "expected_answer": "7天；下载前校验身份。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "ded31cea-4c8b-49b9-8de9-447869f3fcd0"
+            ]
+          },
+          {
+            "id": "fb370991-4c00-40aa-9629-e00d6a9ad407",
+            "scope": "OWNER",
+            "question": "备份什么时候执行？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.394333+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 27,
+                "required": true,
+                "text_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+                "char_start": 0,
+                "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+                "source_block_id": "block-1",
+                "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+              }
+            ],
+            "expected_answer": "凌晨02:00；保留最近7次。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "20a55650-d9a7-4f79-bb73-22bf1224972f"
+            ]
+          },
+          {
+            "id": "0fc288ac-a12d-431b-8f46-b987bab07827",
+            "scope": "OWNER",
+            "question": "每天几点保存备份，保留几次？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.415134+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 27,
+                "required": true,
+                "text_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+                "char_start": 0,
+                "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+                "source_block_id": "block-1",
+                "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+              }
+            ],
+            "expected_answer": "凌晨02:00；保留最近7次。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "20a55650-d9a7-4f79-bb73-22bf1224972f"
+            ]
+          },
+          {
+            "id": "189042ec-fd15-437e-a2c1-da52ee1e18c3",
+            "scope": "OWNER",
+            "question": "成员邀请多久过期？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.438795+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 24,
+                "required": true,
+                "text_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+                "char_start": 0,
+                "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+                "source_block_id": "block-1",
+                "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+              }
+            ],
+            "expected_answer": "48小时；只能使用一次。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "ba4f0461-c239-44ed-ac84-43657c956b22"
+            ]
+          },
+          {
+            "id": "dac222c7-2675-448b-a883-82c466354756",
+            "scope": "OWNER",
+            "question": "发送的成员邀请能重复使用吗？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.463679+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 24,
+                "required": true,
+                "text_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+                "char_start": 0,
+                "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+                "source_block_id": "block-1",
+                "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+              }
+            ],
+            "expected_answer": "48小时；只能使用一次。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "ba4f0461-c239-44ed-ac84-43657c956b22"
+            ]
+          },
+          {
+            "id": "7482385a-10b5-44d3-bf61-3bfb7fe2cd7b",
+            "scope": "OWNER",
+            "question": "个人空间每日问答额度是多少？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.485215+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 32,
+                "required": true,
+                "text_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+                "char_start": 0,
+                "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+                "source_block_id": "block-1",
+                "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+              }
+            ],
+            "expected_answer": "每天100次；次日00:00恢复。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "830b085f-5f25-4526-8a4f-fe323eb6aa57"
+            ]
+          },
+          {
+            "id": "bb5eab8e-354d-41a4-ade1-8db76a558d61",
+            "scope": "OWNER",
+            "question": "一天能提多少问题，何时重置？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.505646+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 32,
+                "required": true,
+                "text_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+                "char_start": 0,
+                "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+                "source_block_id": "block-1",
+                "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+              }
+            ],
+            "expected_answer": "每天100次；次日00:00恢复。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "830b085f-5f25-4526-8a4f-fe323eb6aa57"
+            ]
+          },
+          {
+            "id": "07af6c02-783f-4a08-8731-2d68817cc86d",
+            "scope": "OWNER",
+            "question": "维护通常在哪个时段？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.526105+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 37,
+                "required": true,
+                "text_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+                "char_start": 0,
+                "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+                "source_block_id": "block-1",
+                "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+              }
+            ],
+            "expected_answer": "周日03:00至04:00；提前24小时通知。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "7e3b6044-2944-436a-a386-fb16e00c2279"
+            ]
+          },
+          {
+            "id": "ea9a5ee7-ba4f-48ad-8712-800b88eb4362",
+            "scope": "OWNER",
+            "question": "计划维护会提前多久告知管理员？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": true,
+            "created_at": "2026-10-02T05:21:02.564865+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 37,
+                "required": true,
+                "text_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+                "char_start": 0,
+                "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+                "source_block_id": "block-1",
+                "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+              }
+            ],
+            "expected_answer": "周日03:00至04:00；提前24小时通知。",
+            "expected_behavior": "ANSWERED",
+            "expected_document_ids": [
+              "7e3b6044-2944-436a-a386-fb16e00c2279"
+            ]
+          },
+          {
+            "id": "ef31c20c-ed57-4d57-828c-941720b4dab3",
+            "scope": "PUBLIC",
+            "question": "内部报销的审核口令是什么？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": false,
+            "created_at": "2026-10-02T05:21:06.376341+00:00",
+            "category_ids": [
+              "23ec2e3d-4f0f-4527-bb2b-1ce89de5650e"
+            ],
+            "evidence_refs": [],
+            "expected_answer": "公开分类无内部报销资料，不得泄露关闭分类内容。",
+            "expected_behavior": "INSUFFICIENT_EVIDENCE",
+            "expected_document_ids": []
+          },
+          {
+            "id": "9b462535-516a-46bf-9036-5832bd1d0e9a",
+            "scope": "OWNER",
+            "question": "灰度计划的正式上线日是哪天？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": false,
+            "created_at": "2026-10-02T05:21:06.398687+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 22,
+                "required": true,
+                "text_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+                "char_start": 0,
+                "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+                "source_block_id": "block-1",
+                "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+              },
+              {
+                "char_end": 22,
+                "required": true,
+                "text_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+                "char_start": 0,
+                "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+                "source_block_id": "block-1",
+                "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+              }
+            ],
+            "expected_answer": "两份有效资料分别写10月20日和10月27日；应指出冲突，不选择其中一个。",
+            "expected_behavior": "CONFLICT",
+            "expected_document_ids": [
+              "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "febe8a75-d674-427c-a621-8fd8367fb46b"
+            ]
+          },
+          {
+            "id": "1a1af413-f1f5-4ae1-8aa9-b634a781be19",
+            "scope": "OWNER",
+            "question": "灰度计划到底在20号还是27号发布？",
+            "space_id": "43adbc7e-2a88-419c-9e80-c6d156f5270e",
+            "answerable": false,
+            "created_at": "2026-10-02T05:21:06.421947+00:00",
+            "category_ids": [],
+            "evidence_refs": [
+              {
+                "char_end": 22,
+                "required": true,
+                "text_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+                "char_start": 0,
+                "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+                "source_block_id": "block-1",
+                "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+              },
+              {
+                "char_end": 22,
+                "required": true,
+                "text_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+                "char_start": 0,
+                "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+                "source_block_id": "block-1",
+                "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+              }
+            ],
+            "expected_answer": "两份有效资料不一致，应指出冲突。",
+            "expected_behavior": "CONFLICT",
+            "expected_document_ids": [
+              "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "febe8a75-d674-427c-a621-8fd8367fb46b"
+            ]
+          }
+        ],
+        "context_top_k": 4,
+        "owner_user_id": "861a7bf5-af22-4584-85f7-6de7e4438976",
+        "candidate_limit": 12,
+        "embedding_model": "/models/bge-large-zh-v1.5",
+        "knowledge_manifest": {
+          "chunks": [
+            {
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "source_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "token_count": 27,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "source_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "token_count": 27,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 33,
+              "chunk_id": "98d0dd71-375b-451d-88cf-268bf47f433f",
+              "char_start": 0,
+              "document_id": "3a6f2492-0e13-4259-b790-f5d6ab010e02",
+              "source_hash": "c17ee11079b4dde8e31d24fe24bc286a8a088c3da1fe20897588c85bffcfda9f",
+              "token_count": 35,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "c17ee11079b4dde8e31d24fe24bc286a8a088c3da1fe20897588c85bffcfda9f",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "91d4c720-2e14-491f-8d9c-074cb5bab52a",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 37,
+              "chunk_id": "36eddcef-a64c-43c0-9a9b-54f96bef0ef9",
+              "char_start": 0,
+              "document_id": "4d01c1f2-ae61-4026-a1fc-318872b94b80",
+              "source_hash": "4e5eb30269240a99ce3429df53e3fbd8a10169dc57f4ec334524d07cb6651308",
+              "token_count": 39,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "4e5eb30269240a99ce3429df53e3fbd8a10169dc57f4ec334524d07cb6651308",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "0c2cf51a-0ca5-4b12-9656-7d5ceb8ff1d3",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 30,
+              "chunk_id": "36eef959-e2f0-4eb9-901e-213a2f5af650",
+              "char_start": 0,
+              "document_id": "529af183-42e0-4332-9494-82e9a1c50499",
+              "source_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "token_count": 32,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "555b1dc0-c7bb-4742-bc57-c2c0c1061463",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "source_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "token_count": 36,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 32,
+              "chunk_id": "23345c03-551c-4bd6-87ae-ce28f6658d86",
+              "char_start": 0,
+              "document_id": "593b8fed-f204-4dce-883d-4819041b5a35",
+              "source_hash": "784f42767c6ef69fe66d6f640baf0b474322574fee32d64696eda9fb3d799295",
+              "token_count": 34,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "784f42767c6ef69fe66d6f640baf0b474322574fee32d64696eda9fb3d799295",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "6c9c4cb9-e44f-413e-a3f7-7358e9378e69",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "source_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "token_count": 34,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 48,
+              "chunk_id": "88ea32a6-541a-425e-b566-66e798403e91",
+              "char_start": 0,
+              "document_id": "80c80821-591b-4a9e-8379-84611df572cc",
+              "source_hash": "f27bf5c4012c5c090251eebd0c6aec852fc2ab30d36bd33866810bffc8083a5a",
+              "token_count": 35,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "f27bf5c4012c5c090251eebd0c6aec852fc2ab30d36bd33866810bffc8083a5a",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "58325e7d-5b01-4ee9-aaf5-7bbc64c96609",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "source_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "token_count": 30,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 31,
+              "chunk_id": "6572cff4-d087-4de6-aafc-adf5057bbed3",
+              "char_start": 0,
+              "document_id": "8a6b7344-9bed-4d4b-955a-c191f66cca32",
+              "source_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "token_count": 33,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "796f89fc-45be-443e-923b-f959d6f6e307",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "source_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "token_count": 35,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "source_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "token_count": 27,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 28,
+              "chunk_id": "eb5792e4-4014-4771-9c4c-87d42ca6f05e",
+              "char_start": 0,
+              "document_id": "a6d68a22-efc4-4362-a688-f3386eb2e1ad",
+              "source_hash": "ea6cfebf54f113c4eb7b1fc0283bb844909f0f987f27ef64e6a8397220162b46",
+              "token_count": 30,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "ea6cfebf54f113c4eb7b1fc0283bb844909f0f987f27ef64e6a8397220162b46",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "cb70dc58-fafd-4d6f-a500-5a617a6fd870",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "source_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "token_count": 35,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "source_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "token_count": 25,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "source_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "token_count": 32,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 37,
+              "chunk_id": "def6397c-efe2-4c17-a41c-0d2b89483b81",
+              "char_start": 0,
+              "document_id": "cddf3b2a-f7d9-4e7c-8452-50be2052324f",
+              "source_hash": "6bf5491e44e872b633fabacf5c8b674f8551068d907f3944efa0b8441898895b",
+              "token_count": 39,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "6bf5491e44e872b633fabacf5c8b674f8551068d907f3944efa0b8441898895b",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "50cfc525-5978-428b-951e-8cf49aa8ef6d",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "source_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "token_count": 36,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 22,
+              "chunk_id": "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+              "char_start": 0,
+              "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "source_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "token_count": 20,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 30,
+              "chunk_id": "c381e9cc-faeb-4c4a-bd07-e529ac38e382",
+              "char_start": 0,
+              "document_id": "fa8d15d4-7c3d-4848-88bb-8e434a981951",
+              "source_hash": "4b8e99a502897731dc47043fd65845807a74eed5ca84dbc5fb52e1e563bc84a3",
+              "token_count": 32,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "4b8e99a502897731dc47043fd65845807a74eed5ca84dbc5fb52e1e563bc84a3",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "97f920f5-523e-4dc7-bfdf-b7dc5da33801",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 46,
+              "chunk_id": "0a43dbed-8613-477b-82f2-2f36173abf54",
+              "char_start": 0,
+              "document_id": "fe2646f3-9cc6-46fc-ab53-ab1bd3b5aa51",
+              "source_hash": "2c4a8ef2b283e64f617ae20e6d6cc30feea36391fd8d8b6061289978a8655ef2",
+              "token_count": 33,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "2c4a8ef2b283e64f617ae20e6d6cc30feea36391fd8d8b6061289978a8655ef2",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "151679c9-a303-4aaa-840e-257680d6f586",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 22,
+              "chunk_id": "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+              "char_start": 0,
+              "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+              "source_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "token_count": 20,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab",
+              "embedding_dimension": 1024
+            }
+          ],
+          "schema_version": 2,
+          "access_revision": 12,
+          "manifest_digest": "38bbb2d1aa2ef0d1f24bb4e22a6159be8b07841a26659a8c82ef9938efe04d3a",
+          "document_versions": [
+            "04f2c108-acb5-4e52-9703-5374dca3b5fc",
+            "0c2cf51a-0ca5-4b12-9656-7d5ceb8ff1d3",
+            "151679c9-a303-4aaa-840e-257680d6f586",
+            "177efb87-9fb8-4889-9fa0-37b7b6eabfb3",
+            "2755ab57-d375-472d-b0b3-6ea78af0f61c",
+            "50cfc525-5978-428b-951e-8cf49aa8ef6d",
+            "555b1dc0-c7bb-4742-bc57-c2c0c1061463",
+            "58325e7d-5b01-4ee9-aaf5-7bbc64c96609",
+            "5a3ee883-c571-4d5f-8a67-f3e9bdc76867",
+            "5f8f6304-098b-4581-abae-f0f1126d029d",
+            "617fcd48-196b-4215-8449-4af198230aa6",
+            "6c9c4cb9-e44f-413e-a3f7-7358e9378e69",
+            "778c2e3a-6c63-468c-abc0-db0469f3d024",
+            "796f89fc-45be-443e-923b-f959d6f6e307",
+            "8ca208bf-3873-4225-b914-e601e0998838",
+            "91d4c720-2e14-491f-8d9c-074cb5bab52a",
+            "97f920f5-523e-4dc7-bfdf-b7dc5da33801",
+            "a2279efc-12fe-4563-89b4-e03a65a27b35",
+            "a7716fee-640d-422c-be1c-206039b0ba81",
+            "cb70dc58-fafd-4d6f-a500-5a617a6fd870",
+            "d89db739-8da3-4e81-9e74-fb3e9e43cf45",
+            "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4",
+            "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+          ],
+          "knowledge_revision": 27
+        },
+        "embedding_dimension": 1024,
+        "eval_set_version_id": "7cc5258f-efeb-425a-befa-064860e48773",
+        "eval_set_version_number": 2
+      },
+      "started_at": "2026-10-02T06:31:18.712608Z",
+      "completed_at": "2026-10-02T06:31:41.539105Z",
+      "failure_message": null,
+      "created_at": "2026-10-02T06:31:18.644206Z",
+      "progress_total": 15,
+      "progress_completed": 15,
+      "heartbeat_at": "2026-10-02T06:31:41.546357Z",
+      "task_id": "068a1a63-ce01-4c64-b6a3-a41d9a8099ce",
+      "failure_code": null
+    },
+    "results": [
+      {
+        "id": "0bcaa2e9-525f-469c-8228-f09b33d9df45",
+        "eval_case_id": "df8813cd-fad3-47bc-8662-fa2b12069708",
+        "answer_status": "ANSWERED",
+        "answer": "工作日客服支持时间为09:00至18:00。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "客服在工作日几点在线？",
+          "timings_ms": {
+            "total": 1595.987,
+            "search": 6.525,
+            "embedding": 1589.462
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6667637030254836,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 2,
+              "score": 0.5439174070555193,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 3,
+              "score": 0.48776796678877554,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 4,
+              "score": 0.42821116539040305,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 5,
+              "score": 0.40104575144699484,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 6,
+              "score": 0.34838352241908965,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 7,
+              "score": 0.34437306590401584,
+              "char_end": 37,
+              "chunk_id": "36eddcef-a64c-43c0-9a9b-54f96bef0ef9",
+              "char_start": 0,
+              "document_id": "4d01c1f2-ae61-4026-a1fc-318872b94b80",
+              "content_hash": "4e5eb30269240a99ce3429df53e3fbd8a10169dc57f4ec334524d07cb6651308",
+              "source_block_id": "block-1",
+              "document_version_id": "0c2cf51a-0ca5-4b12-9656-7d5ceb8ff1d3"
+            },
+            {
+              "rank": 8,
+              "score": 0.3286971356037717,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 9,
+              "score": 0.3233903068202191,
+              "char_end": 46,
+              "chunk_id": "0a43dbed-8613-477b-82f2-2f36173abf54",
+              "char_start": 0,
+              "document_id": "fe2646f3-9cc6-46fc-ab53-ab1bd3b5aa51",
+              "content_hash": "2c4a8ef2b283e64f617ae20e6d6cc30feea36391fd8d8b6061289978a8655ef2",
+              "source_block_id": "block-1",
+              "document_version_id": "151679c9-a303-4aaa-840e-257680d6f586"
+            },
+            {
+              "rank": 10,
+              "score": 0.30726196446234755,
+              "char_end": 31,
+              "chunk_id": "6572cff4-d087-4de6-aafc-adf5057bbed3",
+              "char_start": 0,
+              "document_id": "8a6b7344-9bed-4d4b-955a-c191f66cca32",
+              "content_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "source_block_id": "block-1",
+              "document_version_id": "796f89fc-45be-443e-923b-f959d6f6e307"
+            },
+            {
+              "rank": 11,
+              "score": 0.30220002492665854,
+              "char_end": 22,
+              "chunk_id": "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+              "char_start": 0,
+              "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+              "content_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "source_block_id": "block-1",
+              "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+            },
+            {
+              "rank": 12,
+              "score": 0.2987686604628431,
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d"
+            }
+          ],
+          "context_chunk_ids": [
+            "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+            "e5ed4565-513a-4f68-9461-4425093c52e0",
+            "c7a6c065-acc8-4074-9970-368772e7bd96",
+            "2d0db373-0aca-4275-934c-38c2a7015618"
+          ],
+          "context_characters": [
+            38,
+            37,
+            27,
+            32
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "10a7119d-fbf6-4d5c-bbbd-34be4431e9a9",
+        "eval_case_id": "9b462535-516a-46bf-9036-5832bd1d0e9a",
+        "answer_status": "CONFLICT",
+        "answer": "证据间存在冲突：C1 称灰度计划正式上线日为2026年10月27日，C2 称灰度计划正式上线日为2026年10月20日。",
+        "citation_count": 0,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "灰度计划的正式上线日是哪天？",
+          "timings_ms": {
+            "total": 693.842,
+            "search": 3.642,
+            "embedding": 690.2
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.7187500810250744,
+              "char_end": 22,
+              "chunk_id": "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+              "char_start": 0,
+              "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+              "content_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "source_block_id": "block-1",
+              "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+            },
+            {
+              "rank": 2,
+              "score": 0.7142519269590216,
+              "char_end": 22,
+              "chunk_id": "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+              "char_start": 0,
+              "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "content_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "source_block_id": "block-1",
+              "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+            },
+            {
+              "rank": 3,
+              "score": 0.43788813239670366,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 4,
+              "score": 0.3358109597821759,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 5,
+              "score": 0.33180120573650784,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 6,
+              "score": 0.3230248785920441,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 7,
+              "score": 0.3195179200028788,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 8,
+              "score": 0.28476638450522695,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 9,
+              "score": 0.27112563636525167,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 10,
+              "score": 0.2652740855596716,
+              "char_end": 46,
+              "chunk_id": "0a43dbed-8613-477b-82f2-2f36173abf54",
+              "char_start": 0,
+              "document_id": "fe2646f3-9cc6-46fc-ab53-ab1bd3b5aa51",
+              "content_hash": "2c4a8ef2b283e64f617ae20e6d6cc30feea36391fd8d8b6061289978a8655ef2",
+              "source_block_id": "block-1",
+              "document_version_id": "151679c9-a303-4aaa-840e-257680d6f586"
+            },
+            {
+              "rank": 11,
+              "score": 0.2619470748226458,
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6"
+            },
+            {
+              "rank": 12,
+              "score": 0.25917437009582356,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            }
+          ],
+          "context_chunk_ids": [
+            "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+            "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+            "e5ed4565-513a-4f68-9461-4425093c52e0",
+            "695902b2-6ee6-4465-ad9c-0b650e9427ee"
+          ],
+          "context_characters": [
+            22,
+            22,
+            37,
+            38
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": true,
+          "retrieved_count": 12,
+          "document_hit_at_k": null,
+          "document_recall_at_k": null,
+          "evidence_recall_at_k": null,
+          "evidence_overlap_at_k": null
+        },
+        "failure_code": null
+      },
+      {
+        "id": "1a8ad801-5fe2-4b42-9503-056ea47b719d",
+        "eval_case_id": "dac222c7-2675-448b-a883-82c466354756",
+        "answer_status": "ANSWERED",
+        "answer": "不能。成员邀请链接只能使用一次。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "发送的成员邀请能重复使用吗？",
+          "timings_ms": {
+            "total": 707.278,
+            "search": 3.629,
+            "embedding": 703.649
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.5803705954109953,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 2,
+              "score": 0.4470710487919429,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 3,
+              "score": 0.37048354744911194,
+              "char_end": 30,
+              "chunk_id": "36eef959-e2f0-4eb9-901e-213a2f5af650",
+              "char_start": 0,
+              "document_id": "529af183-42e0-4332-9494-82e9a1c50499",
+              "content_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "source_block_id": "block-1",
+              "document_version_id": "555b1dc0-c7bb-4742-bc57-c2c0c1061463"
+            },
+            {
+              "rank": 4,
+              "score": 0.36904972791671753,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 5,
+              "score": 0.36747128561310327,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 6,
+              "score": 0.35508724183364226,
+              "char_end": 32,
+              "chunk_id": "23345c03-551c-4bd6-87ae-ce28f6658d86",
+              "char_start": 0,
+              "document_id": "593b8fed-f204-4dce-883d-4819041b5a35",
+              "content_hash": "784f42767c6ef69fe66d6f640baf0b474322574fee32d64696eda9fb3d799295",
+              "source_block_id": "block-1",
+              "document_version_id": "6c9c4cb9-e44f-413e-a3f7-7358e9378e69"
+            },
+            {
+              "rank": 7,
+              "score": 0.3394761889392457,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 8,
+              "score": 0.3202860939758516,
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d"
+            },
+            {
+              "rank": 9,
+              "score": 0.30764965369405484,
+              "char_end": 30,
+              "chunk_id": "c381e9cc-faeb-4c4a-bd07-e529ac38e382",
+              "char_start": 0,
+              "document_id": "fa8d15d4-7c3d-4848-88bb-8e434a981951",
+              "content_hash": "4b8e99a502897731dc47043fd65845807a74eed5ca84dbc5fb52e1e563bc84a3",
+              "source_block_id": "block-1",
+              "document_version_id": "97f920f5-523e-4dc7-bfdf-b7dc5da33801"
+            },
+            {
+              "rank": 10,
+              "score": 0.3052271190421061,
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6"
+            },
+            {
+              "rank": 11,
+              "score": 0.2900992757022818,
+              "char_end": 46,
+              "chunk_id": "0a43dbed-8613-477b-82f2-2f36173abf54",
+              "char_start": 0,
+              "document_id": "fe2646f3-9cc6-46fc-ab53-ab1bd3b5aa51",
+              "content_hash": "2c4a8ef2b283e64f617ae20e6d6cc30feea36391fd8d8b6061289978a8655ef2",
+              "source_block_id": "block-1",
+              "document_version_id": "151679c9-a303-4aaa-840e-257680d6f586"
+            },
+            {
+              "rank": 12,
+              "score": 0.28236141345156063,
+              "char_end": 48,
+              "chunk_id": "88ea32a6-541a-425e-b566-66e798403e91",
+              "char_start": 0,
+              "document_id": "80c80821-591b-4a9e-8379-84611df572cc",
+              "content_hash": "f27bf5c4012c5c090251eebd0c6aec852fc2ab30d36bd33866810bffc8083a5a",
+              "source_block_id": "block-1",
+              "document_version_id": "58325e7d-5b01-4ee9-aaf5-7bbc64c96609"
+            }
+          ],
+          "context_chunk_ids": [
+            "1fb8043b-b145-4e7e-b15a-392047ca576c",
+            "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+            "36eef959-e2f0-4eb9-901e-213a2f5af650",
+            "34923217-00ab-4e6f-a7be-9ab66ec966be"
+          ],
+          "context_characters": [
+            24,
+            30,
+            30,
+            34
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "25ecd24f-7b0d-44f7-8451-92d19811165c",
+        "eval_case_id": "ef31c20c-ed57-4d57-828c-941720b4dab3",
+        "answer_status": "INSUFFICIENT_EVIDENCE",
+        "answer": "当前资料中没有足够依据回答这个问题。",
+        "citation_count": 0,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "内部报销的审核口令是什么？",
+          "timings_ms": {
+            "total": 685.999,
+            "search": 7.225,
+            "embedding": 678.774
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.312343684942457,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 2,
+              "score": 0.31138017773628235,
+              "char_end": 33,
+              "chunk_id": "98d0dd71-375b-451d-88cf-268bf47f433f",
+              "char_start": 0,
+              "document_id": "3a6f2492-0e13-4259-b790-f5d6ab010e02",
+              "content_hash": "c17ee11079b4dde8e31d24fe24bc286a8a088c3da1fe20897588c85bffcfda9f",
+              "source_block_id": "block-1",
+              "document_version_id": "91d4c720-2e14-491f-8d9c-074cb5bab52a"
+            },
+            {
+              "rank": 3,
+              "score": 0.2906431257724762,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 4,
+              "score": 0.28273865128207176,
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d"
+            },
+            {
+              "rank": 5,
+              "score": 0.2772357894637716,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 6,
+              "score": 0.27720045719141473,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 7,
+              "score": 0.277061964010773,
+              "char_end": 48,
+              "chunk_id": "88ea32a6-541a-425e-b566-66e798403e91",
+              "char_start": 0,
+              "document_id": "80c80821-591b-4a9e-8379-84611df572cc",
+              "content_hash": "f27bf5c4012c5c090251eebd0c6aec852fc2ab30d36bd33866810bffc8083a5a",
+              "source_block_id": "block-1",
+              "document_version_id": "58325e7d-5b01-4ee9-aaf5-7bbc64c96609"
+            },
+            {
+              "rank": 8,
+              "score": 0.27662714808826094,
+              "char_end": 31,
+              "chunk_id": "6572cff4-d087-4de6-aafc-adf5057bbed3",
+              "char_start": 0,
+              "document_id": "8a6b7344-9bed-4d4b-955a-c191f66cca32",
+              "content_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "source_block_id": "block-1",
+              "document_version_id": "796f89fc-45be-443e-923b-f959d6f6e307"
+            },
+            {
+              "rank": 9,
+              "score": 0.274880238618858,
+              "char_end": 28,
+              "chunk_id": "eb5792e4-4014-4771-9c4c-87d42ca6f05e",
+              "char_start": 0,
+              "document_id": "a6d68a22-efc4-4362-a688-f3386eb2e1ad",
+              "content_hash": "ea6cfebf54f113c4eb7b1fc0283bb844909f0f987f27ef64e6a8397220162b46",
+              "source_block_id": "block-1",
+              "document_version_id": "cb70dc58-fafd-4d6f-a500-5a617a6fd870"
+            },
+            {
+              "rank": 10,
+              "score": 0.2716679871082306,
+              "char_end": 30,
+              "chunk_id": "36eef959-e2f0-4eb9-901e-213a2f5af650",
+              "char_start": 0,
+              "document_id": "529af183-42e0-4332-9494-82e9a1c50499",
+              "content_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "source_block_id": "block-1",
+              "document_version_id": "555b1dc0-c7bb-4742-bc57-c2c0c1061463"
+            },
+            {
+              "rank": 11,
+              "score": 0.26983556151390076,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 12,
+              "score": 0.25060963623409016,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            }
+          ],
+          "context_chunk_ids": [
+            "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+            "98d0dd71-375b-451d-88cf-268bf47f433f",
+            "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+            "591cc73d-8601-43dd-8aff-9b50c27a96d8"
+          ],
+          "context_characters": [
+            38,
+            33,
+            26,
+            33
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": true,
+          "retrieved_count": 12,
+          "document_hit_at_k": null,
+          "document_recall_at_k": null,
+          "evidence_recall_at_k": null,
+          "evidence_overlap_at_k": null
+        },
+        "failure_code": null
+      },
+      {
+        "id": "36c9c0dc-c626-4370-a863-93a1c7a30ad7",
+        "eval_case_id": "189042ec-fd15-437e-a2c1-da52ee1e18c3",
+        "answer_status": "ANSWERED",
+        "answer": "成员邀请链接有效期为48小时。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "成员邀请多久过期？",
+          "timings_ms": {
+            "total": 643.537,
+            "search": 3.754,
+            "embedding": 639.783
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6209828483472656,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 2,
+              "score": 0.47217684984207486,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 3,
+              "score": 0.40934898909026396,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 4,
+              "score": 0.40342839976718503,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 5,
+              "score": 0.36395460367203025,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 6,
+              "score": 0.3552683976132689,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 7,
+              "score": 0.3468555041548185,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 8,
+              "score": 0.33825473093340286,
+              "char_end": 22,
+              "chunk_id": "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+              "char_start": 0,
+              "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "content_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "source_block_id": "block-1",
+              "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+            },
+            {
+              "rank": 9,
+              "score": 0.33376719560730406,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 10,
+              "score": 0.3334477543830896,
+              "char_end": 22,
+              "chunk_id": "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+              "char_start": 0,
+              "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+              "content_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "source_block_id": "block-1",
+              "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+            },
+            {
+              "rank": 11,
+              "score": 0.33151631543137583,
+              "char_end": 30,
+              "chunk_id": "36eef959-e2f0-4eb9-901e-213a2f5af650",
+              "char_start": 0,
+              "document_id": "529af183-42e0-4332-9494-82e9a1c50499",
+              "content_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "source_block_id": "block-1",
+              "document_version_id": "555b1dc0-c7bb-4742-bc57-c2c0c1061463"
+            },
+            {
+              "rank": 12,
+              "score": 0.328602055144555,
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6"
+            }
+          ],
+          "context_chunk_ids": [
+            "1fb8043b-b145-4e7e-b15a-392047ca576c",
+            "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+            "34923217-00ab-4e6f-a7be-9ab66ec966be",
+            "4cf54de5-3261-4b23-8c0c-63ba191d0774"
+          ],
+          "context_characters": [
+            24,
+            30,
+            34,
+            26
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "617a6644-ef1b-4f04-95cb-46da9de2d8c2",
+        "eval_case_id": "2c8b493d-1fca-4232-a2d6-0f367a0e9650",
+        "answer_status": "ANSWERED",
+        "answer": "导出文件仅保留7天。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "导出文件保留多久？",
+          "timings_ms": {
+            "total": 636.537,
+            "search": 3.891,
+            "embedding": 632.647
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.5708355221899344,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 2,
+              "score": 0.404496771231202,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 3,
+              "score": 0.3606815470077458,
+              "char_end": 28,
+              "chunk_id": "eb5792e4-4014-4771-9c4c-87d42ca6f05e",
+              "char_start": 0,
+              "document_id": "a6d68a22-efc4-4362-a688-f3386eb2e1ad",
+              "content_hash": "ea6cfebf54f113c4eb7b1fc0283bb844909f0f987f27ef64e6a8397220162b46",
+              "source_block_id": "block-1",
+              "document_version_id": "cb70dc58-fafd-4d6f-a500-5a617a6fd870"
+            },
+            {
+              "rank": 4,
+              "score": 0.3602464008404772,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 5,
+              "score": 0.354134346040332,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 6,
+              "score": 0.35174636984628105,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 7,
+              "score": 0.3409895314555522,
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d"
+            },
+            {
+              "rank": 8,
+              "score": 0.3225816469040478,
+              "char_end": 48,
+              "chunk_id": "88ea32a6-541a-425e-b566-66e798403e91",
+              "char_start": 0,
+              "document_id": "80c80821-591b-4a9e-8379-84611df572cc",
+              "content_hash": "f27bf5c4012c5c090251eebd0c6aec852fc2ab30d36bd33866810bffc8083a5a",
+              "source_block_id": "block-1",
+              "document_version_id": "58325e7d-5b01-4ee9-aaf5-7bbc64c96609"
+            },
+            {
+              "rank": 9,
+              "score": 0.3177998241483905,
+              "char_end": 37,
+              "chunk_id": "def6397c-efe2-4c17-a41c-0d2b89483b81",
+              "char_start": 0,
+              "document_id": "cddf3b2a-f7d9-4e7c-8452-50be2052324f",
+              "content_hash": "6bf5491e44e872b633fabacf5c8b674f8551068d907f3944efa0b8441898895b",
+              "source_block_id": "block-1",
+              "document_version_id": "50cfc525-5978-428b-951e-8cf49aa8ef6d"
+            },
+            {
+              "rank": 10,
+              "score": 0.3013141841088025,
+              "char_end": 30,
+              "chunk_id": "c381e9cc-faeb-4c4a-bd07-e529ac38e382",
+              "char_start": 0,
+              "document_id": "fa8d15d4-7c3d-4848-88bb-8e434a981951",
+              "content_hash": "4b8e99a502897731dc47043fd65845807a74eed5ca84dbc5fb52e1e563bc84a3",
+              "source_block_id": "block-1",
+              "document_version_id": "97f920f5-523e-4dc7-bfdf-b7dc5da33801"
+            },
+            {
+              "rank": 11,
+              "score": 0.30123585175596457,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 12,
+              "score": 0.29417120533672003,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            }
+          ],
+          "context_chunk_ids": [
+            "34923217-00ab-4e6f-a7be-9ab66ec966be",
+            "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+            "eb5792e4-4014-4771-9c4c-87d42ca6f05e",
+            "c7a6c065-acc8-4074-9970-368772e7bd96"
+          ],
+          "context_characters": [
+            34,
+            30,
+            28,
+            27
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "6c44c1b3-e9cf-41ac-a099-1b8bd8bea084",
+        "eval_case_id": "fb370991-4c00-40aa-9629-e00d6a9ad407",
+        "answer_status": "ANSWERED",
+        "answer": "平台每天凌晨02:00进行备份，连续保留最近7次备份。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "备份什么时候执行？",
+          "timings_ms": {
+            "total": 641.889,
+            "search": 3.788,
+            "embedding": 638.1
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.5468456093256939,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 2,
+              "score": 0.44790152646872006,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 3,
+              "score": 0.40123264178840623,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 4,
+              "score": 0.3982696654475134,
+              "char_end": 22,
+              "chunk_id": "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+              "char_start": 0,
+              "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+              "content_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "source_block_id": "block-1",
+              "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+            },
+            {
+              "rank": 5,
+              "score": 0.39048719917124153,
+              "char_end": 22,
+              "chunk_id": "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+              "char_start": 0,
+              "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "content_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "source_block_id": "block-1",
+              "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+            },
+            {
+              "rank": 6,
+              "score": 0.38364104130023535,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 7,
+              "score": 0.37507237121678916,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 8,
+              "score": 0.33948581399065947,
+              "char_end": 28,
+              "chunk_id": "eb5792e4-4014-4771-9c4c-87d42ca6f05e",
+              "char_start": 0,
+              "document_id": "a6d68a22-efc4-4362-a688-f3386eb2e1ad",
+              "content_hash": "ea6cfebf54f113c4eb7b1fc0283bb844909f0f987f27ef64e6a8397220162b46",
+              "source_block_id": "block-1",
+              "document_version_id": "cb70dc58-fafd-4d6f-a500-5a617a6fd870"
+            },
+            {
+              "rank": 9,
+              "score": 0.3329628705978418,
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6"
+            },
+            {
+              "rank": 10,
+              "score": 0.32838982432070596,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 11,
+              "score": 0.32156231894156906,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 12,
+              "score": 0.30723256788351183,
+              "char_end": 31,
+              "chunk_id": "6572cff4-d087-4de6-aafc-adf5057bbed3",
+              "char_start": 0,
+              "document_id": "8a6b7344-9bed-4d4b-955a-c191f66cca32",
+              "content_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "source_block_id": "block-1",
+              "document_version_id": "796f89fc-45be-443e-923b-f959d6f6e307"
+            }
+          ],
+          "context_chunk_ids": [
+            "c7a6c065-acc8-4074-9970-368772e7bd96",
+            "e5ed4565-513a-4f68-9461-4425093c52e0",
+            "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+            "cb40a5aa-16fb-4ee4-ae03-beac54bc1856"
+          ],
+          "context_characters": [
+            27,
+            37,
+            30,
+            22
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "7d02965e-2eb4-45ee-ba6b-7056790f462e",
+        "eval_case_id": "e0f70805-84cf-4ed5-ad21-80467543dbfa",
+        "answer_status": "ANSWERED",
+        "answer": "导出文件仅保留7天，因此超过7天就不能下载了。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "导出的资料过多久就不能下载了？",
+          "timings_ms": {
+            "total": 713.394,
+            "search": 4.016,
+            "embedding": 709.378
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6254921555519104,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 2,
+              "score": 0.5582382346249689,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 3,
+              "score": 0.47936703203222275,
+              "char_end": 28,
+              "chunk_id": "eb5792e4-4014-4771-9c4c-87d42ca6f05e",
+              "char_start": 0,
+              "document_id": "a6d68a22-efc4-4362-a688-f3386eb2e1ad",
+              "content_hash": "ea6cfebf54f113c4eb7b1fc0283bb844909f0f987f27ef64e6a8397220162b46",
+              "source_block_id": "block-1",
+              "document_version_id": "cb70dc58-fafd-4d6f-a500-5a617a6fd870"
+            },
+            {
+              "rank": 4,
+              "score": 0.4293303533390739,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 5,
+              "score": 0.41640538719940834,
+              "char_end": 31,
+              "chunk_id": "6572cff4-d087-4de6-aafc-adf5057bbed3",
+              "char_start": 0,
+              "document_id": "8a6b7344-9bed-4d4b-955a-c191f66cca32",
+              "content_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "source_block_id": "block-1",
+              "document_version_id": "796f89fc-45be-443e-923b-f959d6f6e307"
+            },
+            {
+              "rank": 6,
+              "score": 0.4086811000894852,
+              "char_end": 30,
+              "chunk_id": "c381e9cc-faeb-4c4a-bd07-e529ac38e382",
+              "char_start": 0,
+              "document_id": "fa8d15d4-7c3d-4848-88bb-8e434a981951",
+              "content_hash": "4b8e99a502897731dc47043fd65845807a74eed5ca84dbc5fb52e1e563bc84a3",
+              "source_block_id": "block-1",
+              "document_version_id": "97f920f5-523e-4dc7-bfdf-b7dc5da33801"
+            },
+            {
+              "rank": 7,
+              "score": 0.39757017522214033,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 8,
+              "score": 0.3898648255982897,
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6"
+            },
+            {
+              "rank": 9,
+              "score": 0.34852117435823593,
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d"
+            },
+            {
+              "rank": 10,
+              "score": 0.3440778646422711,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 11,
+              "score": 0.33687000494420616,
+              "char_end": 37,
+              "chunk_id": "def6397c-efe2-4c17-a41c-0d2b89483b81",
+              "char_start": 0,
+              "document_id": "cddf3b2a-f7d9-4e7c-8452-50be2052324f",
+              "content_hash": "6bf5491e44e872b633fabacf5c8b674f8551068d907f3944efa0b8441898895b",
+              "source_block_id": "block-1",
+              "document_version_id": "50cfc525-5978-428b-951e-8cf49aa8ef6d"
+            },
+            {
+              "rank": 12,
+              "score": 0.3352040648460388,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            }
+          ],
+          "context_chunk_ids": [
+            "34923217-00ab-4e6f-a7be-9ab66ec966be",
+            "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+            "eb5792e4-4014-4771-9c4c-87d42ca6f05e",
+            "eca8a603-4912-48c4-a9f1-64a3f6434ef7"
+          ],
+          "context_characters": [
+            34,
+            30,
+            28,
+            29
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "89a7bf81-9938-4e2c-958d-4b19f9e625ec",
+        "eval_case_id": "07af6c02-783f-4a08-8731-2d68817cc86d",
+        "answer_status": "ANSWERED",
+        "answer": "计划维护通常安排在周日03:00至04:00。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "维护通常在哪个时段？",
+          "timings_ms": {
+            "total": 649.559,
+            "search": 3.421,
+            "embedding": 646.138
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6125042486932123,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 2,
+              "score": 0.46454733187524544,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 3,
+              "score": 0.4084239480369123,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 4,
+              "score": 0.29533433034019796,
+              "char_end": 22,
+              "chunk_id": "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+              "char_start": 0,
+              "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+              "content_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "source_block_id": "block-1",
+              "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+            },
+            {
+              "rank": 5,
+              "score": 0.295304231996103,
+              "char_end": 22,
+              "chunk_id": "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+              "char_start": 0,
+              "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "content_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "source_block_id": "block-1",
+              "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+            },
+            {
+              "rank": 6,
+              "score": 0.2852814410543023,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 7,
+              "score": 0.28419209373569787,
+              "char_end": 30,
+              "chunk_id": "36eef959-e2f0-4eb9-901e-213a2f5af650",
+              "char_start": 0,
+              "document_id": "529af183-42e0-4332-9494-82e9a1c50499",
+              "content_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "source_block_id": "block-1",
+              "document_version_id": "555b1dc0-c7bb-4742-bc57-c2c0c1061463"
+            },
+            {
+              "rank": 8,
+              "score": 0.2754473768307979,
+              "char_end": 33,
+              "chunk_id": "98d0dd71-375b-451d-88cf-268bf47f433f",
+              "char_start": 0,
+              "document_id": "3a6f2492-0e13-4259-b790-f5d6ab010e02",
+              "content_hash": "c17ee11079b4dde8e31d24fe24bc286a8a088c3da1fe20897588c85bffcfda9f",
+              "source_block_id": "block-1",
+              "document_version_id": "91d4c720-2e14-491f-8d9c-074cb5bab52a"
+            },
+            {
+              "rank": 9,
+              "score": 0.270802579200192,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 10,
+              "score": 0.2694327613542308,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 11,
+              "score": 0.25851825548545504,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 12,
+              "score": 0.2583353750409523,
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6"
+            }
+          ],
+          "context_chunk_ids": [
+            "e5ed4565-513a-4f68-9461-4425093c52e0",
+            "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+            "c7a6c065-acc8-4074-9970-368772e7bd96",
+            "cb40a5aa-16fb-4ee4-ae03-beac54bc1856"
+          ],
+          "context_characters": [
+            37,
+            38,
+            27,
+            22
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "9e1ceac7-12dd-4d23-9dc8-cfc731d68d8d",
+        "eval_case_id": "7482385a-10b5-44d3-bf61-3bfb7fe2cd7b",
+        "answer_status": "ANSWERED",
+        "answer": "每个个人空间每天允许100次问答；达到额度后次日00:00恢复。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "个人空间每日问答额度是多少？",
+          "timings_ms": {
+            "total": 691.942,
+            "search": 3.654,
+            "embedding": 688.288
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.7421642406885207,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 2,
+              "score": 0.5680711438677261,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 3,
+              "score": 0.4083504190027243,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 4,
+              "score": 0.40495958210001426,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 5,
+              "score": 0.3835044984965259,
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d"
+            },
+            {
+              "rank": 6,
+              "score": 0.38295207822894395,
+              "char_end": 37,
+              "chunk_id": "36eddcef-a64c-43c0-9a9b-54f96bef0ef9",
+              "char_start": 0,
+              "document_id": "4d01c1f2-ae61-4026-a1fc-318872b94b80",
+              "content_hash": "4e5eb30269240a99ce3429df53e3fbd8a10169dc57f4ec334524d07cb6651308",
+              "source_block_id": "block-1",
+              "document_version_id": "0c2cf51a-0ca5-4b12-9656-7d5ceb8ff1d3"
+            },
+            {
+              "rank": 7,
+              "score": 0.3745122105464711,
+              "char_end": 33,
+              "chunk_id": "98d0dd71-375b-451d-88cf-268bf47f433f",
+              "char_start": 0,
+              "document_id": "3a6f2492-0e13-4259-b790-f5d6ab010e02",
+              "content_hash": "c17ee11079b4dde8e31d24fe24bc286a8a088c3da1fe20897588c85bffcfda9f",
+              "source_block_id": "block-1",
+              "document_version_id": "91d4c720-2e14-491f-8d9c-074cb5bab52a"
+            },
+            {
+              "rank": 8,
+              "score": 0.36863749120720557,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 9,
+              "score": 0.3548675948539288,
+              "char_end": 30,
+              "chunk_id": "36eef959-e2f0-4eb9-901e-213a2f5af650",
+              "char_start": 0,
+              "document_id": "529af183-42e0-4332-9494-82e9a1c50499",
+              "content_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "source_block_id": "block-1",
+              "document_version_id": "555b1dc0-c7bb-4742-bc57-c2c0c1061463"
+            },
+            {
+              "rank": 10,
+              "score": 0.3524988259377201,
+              "char_end": 30,
+              "chunk_id": "c381e9cc-faeb-4c4a-bd07-e529ac38e382",
+              "char_start": 0,
+              "document_id": "fa8d15d4-7c3d-4848-88bb-8e434a981951",
+              "content_hash": "4b8e99a502897731dc47043fd65845807a74eed5ca84dbc5fb52e1e563bc84a3",
+              "source_block_id": "block-1",
+              "document_version_id": "97f920f5-523e-4dc7-bfdf-b7dc5da33801"
+            },
+            {
+              "rank": 11,
+              "score": 0.35011770277865395,
+              "char_end": 31,
+              "chunk_id": "6572cff4-d087-4de6-aafc-adf5057bbed3",
+              "char_start": 0,
+              "document_id": "8a6b7344-9bed-4d4b-955a-c191f66cca32",
+              "content_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "source_block_id": "block-1",
+              "document_version_id": "796f89fc-45be-443e-923b-f959d6f6e307"
+            },
+            {
+              "rank": 12,
+              "score": 0.34307602809047033,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            }
+          ],
+          "context_chunk_ids": [
+            "2d0db373-0aca-4275-934c-38c2a7015618",
+            "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+            "34923217-00ab-4e6f-a7be-9ab66ec966be",
+            "1fb8043b-b145-4e7e-b15a-392047ca576c"
+          ],
+          "context_characters": [
+            32,
+            29,
+            34,
+            24
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "a0d2a987-7883-441a-9885-9d6b91573ecf",
+        "eval_case_id": "ea9a5ee7-ba4f-48ad-8712-800b88eb4362",
+        "answer_status": "ANSWERED",
+        "answer": "计划维护会提前24小时通知空间拥有者。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "计划维护会提前多久告知管理员？",
+          "timings_ms": {
+            "total": 755.974,
+            "search": 3.974,
+            "embedding": 752.0
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6523570832780546,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 2,
+              "score": 0.3863253342800157,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 3,
+              "score": 0.3738206104147077,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 4,
+              "score": 0.32127636671066284,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 5,
+              "score": 0.30746930837631226,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 6,
+              "score": 0.3063682250537626,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 7,
+              "score": 0.3040964422168473,
+              "char_end": 22,
+              "chunk_id": "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+              "char_start": 0,
+              "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+              "content_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "source_block_id": "block-1",
+              "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+            },
+            {
+              "rank": 8,
+              "score": 0.3001132458617193,
+              "char_end": 22,
+              "chunk_id": "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+              "char_start": 0,
+              "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "content_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "source_block_id": "block-1",
+              "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+            },
+            {
+              "rank": 9,
+              "score": 0.2912255699172961,
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6"
+            },
+            {
+              "rank": 10,
+              "score": 0.2912070155143738,
+              "char_end": 30,
+              "chunk_id": "36eef959-e2f0-4eb9-901e-213a2f5af650",
+              "char_start": 0,
+              "document_id": "529af183-42e0-4332-9494-82e9a1c50499",
+              "content_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "source_block_id": "block-1",
+              "document_version_id": "555b1dc0-c7bb-4742-bc57-c2c0c1061463"
+            },
+            {
+              "rank": 11,
+              "score": 0.28816468786211735,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 12,
+              "score": 0.2874572105731248,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            }
+          ],
+          "context_chunk_ids": [
+            "e5ed4565-513a-4f68-9461-4425093c52e0",
+            "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+            "c7a6c065-acc8-4074-9970-368772e7bd96",
+            "34923217-00ab-4e6f-a7be-9ab66ec966be"
+          ],
+          "context_characters": [
+            37,
+            38,
+            27,
+            34
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "c96f5bb4-f493-4481-86b5-755d887c2f6a",
+        "eval_case_id": "0fc288ac-a12d-431b-8f46-b987bab07827",
+        "answer_status": "ANSWERED",
+        "answer": "平台每天凌晨02:00进行备份，连续保留最近7次备份。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "每天几点保存备份，保留几次？",
+          "timings_ms": {
+            "total": 701.356,
+            "search": 4.358,
+            "embedding": 696.998
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6931176964570477,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 2,
+              "score": 0.4964097146499533,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 3,
+              "score": 0.4845559000968933,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 4,
+              "score": 0.4429346386990952,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 5,
+              "score": 0.4333762913980762,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 6,
+              "score": 0.4217112707071746,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 7,
+              "score": 0.36917866835848734,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 8,
+              "score": 0.361314871232816,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 9,
+              "score": 0.34088025512934506,
+              "char_end": 28,
+              "chunk_id": "eb5792e4-4014-4771-9c4c-87d42ca6f05e",
+              "char_start": 0,
+              "document_id": "a6d68a22-efc4-4362-a688-f3386eb2e1ad",
+              "content_hash": "ea6cfebf54f113c4eb7b1fc0283bb844909f0f987f27ef64e6a8397220162b46",
+              "source_block_id": "block-1",
+              "document_version_id": "cb70dc58-fafd-4d6f-a500-5a617a6fd870"
+            },
+            {
+              "rank": 10,
+              "score": 0.33302769062170734,
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d"
+            },
+            {
+              "rank": 11,
+              "score": 0.3183987248898319,
+              "char_end": 30,
+              "chunk_id": "c381e9cc-faeb-4c4a-bd07-e529ac38e382",
+              "char_start": 0,
+              "document_id": "fa8d15d4-7c3d-4848-88bb-8e434a981951",
+              "content_hash": "4b8e99a502897731dc47043fd65845807a74eed5ca84dbc5fb52e1e563bc84a3",
+              "source_block_id": "block-1",
+              "document_version_id": "97f920f5-523e-4dc7-bfdf-b7dc5da33801"
+            },
+            {
+              "rank": 12,
+              "score": 0.30943959951400757,
+              "char_end": 30,
+              "chunk_id": "36eef959-e2f0-4eb9-901e-213a2f5af650",
+              "char_start": 0,
+              "document_id": "529af183-42e0-4332-9494-82e9a1c50499",
+              "content_hash": "36ef4df909b022c232163da519ae3e901a3b13a9c24e3144755da3510ad7782f",
+              "source_block_id": "block-1",
+              "document_version_id": "555b1dc0-c7bb-4742-bc57-c2c0c1061463"
+            }
+          ],
+          "context_chunk_ids": [
+            "c7a6c065-acc8-4074-9970-368772e7bd96",
+            "e5ed4565-513a-4f68-9461-4425093c52e0",
+            "34923217-00ab-4e6f-a7be-9ab66ec966be",
+            "eca8a603-4912-48c4-a9f1-64a3f6434ef7"
+          ],
+          "context_characters": [
+            27,
+            37,
+            34,
+            29
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "cf723f52-f50a-422d-b26b-fa23855070c2",
+        "eval_case_id": "bb5eab8e-354d-41a4-ade1-8db76a558d61",
+        "answer_status": "ANSWERED",
+        "answer": "每个个人空间每天允许100次问答；达到额度后次日00:00恢复。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "一天能提多少问题，何时重置？",
+          "timings_ms": {
+            "total": 718.992,
+            "search": 3.316,
+            "embedding": 715.676
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6005197763443035,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 2,
+              "score": 0.39202173781848604,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 3,
+              "score": 0.37968537928549784,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 4,
+              "score": 0.3728763420695578,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 5,
+              "score": 0.3712991178035763,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 6,
+              "score": 0.36728379921414245,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 7,
+              "score": 0.363842270603316,
+              "char_end": 33,
+              "chunk_id": "98d0dd71-375b-451d-88cf-268bf47f433f",
+              "char_start": 0,
+              "document_id": "3a6f2492-0e13-4259-b790-f5d6ab010e02",
+              "content_hash": "c17ee11079b4dde8e31d24fe24bc286a8a088c3da1fe20897588c85bffcfda9f",
+              "source_block_id": "block-1",
+              "document_version_id": "91d4c720-2e14-491f-8d9c-074cb5bab52a"
+            },
+            {
+              "rank": 8,
+              "score": 0.36332463671634163,
+              "char_end": 31,
+              "chunk_id": "6572cff4-d087-4de6-aafc-adf5057bbed3",
+              "char_start": 0,
+              "document_id": "8a6b7344-9bed-4d4b-955a-c191f66cca32",
+              "content_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "source_block_id": "block-1",
+              "document_version_id": "796f89fc-45be-443e-923b-f959d6f6e307"
+            },
+            {
+              "rank": 9,
+              "score": 0.3505669445137355,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 10,
+              "score": 0.3431941866874719,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 11,
+              "score": 0.3103858602506948,
+              "char_end": 37,
+              "chunk_id": "def6397c-efe2-4c17-a41c-0d2b89483b81",
+              "char_start": 0,
+              "document_id": "cddf3b2a-f7d9-4e7c-8452-50be2052324f",
+              "content_hash": "6bf5491e44e872b633fabacf5c8b674f8551068d907f3944efa0b8441898895b",
+              "source_block_id": "block-1",
+              "document_version_id": "50cfc525-5978-428b-951e-8cf49aa8ef6d"
+            },
+            {
+              "rank": 12,
+              "score": 0.3055055000641198,
+              "char_end": 33,
+              "chunk_id": "591cc73d-8601-43dd-8aff-9b50c27a96d8",
+              "char_start": 0,
+              "document_id": "978e8523-9cef-4846-86d6-ebf4478ebca4",
+              "content_hash": "2d7e462b2b14972e35e06fc86251591bdfb95b4cb1e055fd53cd417a4cf3b6ff",
+              "source_block_id": "block-1",
+              "document_version_id": "5f8f6304-098b-4581-abae-f0f1126d029d"
+            }
+          ],
+          "context_chunk_ids": [
+            "2d0db373-0aca-4275-934c-38c2a7015618",
+            "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+            "1fb8043b-b145-4e7e-b15a-392047ca576c",
+            "695902b2-6ee6-4465-ad9c-0b650e9427ee"
+          ],
+          "context_characters": [
+            32,
+            29,
+            24,
+            38
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      },
+      {
+        "id": "d56de67c-014a-4862-8e7e-053aeaefa09f",
+        "eval_case_id": "1a1af413-f1f5-4ae1-8aa9-b634a781be19",
+        "answer_status": "CONFLICT",
+        "answer": "现有证据存在冲突：一份证据称灰度计划正式上线日为2026年10月20日，另一份称2026年10月27日，无法确定到底在20号还是27号发布。",
+        "citation_count": 0,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "灰度计划到底在20号还是27号发布？",
+          "timings_ms": {
+            "total": 737.399,
+            "search": 3.097,
+            "embedding": 734.302
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6846951842308093,
+              "char_end": 22,
+              "chunk_id": "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+              "char_start": 0,
+              "document_id": "febe8a75-d674-427c-a621-8fd8367fb46b",
+              "content_hash": "d3d1565eb6459b2c9b55160e1cc092117ead3000c90205fc7575d8951239c442",
+              "source_block_id": "block-1",
+              "document_version_id": "e73b11d3-455c-4685-80ac-bdd0108c7dab"
+            },
+            {
+              "rank": 2,
+              "score": 0.6822695963349124,
+              "char_end": 22,
+              "chunk_id": "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+              "char_start": 0,
+              "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "content_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "source_block_id": "block-1",
+              "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+            },
+            {
+              "rank": 3,
+              "score": 0.4713471846969689,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 4,
+              "score": 0.40289193391800215,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 5,
+              "score": 0.35342117449956767,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 6,
+              "score": 0.3489368259906793,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 7,
+              "score": 0.3382748177028826,
+              "char_end": 29,
+              "chunk_id": "eca8a603-4912-48c4-a9f1-64a3f6434ef7",
+              "char_start": 0,
+              "document_id": "a6487fe3-6c5e-4984-a761-118033cd4e60",
+              "content_hash": "8e8f12f21024f8ee05cd148e9157b572c9e31a2994d0ffbb3226ec3234fa5fbf",
+              "source_block_id": "block-1",
+              "document_version_id": "2755ab57-d375-472d-b0b3-6ea78af0f61c"
+            },
+            {
+              "rank": 8,
+              "score": 0.33623806670165857,
+              "char_end": 33,
+              "chunk_id": "09cc0262-fe42-4071-b55d-fa7d4d99a946",
+              "char_start": 0,
+              "document_id": "af3673e9-a2f9-472e-8b6a-773f008a21f9",
+              "content_hash": "7eeec1ff56ecf6080d625162f8aee7c1fe8701520b8829086dd70806a34cd4e7",
+              "source_block_id": "block-1",
+              "document_version_id": "617fcd48-196b-4215-8449-4af198230aa6"
+            },
+            {
+              "rank": 9,
+              "score": 0.3259084418957503,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 10,
+              "score": 0.3127796053886436,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 11,
+              "score": 0.3100809341717329,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 12,
+              "score": 0.3007470965385458,
+              "char_end": 46,
+              "chunk_id": "0a43dbed-8613-477b-82f2-2f36173abf54",
+              "char_start": 0,
+              "document_id": "fe2646f3-9cc6-46fc-ab53-ab1bd3b5aa51",
+              "content_hash": "2c4a8ef2b283e64f617ae20e6d6cc30feea36391fd8d8b6061289978a8655ef2",
+              "source_block_id": "block-1",
+              "document_version_id": "151679c9-a303-4aaa-840e-257680d6f586"
+            }
+          ],
+          "context_chunk_ids": [
+            "cb40a5aa-16fb-4ee4-ae03-beac54bc1856",
+            "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+            "e5ed4565-513a-4f68-9461-4425093c52e0",
+            "c7a6c065-acc8-4074-9970-368772e7bd96"
+          ],
+          "context_characters": [
+            22,
+            22,
+            37,
+            27
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": true,
+          "retrieved_count": 12,
+          "document_hit_at_k": null,
+          "document_recall_at_k": null,
+          "evidence_recall_at_k": null,
+          "evidence_overlap_at_k": null
+        },
+        "failure_code": null
+      },
+      {
+        "id": "fff22f8d-8df7-466e-8d0b-bc951c605375",
+        "eval_case_id": "2838f45a-b9ff-4bbc-989c-6a2db167a877",
+        "answer_status": "ANSWERED",
+        "answer": "工作日客服支持时间为09:00至18:00。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "工作日能在哪个时段联系支持？",
+          "timings_ms": {
+            "total": 709.713,
+            "search": 4.319,
+            "embedding": 705.394
+          },
+          "schema_version": 2,
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.6350521038488252,
+              "char_end": 38,
+              "chunk_id": "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+              "char_start": 0,
+              "document_id": "5438c618-6bf3-495a-ab95-79e1b8671a1b",
+              "content_hash": "a6bc1d58655b304750cb520604ac51f3ef98351c428e589075196e10dc34914e",
+              "source_block_id": "block-1",
+              "document_version_id": "d9a9c8ff-9f70-4a50-a1f5-d89b84eee5c4"
+            },
+            {
+              "rank": 2,
+              "score": 0.5036717944732089,
+              "char_end": 37,
+              "chunk_id": "e5ed4565-513a-4f68-9461-4425093c52e0",
+              "char_start": 0,
+              "document_id": "7e3b6044-2944-436a-a386-fb16e00c2279",
+              "content_hash": "2e3ecd558322d8909debe840fd745971248f3e49b30aa670c23cef0ec6e4ddf0",
+              "source_block_id": "block-1",
+              "document_version_id": "a2279efc-12fe-4563-89b4-e03a65a27b35"
+            },
+            {
+              "rank": 3,
+              "score": 0.40563447408265185,
+              "char_end": 27,
+              "chunk_id": "c7a6c065-acc8-4074-9970-368772e7bd96",
+              "char_start": 0,
+              "document_id": "20a55650-d9a7-4f79-bb73-22bf1224972f",
+              "content_hash": "6a11fa86ae975d29143c02fb922df8e8e1a8fecdf7708b2b3cec706c575c9090",
+              "source_block_id": "block-1",
+              "document_version_id": "8ca208bf-3873-4225-b914-e601e0998838"
+            },
+            {
+              "rank": 4,
+              "score": 0.3849837550530586,
+              "char_end": 26,
+              "chunk_id": "4cf54de5-3261-4b23-8c0c-63ba191d0774",
+              "char_start": 0,
+              "document_id": "34ded8c5-c512-48cb-abee-7c7a60878197",
+              "content_hash": "3c4307bcf3fe822bd8bb0622be7ee05172d2347bd5ba64e8ec9f2012c3e85a00",
+              "source_block_id": "block-1",
+              "document_version_id": "5a3ee883-c571-4d5f-8a67-f3e9bdc76867"
+            },
+            {
+              "rank": 5,
+              "score": 0.37169493774235995,
+              "char_end": 32,
+              "chunk_id": "2d0db373-0aca-4275-934c-38c2a7015618",
+              "char_start": 0,
+              "document_id": "830b085f-5f25-4526-8a4f-fe323eb6aa57",
+              "content_hash": "709109fccea75a792cd797b0c3a90f1a2fab5832701018b6d20149ba0449515c",
+              "source_block_id": "block-1",
+              "document_version_id": "778c2e3a-6c63-468c-abc0-db0469f3d024"
+            },
+            {
+              "rank": 6,
+              "score": 0.37077259347928937,
+              "char_end": 24,
+              "chunk_id": "1fb8043b-b145-4e7e-b15a-392047ca576c",
+              "char_start": 0,
+              "document_id": "ba4f0461-c239-44ed-ac84-43657c956b22",
+              "content_hash": "d9771886efa37f5d96dc64b91802086118f632d8faff78c04c4f9d47827c7c9f",
+              "source_block_id": "block-1",
+              "document_version_id": "d89db739-8da3-4e81-9e74-fb3e9e43cf45"
+            },
+            {
+              "rank": 7,
+              "score": 0.3413617203996515,
+              "char_end": 46,
+              "chunk_id": "0a43dbed-8613-477b-82f2-2f36173abf54",
+              "char_start": 0,
+              "document_id": "fe2646f3-9cc6-46fc-ab53-ab1bd3b5aa51",
+              "content_hash": "2c4a8ef2b283e64f617ae20e6d6cc30feea36391fd8d8b6061289978a8655ef2",
+              "source_block_id": "block-1",
+              "document_version_id": "151679c9-a303-4aaa-840e-257680d6f586"
+            },
+            {
+              "rank": 8,
+              "score": 0.3199671006192928,
+              "char_end": 31,
+              "chunk_id": "6572cff4-d087-4de6-aafc-adf5057bbed3",
+              "char_start": 0,
+              "document_id": "8a6b7344-9bed-4d4b-955a-c191f66cca32",
+              "content_hash": "126c55603e9403515f8e985c9a55b78ca5288f88501db8e6a105222e9818c293",
+              "source_block_id": "block-1",
+              "document_version_id": "796f89fc-45be-443e-923b-f959d6f6e307"
+            },
+            {
+              "rank": 9,
+              "score": 0.3182286714979645,
+              "char_end": 48,
+              "chunk_id": "88ea32a6-541a-425e-b566-66e798403e91",
+              "char_start": 0,
+              "document_id": "80c80821-591b-4a9e-8379-84611df572cc",
+              "content_hash": "f27bf5c4012c5c090251eebd0c6aec852fc2ab30d36bd33866810bffc8083a5a",
+              "source_block_id": "block-1",
+              "document_version_id": "58325e7d-5b01-4ee9-aaf5-7bbc64c96609"
+            },
+            {
+              "rank": 10,
+              "score": 0.31716541545597277,
+              "char_end": 34,
+              "chunk_id": "34923217-00ab-4e6f-a7be-9ab66ec966be",
+              "char_start": 0,
+              "document_id": "ded31cea-4c8b-49b9-8de9-447869f3fcd0",
+              "content_hash": "e3855f546124570f32f79769ad60a340c05d7b25206227179bf16f8257f1df39",
+              "source_block_id": "block-1",
+              "document_version_id": "04f2c108-acb5-4e52-9703-5374dca3b5fc"
+            },
+            {
+              "rank": 11,
+              "score": 0.299796783948328,
+              "char_end": 30,
+              "chunk_id": "7ad4563d-c78a-414a-bc5c-d4b9b99acbea",
+              "char_start": 0,
+              "document_id": "c8936ceb-48a0-408f-b024-1cd52dfe6bba",
+              "content_hash": "24ae5e3a24149c87947ed487c91d369306ccbd183ebf12f0813a3d1ac8b0863c",
+              "source_block_id": "block-1",
+              "document_version_id": "177efb87-9fb8-4889-9fa0-37b7b6eabfb3"
+            },
+            {
+              "rank": 12,
+              "score": 0.297794666689164,
+              "char_end": 22,
+              "chunk_id": "bd1ec396-86e9-4de4-b9ab-9f0f2cae5ff9",
+              "char_start": 0,
+              "document_id": "f6f087a4-7bbf-4556-8428-39b145d5ea73",
+              "content_hash": "4a4cbdf7d2c256a532952fa3cb4dbe602dc569ebc23d6a6b1fe118fa808b2998",
+              "source_block_id": "block-1",
+              "document_version_id": "a7716fee-640d-422c-be1c-206039b0ba81"
+            }
+          ],
+          "context_chunk_ids": [
+            "695902b2-6ee6-4465-ad9c-0b650e9427ee",
+            "e5ed4565-513a-4f68-9461-4425093c52e0",
+            "c7a6c065-acc8-4074-9970-368772e7bd96",
+            "4cf54de5-3261-4b23-8c0c-63ba191d0774"
+          ],
+          "context_characters": [
+            38,
+            37,
+            27,
+            26
+          ]
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 12,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": 1.0,
+          "evidence_overlap_at_k": 1.0
+        },
+        "failure_code": null
+      }
+    ],
+    "summary": {
+      "total": 15,
+      "answered": 12,
+      "insufficient_evidence": 1,
+      "out_of_scope": 0,
+      "failed": 0,
+      "citation_count": 12,
+      "out_of_scope_violations": 0,
+      "reviewed_correct": 0,
+      "reviewed_partial": 0,
+      "reviewed_incorrect": 0,
+      "answered_rate": 0.8,
+      "citation_rate": 0.8,
+      "reviewed_accuracy": null,
+      "answer_accuracy": null,
+      "reviewed_coverage": 0.0,
+      "retrieval_measured_count": 12,
+      "document_recall_at_k": 1.0,
+      "document_hit_at_k": 1.0,
+      "evidence_recall_at_k": 1.0,
+      "evidence_overlap_at_k": 1.0,
+      "correct_refusal_rate": 1.0
+    }
+  },
+  "status": "COMPLETED"
+}

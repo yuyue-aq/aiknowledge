@@ -25,7 +25,7 @@ class DeepSeekChatClient:
         *,
         api_key: str | None,
         base_url: str = "https://api.deepseek.com",
-        model: str = "deepseek-v4-flash",
+        model: str = "deepseek-flash",
         timeout_seconds: float = 60.0,
         temperature: float = 0.2,
         max_tokens: int = 1200,

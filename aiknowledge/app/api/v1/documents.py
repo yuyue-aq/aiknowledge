@@ -10,12 +10,13 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_database_session, get_optional_current_user
+from app.api.dependencies import get_database_session, get_optional_current_user, get_current_user
 from app.core.errors import AppError
 from app.domain.documents import (
     DocumentPermissionDeniedError,
     DocumentSubmission,
     DocumentStatus,
+    DocumentVersionConflictError,
     StoredDocument,
 )
 from app.services.document_workflow import (
@@ -38,6 +39,10 @@ _READ_CHUNK_BYTES = 1024 * 1024
 
 class DocumentServicePort(Protocol):
     async def upload(self, **kwargs: object) -> DocumentSubmission: ...
+
+    async def replace_document(self, document_id: UUID, **kwargs: object) -> DocumentSubmission: ...
+
+    async def retry_version(self, document_id: UUID, version_id: UUID, **kwargs: object) -> DocumentSubmission: ...
 
     async def list_documents(self, space_id: UUID, **kwargs: object) -> list[StoredDocument]: ...
 
@@ -148,6 +153,8 @@ async def _read_upload_limited(upload: UploadFile, *, maximum: int) -> bytes:
 
 
 def _translate_document_error(error: Exception) -> None:
+    if isinstance(error, DocumentVersionConflictError):
+        raise AppError(code='DOCUMENT_VERSION_CONFLICT', message=str(error), status_code=409) from error
     if isinstance(error, UsageLimitExceededError):
         raise AppError(code="USAGE_LIMIT_EXCEEDED", message=str(error), status_code=429) from error
     if isinstance(error, DocumentPermissionDeniedError):
@@ -166,6 +173,29 @@ def _translate_document_error(error: Exception) -> None:
     if isinstance(error, DocumentAvailabilityError):
         raise AppError(code="DOCUMENT_AVAILABILITY_INVALID", message=str(error), status_code=422) from error
     raise error
+
+
+@router.post('/documents/{document_id}/versions/{version_id}/retry', response_model=DocumentSubmissionResponse, status_code=202)
+async def retry_document_version(document_id: UUID, version_id: UUID,
+    service: DocumentServicePort = Depends(get_document_service), user: User = Depends(get_current_user)) -> DocumentSubmissionResponse:
+    try:
+        return DocumentSubmissionResponse.from_domain(await service.retry_version(document_id, version_id, owner_user_id=user.id))
+    except Exception as error:
+        _translate_document_error(error)
+        raise
+
+
+@router.post('/documents/{document_id}/versions', response_model=DocumentSubmissionResponse, status_code=202)
+async def upload_document_version(document_id: UUID, request: Request, file: Annotated[UploadFile, File()],
+    user: Annotated[User, Depends(get_current_user)], service=Depends(get_document_service)):
+    try:
+        content = await _read_upload_limited(file, maximum=request.app.state.settings.document_max_file_bytes)
+        result = await service.replace_document(document_id, filename=file.filename or '', content=content,
+            content_type=file.content_type, owner_user_id=user.id)
+    except Exception as error:
+        _translate_document_error(error)
+        raise
+    return DocumentSubmissionResponse.from_domain(result)
 
 
 @router.post(

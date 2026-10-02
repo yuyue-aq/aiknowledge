@@ -44,7 +44,7 @@ async def test_deepseek_client_uses_the_current_flash_model_and_openai_compatibl
     assert observed_request["url"] == "https://api.deepseek.com/chat/completions"
     assert observed_request["headers"]["authorization"] == "Bearer test-key"
     assert observed_request["payload"] == {
-        "model": "deepseek-v4-flash",
+        "model": "deepseek-flash",
         "messages": [
             {"role": "system", "content": "只使用提供的证据。"},
             {"role": "user", "content": "知识库能做什么？"},
@@ -58,6 +58,12 @@ async def test_deepseek_client_uses_the_current_flash_model_and_openai_compatibl
     assert result.model == "deepseek-v4-flash"
     assert result.usage.total_tokens == 18
     await http_client.aclose()
+
+
+def test_settings_default_to_official_flash_model() -> None:
+    from app.core.config import Settings
+
+    assert Settings(_env_file=None).deepseek_model == "deepseek-flash"
 
 
 @pytest.mark.asyncio

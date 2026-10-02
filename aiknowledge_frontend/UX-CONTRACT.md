@@ -26,7 +26,7 @@
 - Project `DESIGN.md`: `DESIGN.md`。
 - Token ownership model (`DESIGN.md` generated / existing runtime canonical): Existing runtime canonical.
 - Runtime design-system/token source: `src/app.scss` CSS variables。
-- Mapping/export/adapters: Taro compiles shared React/CSS to H5 and mini-program targets。
+- Mapping/export/adapters: 本次 MVP 仅 H5，Taro 编译 React/CSS；用户已排除小程序。
 - Token drift gate: 手工核对 `DESIGN.md` 与 `src/app.scss`，并运行 frontend-design-premium `audit_project.py`。
 - Supported themes: 浅色主题；系统深色主题不在 MVP 范围。
 - Design-context owner/review policy: 页面新增组件必须复用现有 token、状态和间距，视觉改动需对照最终原型复核。
@@ -36,7 +36,7 @@
 | Capability | Canonical owner | Source of truth | Allowed variants | Verification |
 |---|---|---|---|---|
 | Table Selection | 反馈/评测页面 | `index.tsx` | page results | keyboard + typecheck |
-| Select/Listbox | 分类选择器 | `index.tsx` | native Taro Picker | selection + mobile build |
+| Select/Listbox | native | H5 select（V2）/ Taro Picker（沿用 V1） | 分类、题集、Top K 共用原生选择语义 | keyboard + H5 responsive |
 | Date | 列表时间 | `formatDate` | typed display | locale smoke |
 | Form | 空间、分类、分享、上传 | page form components | create/edit | validation/API tests |
 | Scrollbar | 工作区与问答 | `src/app.scss` | stable scroll regions | responsive build |
@@ -139,3 +139,12 @@
 - CRUD full-flow evidence: backend pytest plus runtime scripts when Docker dependencies are available。
 - Failure-path evidence: API 401/403/404/429/5xx mappings, aborted stream, failed document and revoked share link tests。
 - 2026-09-30 regression evidence: `npm test`（18 项）；`tests/browser-v1-smoke.js`（合成 API 浏览器 7 项）。真实空间变更失败不得创建演示结果或宣称成功；创建空间/分类失败保留输入。分享/嵌入统一使用 `/#/pages/public/public?token=...`。
+
+
+## 2026-10-02 已确认的个人与团队权限补充
+
+用户确认：个人空间仅有拥有者，拥有者同时承担管理员职责；团队空间有一位拥有者，可有多位管理员。团队管理员可查看原文引用、使用检索调试、管理资料与评测。访客仍只能在分享范围内提问，不能获取原文。此决议覆盖前文将上述管理能力仅限拥有者的描述。
+
+空间类型 `PERSONAL / TEAM` 与可见性、套餐配额独立。新建时选择类型，类型暂不支持转换。团队创建默认使用现有 TEAM 演示配额（50 人），个人默认 FREE 配额；当前没有支付或自动扣费。已有 TEAM 配额或非拥有者成员的空间迁移为团队，其他空间归为个人。
+
+拥有者仍独占成员邀请、角色分配、空间删除和分享设置；管理员不能自行提升为拥有者。编辑者与成员保留原有授权范围，管理员降级或移除后立即失去检索调试权限。后台强制校验，前端仅对团队拥有者显示成员邀请及角色调整控件。空间创建沿用原型中的分段按钮和极昼蓝样式，不变更既有版式。

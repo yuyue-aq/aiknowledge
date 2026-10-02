@@ -1,4 +1,4 @@
-import { Button, Checkbox, Input, Label, Picker, Text, Textarea, View } from "@tarojs/components";
+import { Checkbox, Input, Label, Picker, Text, Textarea, View } from "@tarojs/components";
 import Taro, { useLoad, useRouter } from "@tarojs/taro";
 import {
   useCallback,
@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { Button } from '../../components/H5Button';
 import {
   ApiRequestError,
   publicShareUrl,
@@ -15,6 +16,7 @@ import {
   createOwnerConversation,
   createShareLink,
   createSpace,
+  getAuthUserId,
   deleteDocument,
   formatDate,
   formatFileSize,
@@ -23,20 +25,10 @@ import {
   listOwnerConversations,
   listCategories,
   listDocuments,
-  listEvalCases,
-  listEvalRuns,
-  compareEvalRuns,
-  listEvalVersions,
-  createEvalVersion,
-  runEvalVersion,
-  createEvalCase,
-  deleteEvalCase,
-  reviewEvalResult,
   listFeedback,
   listShareLinks,
   listSpaces,
   retryDocument,
-  runEvaluation,
   sendFeedback,
   streamOwnerAnswer,
   updateCategory,
@@ -48,11 +40,6 @@ import {
   type Citation,
   type CreatedShareLink,
   type ConversationDetail,
-  type EvalCase,
-  type EvalDetail,
-  type EvalRunComparison,
-  type EvalSetVersion,
-  type EvalResult,
   type Feedback,
   type FeedbackRating,
   type KnowledgeDocument,
@@ -60,6 +47,7 @@ import {
   type Space,
   type SpacePlan,
   type SpaceVisibility,
+  type SpaceKind,
   type UploadFile,
   login,
   register,
@@ -97,10 +85,15 @@ import {
 } from "../../api/client";
 import { AppShell, type WorkspacePage } from "../../components/AppShell";
 import { Icon } from "../../components/Icon";
+import { RetrievalView } from "../../components/RetrievalView";
+import { EvaluationView } from "../../components/EvaluationView";
+import { DocumentDetailView } from "../../components/DocumentDetailView";
+import { FeedbackDialog } from "../../components/FeedbackDialog";
+import { ConfirmDialog } from "../../components/ConfirmDialog";
+import { V2Button, V2Heading } from "../../components/V2UI";
 import {
   demoCategories,
   demoDocuments,
-  demoEvalCases,
   demoFeedback,
   demoSpaces,
   demoSpaceId,
@@ -124,12 +117,6 @@ type LocalMessage = {
 const now = () => new Date().toISOString();
 const localId = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-const formatSignedPercent = (value: number | null | undefined) => {
-  if (value == null || Number.isNaN(value)) return "—";
-  const percent = Math.round(value * 100);
-  return `${percent > 0 ? "+" : ""}${percent}%`;
-};
 
 const isLocalDemoId = (value: string | null | undefined) =>
   Boolean(value && (value === demoSpaceId || /^(space|document|conversation|assistant|user)-/.test(value)));
@@ -498,6 +485,7 @@ function SpacesView({
     name: string;
     description: string;
     visibility: SpaceVisibility;
+    kind: SpaceKind;
   }) => Promise<boolean>;
   onRetry: () => void;
 }) {
@@ -505,6 +493,7 @@ function SpacesView({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState<SpaceVisibility>("PRIVATE");
+  const [kind, setKind] = useState<SpaceKind>("PERSONAL");
   const [formError, setFormError] = useState("");
   const submitCreate = async () => {
     if (!name.trim()) {
@@ -516,6 +505,7 @@ function SpacesView({
       name: name.trim(),
       description: description.trim(),
       visibility,
+      kind,
     });
     if (!created) return;
     setName("");
@@ -526,10 +516,10 @@ function SpacesView({
     <View className='page-stack'>
       <View className='page-heading'>
         <View>
-          <Text className='page-kicker'>我的知识工作台</Text>
+
           <Text className='page-title'>知识空间</Text>
           <Text className='page-description'>
-            管理你的知识空间，让知识生产更大价值
+            整理资料，让每个回答都有据可循。
           </Text>
         </View>
         <Button
@@ -565,6 +555,18 @@ function SpacesView({
             >
               <Icon name='close' />
             </Button>
+          </View>
+          <View className='field'>
+            <Text className='field-label'>空间类型</Text>
+            <View className='segmented-control' role='group' aria-label='空间类型'>
+              <Button className={kind === "PERSONAL" ? "segment is-selected" : "segment"}
+                onClick={() => setKind("PERSONAL")} aria-pressed={kind === "PERSONAL"}
+              >个人空间</Button>
+              <Button className={kind === "TEAM" ? "segment is-selected" : "segment"}
+                onClick={() => setKind("TEAM")} aria-pressed={kind === "TEAM"}
+              >团队空间</Button>
+            </View>
+            <Text className='section-description'>个人空间仅拥有者管理；团队空间支持一位拥有者和多位管理员。</Text>
           </View>
           <View className='editor-grid'>
             <Field label='空间名称' id='new-space-name'>
@@ -638,17 +640,7 @@ function SpacesView({
           </View>
         </View>
       )}
-      <View className='metric-row'>
-        <Metric label='全部空间' value={spaces.length} />
-        <Metric label='我创建的' value={spaces.length} />
-        <Metric label='与我共享' value={0} />
-        <View className='metric-spacer' />
-        <View className='model-badge'>
-          <View className='model-dot' />
-          <Text>deepseek-flash</Text>
-          <Text className='model-sub'>BGE 1024d</Text>
-        </View>
-      </View>
+
       {loading ? (
         <LoadingState label='正在加载空间…' />
       ) : spaces.length === 0 ? (
@@ -670,22 +662,7 @@ function SpacesView({
           ))}
         </View>
       )}
-      <View className='model-note'>
-        <Icon name='info' />
-        <Text>
-          当前支持多个知识空间与成员权限；问答使用 DeepSeek Flash，向量模型为
-          BAAI/bge-large-zh-v1.5（1024 维）。
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return (
-    <View className='metric'>
-      <Text className='metric-value'>{value}</Text>
-      <Text className='metric-label'>{label}</Text>
+      {currentSpace && <View className='v2-panel'><Text className='section-title'>继续工作</Text><Text className='section-description'>{currentSpace.name}</Text><Button className='outline-button' onClick={() => onSelect(currentSpace)}>进入空间</Button></View>}
     </View>
   );
 }
@@ -734,105 +711,7 @@ function SpaceCard({
   );
 }
 
-function SpaceHeader({
-  space,
-  page,
-  onBack,
-  onPage,
-}: {
-  space: Space;
-  page: WorkspacePage;
-  onBack: () => void;
-  onPage: (page: WorkspacePage) => void;
-}) {
-  return (
-    <View className='space-header'>
-      <View className='breadcrumbs'>
-        <Button className='breadcrumb-button' onClick={onBack}>
-          知识空间
-        </Button>
-        <Text>/</Text>
-        <Text>{space.name}</Text>
-      </View>
-      <View className='space-header-row'>
-        <View>
-          <Text className='page-title'>
-            {page === "documents"
-              ? "资料管理"
-              : page === "feedback"
-                ? "回答反馈"
-                : page === "eval"
-                  ? "质量自测"
-                  : page === "settings"
-                    ? "空间设置"
-                    : "项目知识库"}
-          </Text>
-          <Text className='page-description'>
-            {page === "documents"
-              ? "上传并管理你的私有资料，构建专属知识库"
-              : page === "qa"
-                ? "基于你的资料，提供可信、可追溯的回答"
-                : page === "feedback"
-                  ? "收集反馈，持续优化回答质量"
-                  : page === "eval"
-                    ? "用典型问题验证回答效果与权限边界"
-                    : "控制空间可见性与访客可检索的内容范围"}
-          </Text>
-        </View>
-        <View className='workspace-tabs' role='tablist' aria-label='空间功能'>
-          <Button
-            className={
-              page === "qa" ? "workspace-tab is-active" : "workspace-tab"
-            }
-            onClick={() => onPage("qa")}
-            aria-selected={page === "qa"}
-          >
-            问答
-          </Button>
-          <Button
-            className={
-              page === "documents" ? "workspace-tab is-active" : "workspace-tab"
-            }
-            onClick={() => onPage("documents")}
-            aria-selected={page === "documents"}
-          >
-            资料
-          </Button>
-          <Button
-            className={
-              page === "feedback" ? "workspace-tab is-active" : "workspace-tab"
-            }
-            onClick={() => onPage("feedback")}
-            aria-selected={page === "feedback"}
-          >
-            反馈
-          </Button>
-          <Button
-            className={
-              page === "eval" ? "workspace-tab is-active" : "workspace-tab"
-            }
-            onClick={() => onPage("eval")}
-            aria-selected={page === "eval"}
-          >
-            评测
-          </Button>
-          <Button
-            className={
-              page === "settings" ? "workspace-tab is-active" : "workspace-tab"
-            }
-            onClick={() => onPage("settings")}
-            aria-selected={page === "settings"}
-          >
-            公开设置
-          </Button>
-        </View>
-      </View>
-    </View>
-  );
-}
-
 function DocumentsView({
-  space,
   documents,
   categories,
   tags,
@@ -844,6 +723,8 @@ function DocumentsView({
   onLoadTags,
   onSetTags,
   onAvailability,
+  onOpen,
+  onRetrieve,
 }: {
   space: Space;
   documents: KnowledgeDocument[];
@@ -861,6 +742,8 @@ function DocumentsView({
   onLoadTags: (document: KnowledgeDocument) => Promise<string[]>;
   onSetTags: (document: KnowledgeDocument, tagIds: string[]) => Promise<void>;
   onAvailability: (document: KnowledgeDocument, enabled: boolean) => Promise<void>;
+  onOpen: (document: KnowledgeDocument) => void;
+  onRetrieve: () => void;
 }) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -923,13 +806,8 @@ function DocumentsView({
   };
   return (
     <View className='page-stack documents-page'>
+      <V2Heading title='资料管理' description='上传、更新与维护当前空间的资料。' actions={<V2Button kind='outline' onClick={onRetrieve}>检索测试</V2Button>} />
       <View className='upload-toolbar'>
-        <View>
-          <Text className='section-title'>资料管理</Text>
-          <Text className='section-description'>
-            {space.name} · 处理完成后才会进入问答检索范围
-          </Text>
-        </View>
         <View className='upload-category'>
           <Text className='field-label'>归入分类</Text>
           <Picker
@@ -1052,6 +930,7 @@ function DocumentsView({
               onLoadTags={onLoadTags}
               onSetTags={onSetTags}
               onAvailability={onAvailability}
+              onOpen={onOpen}
             />
           ))}
         </View>
@@ -1068,6 +947,7 @@ function DocumentRow({
   onLoadTags,
   onSetTags,
   onAvailability,
+  onOpen,
 }: {
   document: KnowledgeDocument;
   tags: KnowledgeTag[];
@@ -1076,8 +956,11 @@ function DocumentRow({
   onLoadTags: (document: KnowledgeDocument) => Promise<string[]>;
   onSetTags: (document: KnowledgeDocument, tagIds: string[]) => Promise<void>;
   onAvailability: (document: KnowledgeDocument, enabled: boolean) => Promise<void>;
+  onOpen: (document: KnowledgeDocument) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const localUpload = document.id.startsWith("document-");
   const [showTags, setShowTags] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [tagsLoading, setTagsLoading] = useState(false);
@@ -1118,7 +1001,7 @@ function DocumentRow({
         <Icon name='file' />
       </View>
       <View className='document-main'>
-        <Text className='document-name'>{document.original_filename}</Text>
+        <Button className='document-name text-button' disabled={localUpload} onClick={() => onOpen(document)}>{document.original_filename}</Button>
         <Text className='document-meta'>
           {formatFileSize(document.size_bytes)} ·{" "}
           {formatDate(document.created_at)}
@@ -1130,10 +1013,12 @@ function DocumentRow({
           <Button
             className='text-button compact-text-button'
             onClick={toggleTags}
+            disabled={localUpload}
           >标签</Button>
           <Button
             className='text-button compact-text-button'
             onClick={() => void onAvailability(document, document.is_enabled === false)}
+            disabled={localUpload || busy}
           >{document.is_enabled === false ? '启用' : '停用'}</Button>
           {(document.effective_at || document.expires_at) && (
             <Text className='document-window'>
@@ -1191,18 +1076,21 @@ function DocumentRow({
         )}
         <Button
           className='danger-button compact'
-          onClick={() => void action(onDelete)}
+          onClick={() => setDeleting(true)}
           disabled={busy}
           aria-label={`删除 ${document.original_filename}`}
         >
           删除
         </Button>
       </View>
+      {deleting && <ConfirmDialog title={`删除 ${document.original_filename}？`} description={localUpload ? "移除这条未完成的本地上传记录。" : "删除后，这份资料将不再参与新的检索与问答。"} action='删除资料' onCancel={() => setDeleting(false)} onConfirm={() => { setDeleting(false); void action(onDelete); }} />}
     </View>
   );
 }
 
 function QaView({
+  initialQuestion,
+  onRetrieve,
   messages,
   streaming,
   streamingText,
@@ -1211,6 +1099,8 @@ function QaView({
   onFeedback,
   feedbackBusy,
 }: {
+  initialQuestion: string;
+  onRetrieve: (question: string) => void;
   messages: LocalMessage[];
   streaming: boolean;
   streamingText: string;
@@ -1219,7 +1109,11 @@ function QaView({
   onFeedback: (messageId: string, rating: FeedbackRating) => Promise<void>;
   feedbackBusy: string | null;
 }) {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialQuestion);
+  const [sourceMessage, setSourceMessage] = useState<LocalMessage | null>(null);
+  const [selectedOrdinal, setSelectedOrdinal] = useState<number | null>(null);
+  const [sourcesOpen, setSourcesOpen] = useState(() => typeof window === 'undefined' || window.innerWidth > 760);
+  useEffect(() => setInput(initialQuestion), [initialQuestion]);
   const send = () => {
     if (streaming) {
       onCancel();
@@ -1233,22 +1127,18 @@ function QaView({
   const lastAssistant = [...messages]
     .reverse()
     .find((message) => message.role === "ASSISTANT");
+  const lastQuestion = [...messages].reverse().find(message => message.role === "USER")?.content || input;
+  const lastAnswerId = lastAssistant?.id;
+  useEffect(() => { setSourceMessage(null); setSelectedOrdinal(null); }, [lastAnswerId]);
+  useEffect(() => {
+    if (selectedOrdinal != null) document.querySelector('.citation-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selectedOrdinal, sourceMessage]);
   return (
+    <View className='v2-page'>
+    <V2Heading title='可信问答' description='基于当前空间资料，查看答案与回答依据。' actions={<V2Button kind='outline' onClick={() => onRetrieve(input)}>检索测试</V2Button>} />
+    {lastAssistant?.status === "FAILED" && <div className='v2-notice v2-notice-danger' role='alert'><p>这次回答没有完成，问题已保留。调用失败不代表资料没有答案。</p><div className='v2-row'><V2Button disabled={streaming || !lastQuestion} onClick={() => { setInput(lastQuestion); void onSend(lastQuestion); }}>重试回答</V2Button><V2Button kind='outline' onClick={() => onRetrieve(lastQuestion)}>先查看检索依据</V2Button></div></div>}
     <View className='qa-layout'>
       <View className='qa-main'>
-        <View className='qa-toolbar'>
-          <View>
-            <Text className='section-title'>项目知识库</Text>
-            <Text className='section-description'>
-              基于当前空间资料，提供可信、可追溯的回答
-            </Text>
-          </View>
-          <View className='qa-model'>
-            <View className='model-dot' />
-            <Text>DeepSeek Flash</Text>
-            <Text className='muted-copy'>检索 Top 4</Text>
-          </View>
-        </View>
         <View className='scope-banner'>
           <Icon name='lock' />
           <Text>当前为所有者问答，可查看完整引用与来源位置</Text>
@@ -1277,6 +1167,7 @@ function QaView({
               message={message}
               onFeedback={onFeedback}
               feedbackBusy={feedbackBusy}
+              onCitation={(source, ordinal) => { setSourceMessage(source); setSelectedOrdinal(ordinal); setSourcesOpen(true); }}
             />
           ))}
           {streaming && (
@@ -1303,11 +1194,12 @@ function QaView({
         </View>
         <View className='question-composer'>
           <Icon name='link' />
-          <Textarea
-            className='resize-none'
+          <textarea data-v2-control
+            className='resize-none qa-question-input'
             value={input}
-            onInput={(event) => setInput(valueOf(event))}
-            onConfirm={send}
+            maxLength={2000}
+            onChange={(event) => setInput(event.currentTarget.value)}
+            onKeyDown={(event) => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); send(); } }}
             disabled={streaming}
             placeholder='继续追问当前空间…（Enter 发送，Shift+Enter 换行）'
             aria-label='输入你的问题'
@@ -1324,9 +1216,11 @@ function QaView({
         </View>
       </View>
       <CitationPanel
-        citations={lastAssistant?.citations ?? []}
-        status={lastAssistant?.status}
+        citations={(sourceMessage || lastAssistant)?.citations ?? []}
+        status={(sourceMessage || lastAssistant)?.status}
+        selectedOrdinal={selectedOrdinal} open={sourcesOpen} onToggle={setSourcesOpen}
       />
+    </View>
     </View>
   );
 }
@@ -1335,10 +1229,12 @@ function MessageBubble({
   message,
   onFeedback,
   feedbackBusy,
+  onCitation,
 }: {
   message: LocalMessage;
   onFeedback: (messageId: string, rating: FeedbackRating) => Promise<void>;
   feedbackBusy: string | null;
+  onCitation: (message: LocalMessage, ordinal: number) => void;
 }) {
   if (message.role === "USER")
     return (
@@ -1404,9 +1300,10 @@ function MessageBubble({
             : "需要进一步处理"}
         </Text>
         <Text className='message-content'>{message.content}</Text>
+        {!!message.citations.length && <div className='v2-row'>{message.citations.map(citation => <V2Button key={citation.ordinal} kind='ghost' onClick={() => onCitation(message, citation.ordinal)}>[{citation.ordinal}] {citation.document_name}</V2Button>)}</div>}
         <Text className='message-time'>
           {formatTime(message.created_at)} ·{" "}
-          {message.model || "deepseek-flash"}
+          {message.model || (message.status === "FAILED" ? "未生成回答" : "模型信息未记录")}
         </Text>
         <View className='message-actions'>
           <Button
@@ -1442,13 +1339,19 @@ function MessageBubble({
 function CitationPanel({
   citations,
   status,
+  selectedOrdinal,
+  open,
+  onToggle,
 }: {
   citations: Citation[];
   status?: AnswerStatus;
+  selectedOrdinal: number | null;
+  open: boolean;
+  onToggle: (open: boolean) => void;
 }) {
   return (
-    <View className='citation-panel'>
-      <View className='citation-heading'>
+    <details className='citation-panel' open={open} onToggle={event => onToggle(event.currentTarget.open)}>
+      <summary className='citation-heading'>
         <View>
           <Text className='section-title'>回答依据</Text>
           <Text className='section-description'>
@@ -1457,8 +1360,7 @@ function CitationPanel({
         </View>
         <StatusPill status={citations.length ? "ready" : "neutral"}>
           {citations.length ? `${citations.length} 条来源` : "暂无来源"}
-        </StatusPill>
-      </View>
+        </StatusPill></summary>
       {status === "CONFLICT" && (
         <View className='conflict-note'>
           <Icon name='warning' />
@@ -1474,7 +1376,7 @@ function CitationPanel({
         <View className='citation-list'>
           {citations.map((citation) => (
             <View
-              className='citation-card'
+              className={selectedOrdinal === citation.ordinal ? 'citation-card is-selected' : 'citation-card'}
               key={`${citation.document_name}-${citation.ordinal}`}
             >
               <View className='citation-index'>{citation.ordinal}</View>
@@ -1486,8 +1388,9 @@ function CitationPanel({
                     : ""}
                 </Text>
                 <Text className='citation-text'>“{citation.quoted_text}”</Text>
+                {citation.source_available === false && <Text className='document-error'>历史依据已失效 · 不可用于新回答</Text>}
                 <Text className='citation-score'>
-                  相关度 {Math.round(citation.score * 100)}%
+                  相似度 {citation.score.toFixed(3)} · 仅用于排序
                 </Text>
               </View>
               <Icon name='arrow' />
@@ -1495,7 +1398,7 @@ function CitationPanel({
           ))}
         </View>
       )}
-    </View>
+    </details>
   );
 }
 
@@ -1881,10 +1784,14 @@ function FeedbackView({
   loading,
   onRetry,
   onReview,
+  onRepair,
+  onRetest,
 }: {
   feedback: Feedback[];
   loading: boolean;
   onRetry: () => void;
+  onRepair: () => void;
+  onRetest: (item: Feedback) => void;
   onReview: (item: Feedback, input: {
     review_status: "PENDING" | "FIXED" | "DEFERRED";
     corrected_answer?: string | null;
@@ -1903,22 +1810,7 @@ function FeedbackView({
   const [reviewNote, setReviewNote] = useState("");
   return (
     <View className='page-stack feedback-page'>
-      <View className='page-heading'>
-        <View>
-          <Text className='page-kicker'>持续改进</Text>
-          <Text className='page-title'>回答反馈</Text>
-          <Text className='page-description'>
-            收集用户反馈，持续优化回答质量
-          </Text>
-        </View>
-        <Button
-          className='outline-button'
-          disabled
-          aria-label='时间范围筛选（MVP固定近30天）'
-        >
-          近 30 天⌄
-        </Button>
-      </View>
+      <V2Heading title='反馈队列' description='把用户反馈变成资料修复与复测任务。' />
       <View className='feedback-metrics'>
         <FeedbackMetric
           tone='negative'
@@ -1977,7 +1869,7 @@ function FeedbackView({
           {filtered.map((item) => (
             <View className='feedback-table-row' key={item.id}>
               <Text className='feedback-question'>
-                {item.comment || "希望回答更具体一些。"}
+                {item.question || "历史问题未记录"}
               </Text>
               <Text>
                 <StatusPill
@@ -2015,11 +1907,16 @@ function FeedbackView({
               </View>
               {editingId === item.id && (
                 <View className='feedback-review-editor'>
-                  <Textarea
+                  <Text className='section-title'>原回答</Text><Text>{item.original_answer || "历史回答未记录"}</Text>
+                  <Text className='section-title'>反馈说明</Text><Text>{item.comment || "未填写说明"}</Text>
+                  <View className='feedback-review-actions'><Button className='outline-button compact' onClick={onRepair}>补充资料</Button><Button className='outline-button compact' disabled={!item.question} onClick={() => onRetest(item)}>加入复测题集</Button></View>
+                  <textarea
+                    data-feedback-answer
                     className='text-input resize-none'
                     value={correctedAnswer}
                     placeholder='人工修正答案（标记为已修正时必填）'
-                    onInput={(event) => setCorrectedAnswer(valueOf(event))}
+                    maxLength={5000}
+                    onChange={(event) => setCorrectedAnswer(event.currentTarget.value)}
                     aria-label='人工修正答案'
                   />
                   <Input
@@ -2081,377 +1978,6 @@ function FeedbackMetric({
   );
 }
 
-function EvalView({
-  cases,
-  runs,
-  versions,
-  result,
-  loading,
-  onRun,
-  onRetry,
-  onCreateCase,
-  onDeleteCase,
-  onReviewResult,
-  onCreateVersion,
-  onRunVersion,
-  comparison,
-  onCompare,
-}: {
-  cases: EvalCase[];
-  runs: EvalDetail["run"][];
-  versions: EvalSetVersion[];
-  result: EvalDetail | null;
-  loading: boolean;
-  onRun: () => Promise<void>;
-  onRetry: () => void;
-  onCreateCase: (input: { question: string; expected_answer?: string | null; scope: EvalCase["scope"] }) => Promise<void>;
-  onDeleteCase: (item: EvalCase) => Promise<void>;
-  onReviewResult: (item: EvalResult, score: 0 | 0.5 | 1) => Promise<void>;
-  onCreateVersion: (label: string) => Promise<void>;
-  onRunVersion: (version: EvalSetVersion) => Promise<void>;
-  comparison: EvalRunComparison | null;
-  onCompare: (baselineRunId: string, candidateRunId: string) => Promise<void>;
-}) {
-  const [scope, setScope] = useState<
-    "ALL" | "OWNER" | "PUBLIC" | "OUT_OF_SCOPE"
-  >("ALL");
-  const filteredCases =
-    scope === "ALL" ? cases : cases.filter((item) => item.scope === scope);
-  const [newQuestion, setNewQuestion] = useState("");
-  const [newExpected, setNewExpected] = useState("");
-  const [newScope, setNewScope] = useState<EvalCase["scope"]>("OWNER");
-  const [caseBusy, setCaseBusy] = useState(false);
-  const [versionLabel, setVersionLabel] = useState("");
-  const [versionBusy, setVersionBusy] = useState(false);
-  const [baselineRunId, setBaselineRunId] = useState("");
-  const [candidateRunId, setCandidateRunId] = useState("");
-  const [compareBusy, setCompareBusy] = useState(false);
-  const addCase = async () => {
-    if (!newQuestion.trim()) return;
-    setCaseBusy(true);
-    try {
-      await onCreateCase({ question: newQuestion.trim(), expected_answer: newExpected.trim() || null, scope: newScope });
-      setNewQuestion("");
-      setNewExpected("");
-    } finally { setCaseBusy(false); }
-  };
-  const saveVersion = async () => {
-    if (!versionLabel.trim()) return;
-    setVersionBusy(true);
-    try {
-      await onCreateVersion(versionLabel.trim());
-      setVersionLabel("");
-    } finally {
-      setVersionBusy(false);
-    }
-  };
-  const compare = async () => {
-    if (!baselineRunId || !candidateRunId || baselineRunId === candidateRunId) return;
-    setCompareBusy(true);
-    try {
-      await onCompare(baselineRunId, candidateRunId);
-    } finally {
-      setCompareBusy(false);
-    }
-  };
-  const runLabels = runs.map((run, index) => `${index + 1}. ${formatDate(run.created_at)} · ${run.status === "COMPLETED" ? "已完成" : run.status}`);
-  const baselineIndex = Math.max(0, runs.findIndex((run) => run.id === baselineRunId));
-  const candidateIndex = Math.max(0, runs.findIndex((run) => run.id === candidateRunId));
-  return (
-    <View className='page-stack eval-page'>
-      <View className='page-heading'>
-        <View>
-          <Text className='page-kicker'>可复现质量</Text>
-          <Text className='page-title'>质量自测</Text>
-          <Text className='page-description'>
-            用典型问题验证回答效果与权限边界
-          </Text>
-        </View>
-        <Button
-          className='primary-button'
-          onClick={() => void onRun()}
-          disabled={loading}
-        >
-          <Icon name='send' />
-          {loading ? "运行中…" : "运行测试"}
-        </Button>
-      </View>
-      <View className='settings-card eval-version-card'>
-        <View className='card-heading'>
-          <View>
-            <Text className='section-title'>测试集版本</Text>
-            <Text className='section-description'>冻结当前题集，后续修改不会影响已保存的基线。</Text>
-          </View>
-        </View>
-        <View className='eval-version-create'>
-          <Input
-            className='text-input eval-version-input'
-            value={versionLabel}
-            maxlength={120}
-            placeholder='版本名称，例如：发布前基线'
-            onInput={(event) => setVersionLabel(valueOf(event))}
-            aria-label='评测集版本名称'
-          />
-          <Button className='outline-button compact' disabled={versionBusy || !versionLabel.trim() || cases.length === 0} onClick={() => void saveVersion()}>
-            {versionBusy ? '保存中…' : '保存当前题集'}
-          </Button>
-        </View>
-        {versions.length > 0 ? (
-          <View className='eval-version-list'>
-            {versions.slice(0, 10).map((version) => (
-              <View className='eval-version-row' key={version.id}>
-                <View className='eval-version-copy'>
-                  <Text>v{version.version_number} · {version.label}</Text>
-                  <Text className='muted-copy'>{version.cases.length} 题 · {formatDate(version.created_at)}</Text>
-                </View>
-                <Button className='text-button compact-text-button' disabled={loading} onClick={() => void onRunVersion(version)}>运行此版本</Button>
-              </View>
-            ))}
-          </View>
-        ) : <Text className='muted-copy'>保存后可对比不同题集版本的运行结果。</Text>}
-      </View>
-      <View className='eval-summary-cards'>
-        <View className='eval-summary-card is-highlight'>
-          <Icon name='file' />
-          <Text className='eval-number'>{cases.length || 12}</Text>
-          <Text>个测试问题</Text>
-        </View>
-        <View className='eval-summary-card'>
-          <Icon name='team' />
-          <Text className='eval-number'>
-            {new Set(cases.map((item) => item.scope)).size || 3}
-          </Text>
-          <Text>个场景分类</Text>
-        </View>
-        <View className='eval-summary-card'>
-          <Icon name='lock' />
-          <Text className='eval-number'>
-            {result?.summary.out_of_scope_violations ?? 0}
-          </Text>
-          <Text>越权回答</Text>
-        </View>
-      </View>
-      <View className='settings-card'>
-        <View className='card-heading'>
-          <View>
-            <Text className='section-title'>测试题集</Text>
-            <Text className='section-description'>
-              私密空间、公开分类与跨范围问题都应可重复验证。
-            </Text>
-          </View>
-          <View className='filter-chips compact-chips'>
-            {(
-              [
-                ["ALL", "全部"],
-                ["OWNER", "私密空间"],
-                ["PUBLIC", "公开分类"],
-                ["OUT_OF_SCOPE", "跨范围"],
-              ] as const
-            ).map(([key, label]) => (
-              <Button
-                key={key}
-                className={
-                  scope === key ? "filter-chip is-active" : "filter-chip"
-                }
-                onClick={() => setScope(key)}
-              >
-                {label}
-              </Button>
-            ))}
-          </View>
-        </View>
-        <View className='eval-case-create'>
-          <Textarea
-            className='resize-none'
-            value={newQuestion}
-            maxlength={2000}
-            placeholder='新增测试问题，例如：项目的交付周期是多少？'
-            onInput={(event) => setNewQuestion(valueOf(event))}
-            aria-label='新增测试问题'
-          />
-          <Input
-            className='text-input'
-            value={newExpected}
-            maxlength={5000}
-            placeholder='参考答案（可选）'
-            onInput={(event) => setNewExpected(valueOf(event))}
-            aria-label='测试题参考答案'
-          />
-          <Picker
-            mode='selector'
-            range={['私密空间', '公开分类', '跨范围']}
-            value={newScope === 'OWNER' ? 0 : newScope === 'PUBLIC' ? 1 : 2}
-            onChange={(event) => {
-              const index = Number(event.detail.value);
-              setNewScope(index === 1 ? 'PUBLIC' : index === 2 ? 'OUT_OF_SCOPE' : 'OWNER');
-            }}
-          >
-            <View className='select-like' aria-label='测试题范围'><Text>{newScope === 'OWNER' ? '私密空间' : newScope === 'PUBLIC' ? '公开分类' : '跨范围'}</Text><Text>⌄</Text></View>
-          </Picker>
-          <Button className='outline-button compact' disabled={caseBusy || !newQuestion.trim()} onClick={() => void addCase()}>{caseBusy ? '添加中…' : '添加测试题'}</Button>
-        </View>
-        {filteredCases.length === 0 ? (
-          <EmptyState
-            title='还没有测试题'
-            description='先建立问题集，再运行质量自测。'
-          />
-        ) : (
-          <View className='eval-case-list'>
-            {filteredCases.map((item, index) => (
-              <View className='eval-case' key={item.id}>
-                <View className='case-number'>{index + 1}</View>
-                <Text className='case-question'>{item.question}</Text>
-                <StatusPill
-                  status={
-                    item.scope === "OUT_OF_SCOPE"
-                      ? "warning"
-                      : item.scope === "PUBLIC"
-                        ? "public"
-                        : "private"
-                  }
-                >
-                  {item.scope === "OUT_OF_SCOPE"
-                    ? "跨范围"
-                    : item.scope === "PUBLIC"
-                      ? "公开分类"
-                      : "私密知识"}
-                </StatusPill>
-                <Button className='text-button compact-text-button' onClick={() => void onDeleteCase(item)}>删除</Button>
-              </View>
-            ))}
-          </View>
-        )}
-      </View>
-      {runs.length > 0 && (
-        <View className='settings-card eval-history-card'>
-          <View className='card-heading'><View><Text className='section-title'>历史评测</Text><Text className='section-description'>保留最近运行快照，便于比较模型与检索配置变化。</Text></View></View>
-          <View className='eval-history-list'>
-            {runs.slice(0, 10).map((run) => (
-              <View className='eval-history-row' key={run.id}><Text>{formatDate(run.created_at)}</Text><StatusPill status={run.status === 'COMPLETED' ? 'ready' : run.status === 'FAILED' ? 'warning' : 'neutral'}>{run.status === 'COMPLETED' ? '已完成' : run.status === 'FAILED' ? '失败' : '进行中'}</StatusPill><Text className='muted-copy'>Top {String(run.retrieval_config_snapshot.candidate_limit ?? 12)}</Text></View>
-            ))}
-          </View>
-          {runs.length > 1 && (
-            <View className='eval-compare-bar'>
-              <Text className='muted-copy'>运行对比</Text>
-              <Picker
-                mode='selector'
-                range={runLabels}
-                value={baselineIndex}
-                onChange={(event) => setBaselineRunId(runs[Number(event.detail.value)]?.id ?? "")}
-              >
-                <View className='select-like compact-select'><Text>{baselineRunId ? `基线：${formatDate(runs[baselineIndex]?.created_at ?? "")}` : "选择基线"}</Text><Text>⌄</Text></View>
-              </Picker>
-              <Picker
-                mode='selector'
-                range={runLabels}
-                value={candidateIndex}
-                onChange={(event) => setCandidateRunId(runs[Number(event.detail.value)]?.id ?? "")}
-              >
-                <View className='select-like compact-select'><Text>{candidateRunId ? `候选：${formatDate(runs[candidateIndex]?.created_at ?? "")}` : "选择候选"}</Text><Text>⌄</Text></View>
-              </Picker>
-              <Button className='outline-button compact' disabled={compareBusy || !baselineRunId || !candidateRunId || baselineRunId === candidateRunId} onClick={() => void compare()}>
-                {compareBusy ? "对比中…" : "生成对比"}
-              </Button>
-            </View>
-          )}
-        </View>
-      )}
-      {comparison && (
-        <View className='settings-card eval-compare-card'>
-          <View className='card-heading'><View><Text className='section-title'>运行对比</Text><Text className='section-description'>候选运行相对基线的变化，正数表示指标提升。</Text></View></View>
-          <View className='eval-compare-grid'>
-            <View><Text className='muted-copy'>回答完成率</Text><Text className='eval-compare-value'>{Math.round(comparison.baseline_summary.answered_rate * 100)}% → {Math.round(comparison.candidate_summary.answered_rate * 100)}%</Text></View>
-            <View><Text className='muted-copy'>有效引用率</Text><Text className='eval-compare-value'>{Math.round(comparison.baseline_summary.citation_rate * 100)}% → {Math.round(comparison.candidate_summary.citation_rate * 100)}%</Text></View>
-            <View><Text className='muted-copy'>越权回答</Text><Text className='eval-compare-value'>{comparison.baseline_summary.out_of_scope_violations} → {comparison.candidate_summary.out_of_scope_violations}</Text></View>
-            <View><Text className='muted-copy'>回答率变化</Text><Text className='eval-compare-value'>{formatSignedPercent(comparison.delta.answered_rate)}</Text></View>
-          </View>
-        </View>
-      )}
-      {result && <EvalResultCard result={result} />}
-      {result && result.results.length > 0 && (
-        <View className='settings-card eval-result-list'>
-          <View className='card-heading'>
-            <View><Text className='section-title'>人工复核</Text><Text className='section-description'>逐题标记正确、部分正确或错误，结果会写入本次评测。</Text></View>
-          </View>
-          {result.results.map((item) => (
-            <View className='eval-result-row' key={item.id}>
-              <View className='eval-result-copy'><Text>{item.answer.slice(0, 140) || '暂无回答'}</Text><Text className='muted-copy'>引用 {item.citation_count} 条 · {item.answer_status}</Text></View>
-              <View className='eval-review-actions'>
-                {([[1, '正确'], [0.5, '部分'], [0, '错误']] as const).map(([score, label]) => (
-                  <Button key={label} className={item.reviewer_score === score ? 'segment is-selected' : 'segment'} onClick={() => void onReviewResult(item, score)}>{label}</Button>
-                ))}
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
-      <View className='model-note'>
-        <Icon name='info' />
-        <Text>
-          运行快照固定记录 BGE 模型、1024 维向量、候选 Top{" "}
-          {String(result?.run.retrieval_config_snapshot.candidate_limit ?? 12)}{" "}
-          与上下文配置，便于复现。
-        </Text>
-      </View>
-      {loading && <LoadingState label='正在运行测试题…' />}
-      {!loading && result === null && (
-        <View className='inline-banner banner-info'>
-          <Icon name='info' />
-          <Text>点击“运行测试”后，会用当前模型与检索配置生成一份结果。</Text>
-          <Button className='text-button' onClick={onRetry}>
-            刷新题集
-          </Button>
-        </View>
-      )}
-    </View>
-  );
-}
-
-function EvalResultCard({ result }: { result: EvalDetail }) {
-  const total = Math.max(result.summary.total, 1);
-  const percentage = Math.round((result.summary.answered / total) * 100);
-  return (
-    <View className='eval-result-card'>
-      <View
-        className='result-ring'
-        style={{
-          background: `conic-gradient(#0F9F8F ${percentage * 3.6}deg, #DDE7F5 0deg)`,
-        }}
-      >
-        <View className='result-ring-inner'>
-          <Text>{percentage}%</Text>
-          <Text>回答完成</Text>
-        </View>
-      </View>
-      <View className='result-copy'>
-        <Text className='result-title'>
-          {result.summary.out_of_scope_violations === 0
-            ? "权限边界通过"
-            : "需要关注越权回答"}
-        </Text>
-        <Text>
-          共 {result.summary.total} 题 · {result.summary.citation_count}{" "}
-          条有效引用 · {result.summary.out_of_scope} 题范围外
-        </Text>
-        <View className='result-stats'>
-          <Text>
-            <Icon name='check' />
-            正确 {result.summary.reviewed_correct}
-          </Text>
-          <Text>
-            <Icon name='warning' />
-            待复核 {result.summary.reviewed_partial}
-          </Text>
-          <Text>
-            <Icon name='close' />
-            错误 {result.summary.reviewed_incorrect}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
 function SettingsView({
   space,
   onVisibilityChange,
@@ -2474,13 +2000,13 @@ function SettingsView({
   onSyncSource: (source: KnowledgeSource) => Promise<void>;
   onToggleSource: (source: KnowledgeSource) => Promise<void>;
   members: SpaceMember[];
-  onAddMember: (email: string, role: "EDITOR" | "MEMBER") => Promise<void>;
-  onChangeMemberRole: (member: SpaceMember, role: "EDITOR" | "MEMBER") => Promise<void>;
+  onAddMember: (email: string, role: "ADMIN" | "EDITOR" | "MEMBER") => Promise<void>;
+  onChangeMemberRole: (member: SpaceMember, role: "ADMIN" | "EDITOR" | "MEMBER") => Promise<void>;
   onRemoveMember: (member: SpaceMember) => Promise<void>;
   usage: SpaceUsage | null;
 }) {
   const [memberEmail, setMemberEmail] = useState("");
-  const [memberRole, setMemberRole] = useState<"EDITOR" | "MEMBER">("MEMBER");
+  const [memberRole, setMemberRole] = useState<"ADMIN" | "EDITOR" | "MEMBER">("MEMBER");
   const [memberBusy, setMemberBusy] = useState(false);
   const [planBusy, setPlanBusy] = useState(false);
   const [sourceKind, setSourceKind] = useState<SourceKind>("WEBPAGE");
@@ -2501,7 +2027,7 @@ function SettingsView({
   };
 
   const roleLabel = (role: SpaceMember["role"]) =>
-    role === "OWNER" ? "所有者" : role === "EDITOR" ? "编辑者" : "成员";
+    role === "OWNER" ? "拥有者（管理员）" : role === "ADMIN" ? "管理员" : role === "EDITOR" ? "编辑者" : "成员";
 
   return (
     <View className='page-stack settings-page'>
@@ -2684,12 +2210,12 @@ function SettingsView({
           <View>
             <Text className='section-title'>成员与权限</Text>
             <Text className='section-description'>
-              通过邮箱邀请协作者，并按最小权限分配编辑或只读访问。
+              {space.kind === "TEAM" ? "团队拥有者可添加多位管理员、编辑者和只读成员。管理员可查看引用、使用检索调试和管理评测。" : "个人空间仅拥有者负责管理，不添加其他成员。"}
             </Text>
           </View>
           <StatusPill status='ready'>服务端鉴权</StatusPill>
         </View>
-        <View className='member-invite'>
+        {space.kind === "TEAM" && space.owner_user_id === getAuthUserId() && <View className='member-invite'>
           <Input
             className='text-input member-email-input'
             value={memberEmail}
@@ -2710,6 +2236,9 @@ function SettingsView({
               onClick={() => setMemberRole("EDITOR")}
               aria-pressed={memberRole === "EDITOR"}
             >编辑者</Button>
+            <Button className={memberRole === "ADMIN" ? "segment is-selected" : "segment"}
+              onClick={() => setMemberRole("ADMIN")} aria-pressed={memberRole === "ADMIN"}
+            >管理员</Button>
           </View>
           <Button
             className='primary-button compact member-invite-button'
@@ -2717,7 +2246,7 @@ function SettingsView({
             disabled={memberBusy || !memberEmail.trim()}
             aria-busy={memberBusy}
           >{memberBusy ? "添加中…" : "添加成员"}</Button>
-        </View>
+        </View>}
         <View className='member-list' role='list' aria-label='空间成员'>
           {members.length === 0 && (
             <View className='empty-state compact-empty'>
@@ -2736,12 +2265,13 @@ function SettingsView({
               <StatusPill status={member.role === "OWNER" ? "ready" : "neutral"}>
                 {roleLabel(member.role)}
               </StatusPill>
-              {member.role !== "OWNER" && (
+              {member.role !== "OWNER" && space.kind === "TEAM" && space.owner_user_id === getAuthUserId() && (
                 <View className='member-actions'>
-                  <Button
-                    className='text-button compact-text-button'
-                    onClick={() => void onChangeMemberRole(member, member.role === "EDITOR" ? "MEMBER" : "EDITOR")}
-                  >切换为{member.role === "EDITOR" ? "只读" : "编辑"}</Button>
+                  {(["ADMIN", "EDITOR", "MEMBER"] as const).filter((role) => role !== member.role).map((role) => (
+                    <Button key={role} className='text-button compact-text-button'
+                      onClick={() => void onChangeMemberRole(member, role)}
+                    >设为{roleLabel(role)}</Button>
+                  ))}
                   <Button
                     className='danger-button compact'
                     onClick={() => void onRemoveMember(member)}
@@ -2757,7 +2287,7 @@ function SettingsView({
         <View>
           <Text className='section-title'>安全边界</Text>
           <Text className='section-description'>
-            所有者、编辑者与成员的空间访问均由服务端校验；分享链接仍单独受公开访问密码、分类范围和问题配额约束。
+            拥有者、团队管理员、编辑者与成员的空间访问均由服务端校验；分享链接仍单独受公开访问密码、分类范围和问题配额约束。
           </Text>
         </View>
       </View>
@@ -2808,6 +2338,10 @@ export default function Index() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [activePage, setActivePage] = useState<WorkspacePage>("spaces");
+  const [handoffQuestion, setHandoffQuestion] = useState("");
+  const [evalDraft, setEvalDraft] = useState<{ question: string; answer: string } | null>(null);
+  const [feedbackDraft, setFeedbackDraft] = useState<{ messageId: string; rating: FeedbackRating } | null>(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [spaces, setSpaces] = useState<Space[]>([]);
   const [currentSpace, setCurrentSpace] = useState<Space | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -2820,17 +2354,11 @@ export default function Index() {
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
   const [documentsError, setDocumentsError] = useState("");
   const [feedback, setFeedback] = useState<Feedback[]>([]);
-  const [evalCases, setEvalCases] = useState<EvalCase[]>([]);
-  const [evalRuns, setEvalRuns] = useState<EvalDetail["run"][]>([]);
-  const [evalVersions, setEvalVersions] = useState<EvalSetVersion[]>([]);
-  const [evalResult, setEvalResult] = useState<EvalDetail | null>(null);
-  const [evalComparison, setEvalComparison] = useState<EvalRunComparison | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [shareLinks, setShareLinks] = useState<ShareLink[]>([]);
   const [loadingSpaces, setLoadingSpaces] = useState(false);
   const [loadingFeedback, setLoadingFeedback] = useState(false);
-  const [loadingEval, setLoadingEval] = useState(false);
   const [creating, setCreating] = useState(false);
   const [pageError, setPageError] = useState("");
   const [toast, setToast] = useState<ToastState>(null);
@@ -2847,6 +2375,7 @@ export default function Index() {
   const selectedSpaceId = useRef<string | null>(null);
   const conversationIds = useRef(new Map<string, string>());
   const streamAbort = useRef<AbortController | null>(null);
+  const failedUploads = useRef(new Map<string, { file: UploadFile; categoryId: string | null }>());
 
   const readStoredConversationId = useCallback((spaceId: string) => {
     const memoryId = conversationIds.current.get(spaceId);
@@ -3041,7 +2570,7 @@ export default function Index() {
               ? "回答反馈 · 知溯"
               : activePage === "eval"
                 ? "质量自测 · 知溯"
-                : "空间设置 · 知溯";
+                : activePage === "retrieval" ? "检索测试 · 知溯" : "空间设置 · 知溯";
     if (typeof document !== "undefined") document.title = title;
     void Taro.setNavigationBarTitle({ title });
   }, [activePage, loggedIn]);
@@ -3073,6 +2602,9 @@ export default function Index() {
     stopAllDocumentPolling();
     selectedSpaceId.current = space.id;
     setCurrentSpace(space);
+    setHandoffQuestion("");
+    setEvalDraft(null);
+    setSelectedDocumentId(null);
     setActivePage("qa");
     setConversationId(readStoredConversationId(space.id));
     setMessages([]);
@@ -3119,11 +2651,6 @@ export default function Index() {
       setFeedback(await listFeedback(space.id));
     } catch {
       setFeedback(space.id === demoSpaceId ? demoFeedback : []);
-    }
-    try {
-      setEvalCases(await listEvalCases(space.id));
-    } catch {
-      setEvalCases(space.id === demoSpaceId ? demoEvalCases : []);
     }
   }, [readStoredConversationId, restoreConversation, stopAllDocumentPolling, trackDocumentProcessing]);
   const loadShareLinks = useCallback(async (space: Space) => {
@@ -3229,75 +2756,38 @@ export default function Index() {
         ]);
       } catch (error) {
         if (controller?.signal.aborted) return;
-        if (isDemoSpace()) {
-          setMessages((items) => [
-            ...items,
-            {
-              id: localId("assistant"),
-              role: "ASSISTANT",
-              content:
-                "这个产品把分散的项目资料整理成可检索的知识空间，并通过带来源的回答帮助团队快速找到可信信息。当当前资料没有足够依据时，系统会明确说明资料不足。",
-              status: "ANSWERED",
-              model: "deepseek-flash",
-              citations: [
-                {
-                  document_name: "产品说明.pdf",
-                  quoted_text: "基于多源资料构建可追溯的知识回答。",
-                  page_number: 12,
-                  ordinal: 1,
-                  score: 0.92,
-                },
-                {
-                  document_name: "项目复盘.docx",
-                  quoted_text:
-                    "统一管理文档、经验和问答，帮助团队更快找到可靠信息。",
-                  page_number: null,
-                  ordinal: 2,
-                  score: 0.86,
-                },
-              ],
-              created_at: now(),
-            },
-          ]);
-          setToast({
-            tone: "info",
-            message:
-              "后端暂未连接，已显示演示回答；启动 API 后会自动使用真实模型。",
-          });
-        } else {
-          if (
-            error instanceof ApiRequestError &&
-            (error.status === 404 || error.status === 403) &&
-            currentSpace
-          ) {
-            forgetConversationId(currentSpace.id);
-            setConversationId(null);
-          }
-          const message =
-            error instanceof ApiRequestError
-              ? error.message
-              : "回答暂时无法生成，请稍后重试。";
-          setMessages((items) => [
-            ...items,
-            {
-              id: localId("assistant"),
-              role: "ASSISTANT",
-              content: message,
-              status: "FAILED",
-              model: null,
-              citations: [],
-              created_at: now(),
-            },
-          ]);
-          setToast({ tone: "error", message: `回答未生成：${message}` });
+        if (
+          error instanceof ApiRequestError &&
+          (error.status === 404 || error.status === 403) &&
+          currentSpace
+        ) {
+          forgetConversationId(currentSpace.id);
+          setConversationId(null);
         }
+        const message =
+          error instanceof ApiRequestError
+            ? error.message
+            : "回答暂时无法生成，请稍后重试。";
+        setMessages((items) => [
+          ...items,
+          {
+            id: localId("assistant"),
+            role: "ASSISTANT",
+            content: message,
+            status: "FAILED",
+            model: null,
+            citations: [],
+            created_at: now(),
+          },
+        ]);
+        setToast({ tone: "error", message: `回答未生成：${message}` });
       } finally {
         if (streamAbort.current === controller) streamAbort.current = null;
         setStreaming(false);
         setStreamingText("");
       }
     },
-    [currentSpace, ensureConversation, forgetConversationId, isDemoSpace],
+    [currentSpace, ensureConversation, forgetConversationId],
   );
   const handleCancel = useCallback(() => {
     streamAbort.current?.abort();
@@ -3335,6 +2825,7 @@ export default function Index() {
       name: string;
       description: string;
       visibility: SpaceVisibility;
+      kind: SpaceKind;
     }) => {
       setCreating(true);
       try {
@@ -3423,6 +2914,7 @@ export default function Index() {
           error instanceof ApiRequestError
             ? error.message
             : "上传失败，请检查网络后重试。";
+        failedUploads.current.set(optimistic.id, { file, categoryId });
         setDocuments((items) =>
           items.map((item) =>
             item.id === optimistic.id
@@ -3522,6 +3014,11 @@ export default function Index() {
     [isDemoSpace],
   );
   const handleDelete = useCallback(async (document: KnowledgeDocument) => {
+    if (failedUploads.current.has(document.id)) {
+      failedUploads.current.delete(document.id);
+      setDocuments(items => items.filter(item => item.id !== document.id));
+      return;
+    }
     try {
       await deleteDocument(document.id);
     } catch (error) {
@@ -3544,6 +3041,13 @@ export default function Index() {
     });
   }, [isDemoSpace, stopDocumentPolling]);
   const handleRetry = useCallback(async (document: KnowledgeDocument) => {
+    const local = failedUploads.current.get(document.id);
+    if (local) {
+      failedUploads.current.delete(document.id);
+      setDocuments(items => items.filter(item => item.id !== document.id));
+      await handleUpload(local.file, local.categoryId, () => undefined);
+      return;
+    }
     try {
       const updated = await retryDocument(document.id);
       setDocuments((items) =>
@@ -3578,7 +3082,7 @@ export default function Index() {
         message: "演示队列已重新开始。",
       });
     }
-  }, [isDemoSpace, trackDocumentProcessing]);
+  }, [isDemoSpace, trackDocumentProcessing, handleUpload]);
   const handleToggleCategory = useCallback(async (category: Category) => {
     const next = !category.is_open;
     try {
@@ -3850,7 +3354,7 @@ export default function Index() {
       setToast({ tone: "info", message: "演示来源状态已更新。" });
     }
   }, [isDemoSpace]);
-  const handleAddMember = useCallback(async (email: string, role: "EDITOR" | "MEMBER") => {
+  const handleAddMember = useCallback(async (email: string, role: "ADMIN" | "EDITOR" | "MEMBER") => {
     if (!currentSpace) return;
     try {
       const member = await addMember(currentSpace.id, { email, role });
@@ -3860,7 +3364,7 @@ export default function Index() {
       setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "成员添加失败。" });
     }
   }, [currentSpace]);
-  const handleChangeMemberRole = useCallback(async (member: SpaceMember, role: "EDITOR" | "MEMBER") => {
+  const handleChangeMemberRole = useCallback(async (member: SpaceMember, role: "ADMIN" | "EDITOR" | "MEMBER") => {
     if (!currentSpace) return;
     try {
       const updated = await changeMemberRole(currentSpace.id, member.user_id, role);
@@ -3891,156 +3395,6 @@ export default function Index() {
       setLoadingFeedback(false);
     }
   }, [currentSpace]);
-  const loadEvalData = useCallback(async () => {
-    if (!currentSpace) return;
-    try {
-      setEvalCases(await listEvalCases(currentSpace.id));
-    } catch {
-      setEvalCases(currentSpace.id === demoSpaceId ? demoEvalCases : []);
-    }
-    try {
-      setEvalRuns(await listEvalRuns(currentSpace.id));
-    } catch {
-      setEvalRuns([]);
-    }
-    try {
-      setEvalVersions(await listEvalVersions(currentSpace.id));
-    } catch {
-      setEvalVersions([]);
-    }
-    setEvalComparison(null);
-  }, [currentSpace]);
-  const handleRunEval = useCallback(async () => {
-    if (!currentSpace) return;
-    setLoadingEval(true);
-    try {
-      const nextResult = await runEvaluation(currentSpace.id);
-      setEvalResult(nextResult);
-      setEvalRuns((items) => [nextResult.run, ...items.filter((item) => item.id !== nextResult.run.id)]);
-      setToast({ tone: "success", message: "质量自测已完成。" });
-    } catch (error) {
-      if (!isDemoSpace(currentSpace.id)) {
-        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "质量自测失败，请重试。" });
-        return;
-      }
-      setEvalResult({
-        run: {
-          id: localId("run"),
-          space_id: currentSpace.id,
-          status: "COMPLETED",
-          retrieval_config_snapshot: { candidate_limit: 12 },
-          started_at: now(),
-          completed_at: now(),
-          failure_message: null,
-          created_at: now(),
-        },
-        results: [],
-        summary: {
-          total: evalCases.length || 12,
-          answered: evalCases.length || 9,
-          insufficient_evidence: 2,
-          out_of_scope: 1,
-          failed: 0,
-          citation_count: 10,
-          out_of_scope_violations: 0,
-          reviewed_correct: 9,
-          reviewed_partial: 2,
-          reviewed_incorrect: 1,
-          answered_rate: 0.75,
-          citation_rate: 0.83,
-          reviewed_accuracy: 0.83,
-        },
-      });
-      setToast({
-        tone: "info",
-        message: "演示自测已完成；连接 API 后会运行真实测试题。",
-      });
-    } finally {
-      setLoadingEval(false);
-    }
-  }, [currentSpace, evalCases.length, isDemoSpace]);
-  const handleCreateEvalCase = useCallback(async (input: { question: string; expected_answer?: string | null; scope: EvalCase["scope"] }) => {
-    if (!currentSpace) return;
-    const categoryIds = input.scope === "OWNER"
-      ? []
-      : categories.filter((category) => category.is_open).slice(0, 1).map((category) => category.id);
-    try {
-      const created = await createEvalCase(currentSpace.id, { ...input, category_ids: categoryIds });
-      setEvalCases((items) => [...items, created]);
-      setToast({ tone: "success", message: "测试题已添加。" });
-    } catch (error) {
-      if (!isDemoSpace(currentSpace.id)) {
-        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "测试题添加失败。" });
-        return;
-      }
-      const created: EvalCase = {
-        id: localId("case"),
-        space_id: currentSpace.id,
-        question: input.question,
-        expected_answer: input.expected_answer ?? null,
-        expected_document_ids: [],
-        scope: input.scope,
-        category_ids: categoryIds,
-        created_at: now(),
-      };
-      setEvalCases((items) => [...items, created]);
-      setToast({ tone: "info", message: "演示测试题已添加。" });
-    }
-  }, [categories, currentSpace, isDemoSpace]);
-  const handleCreateEvalVersion = useCallback(async (label: string) => {
-    if (!currentSpace) return;
-    try {
-      const version = await createEvalVersion(currentSpace.id, label);
-      setEvalVersions((items) => [version, ...items.filter((item) => item.id !== version.id)]);
-      setToast({ tone: "success", message: `评测集 v${version.version_number} 已保存。` });
-    } catch (error) {
-      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "评测集版本保存失败。" });
-    }
-  }, [currentSpace]);
-  const handleRunEvalVersion = useCallback(async (version: EvalSetVersion) => {
-    setLoadingEval(true);
-    try {
-      const nextResult = await runEvalVersion(version.id);
-      setEvalResult(nextResult);
-      setEvalRuns((items) => [nextResult.run, ...items.filter((item) => item.id !== nextResult.run.id)]);
-      setToast({ tone: "success", message: `评测集 v${version.version_number} 已运行。` });
-    } catch (error) {
-      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "评测集版本运行失败。" });
-    } finally {
-      setLoadingEval(false);
-    }
-  }, []);
-  const handleCompareEvalRuns = useCallback(async (baselineRunId: string, candidateRunId: string) => {
-    if (!currentSpace) return;
-    try {
-      const comparison = await compareEvalRuns(currentSpace.id, baselineRunId, candidateRunId);
-      setEvalComparison(comparison);
-      setToast({ tone: "success", message: "评测运行对比已生成。" });
-    } catch (error) {
-      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "评测运行对比失败。" });
-    }
-  }, [currentSpace]);
-  const handleDeleteEvalCase = useCallback(async (item: EvalCase) => {
-    try {
-      await deleteEvalCase(item.id);
-    } catch (error) {
-      if (!isDemoSpace(item.space_id)) {
-        setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "测试题删除失败。" });
-        return;
-      }
-    }
-    setEvalCases((items) => items.filter((current) => current.id !== item.id));
-    setToast({ tone: "success", message: "测试题已删除。" });
-  }, [isDemoSpace]);
-  const handleReviewEvalResult = useCallback(async (item: EvalResult, score: 0 | 0.5 | 1) => {
-    try {
-      const updated = await reviewEvalResult(item.id, { reviewer_score: score });
-      setEvalResult((current) => current ? { ...current, results: current.results.map((result) => result.id === updated.id ? updated : result) } : current);
-      setToast({ tone: "success", message: "人工复核已保存。" });
-    } catch (error) {
-      setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "人工复核保存失败。" });
-    }
-  }, []);
   const selectPage = useCallback(
     (page: WorkspacePage) => {
       if (page !== "spaces" && !currentSpace) {
@@ -4049,7 +3403,6 @@ export default function Index() {
       }
       setActivePage(page);
       if (page === "feedback") void loadFeedbackData();
-      if (page === "eval") void loadEvalData();
       if (page === "settings" && currentSpace)
         {
           void loadShareLinks(currentSpace);
@@ -4059,7 +3412,7 @@ export default function Index() {
           void loadSources(currentSpace);
         }
     },
-    [currentSpace, loadEvalData, loadFeedbackData, loadMembers, loadPublicAnalytics, loadPublicQuestions, loadShareLinks, loadSources],
+    [currentSpace, loadFeedbackData, loadMembers, loadPublicAnalytics, loadPublicQuestions, loadShareLinks, loadSources],
   );
 
   const content = useMemo(() => {
@@ -4083,13 +3436,14 @@ export default function Index() {
       );
     return (
       <View className='page-stack space-page'>
-        <SpaceHeader
-          space={currentSpace}
-          page={activePage}
-          onBack={() => setActivePage("spaces")}
-          onPage={selectPage}
-        />
-        {activePage === "documents" && (
+
+        {activePage === "retrieval" && (
+          <RetrievalView key={currentSpace.id} spaceId={currentSpace.id} initialQuestion={handoffQuestion}
+            onAsk={(question) => { setHandoffQuestion(question); setActivePage("qa"); }}
+          />
+        )}
+        {activePage === "documents" && selectedDocumentId && <DocumentDetailView key={selectedDocumentId} spaceId={currentSpace.id} documentId={selectedDocumentId} onBack={() => { setSelectedDocumentId(null); void loadSpaceData(currentSpace); }} onAsk={() => setActivePage("qa")} onRetrieve={() => setActivePage("retrieval")} />}
+        {activePage === "documents" && !selectedDocumentId && (
           <DocumentsView
             space={currentSpace}
             documents={documents}
@@ -4103,16 +3457,23 @@ export default function Index() {
             onLoadTags={handleLoadDocumentTags}
             onSetTags={handleSetDocumentTags}
             onAvailability={handleAvailability}
+            onOpen={(item) => setSelectedDocumentId(item.id)}
+            onRetrieve={() => setActivePage("retrieval")}
           />
         )}
         {activePage === "qa" && (
           <QaView
+            initialQuestion={handoffQuestion}
+            onRetrieve={(question) => { setHandoffQuestion(question); setActivePage("retrieval"); }}
             messages={messages}
             streaming={streaming}
             streamingText={streamingText}
             onSend={handleSend}
             onCancel={handleCancel}
-            onFeedback={handleFeedback}
+            onFeedback={async (messageId, rating) => {
+              if (rating === "UP") await handleFeedback(messageId, rating);
+              else setFeedbackDraft({ messageId, rating });
+            }}
             feedbackBusy={feedbackBusy}
           />
         )}
@@ -4121,10 +3482,12 @@ export default function Index() {
             feedback={feedback}
             loading={loadingFeedback}
             onRetry={() => void loadFeedbackData()}
+            onRepair={() => { setSelectedDocumentId(null); setActivePage("documents"); }}
+            onRetest={(item) => { setEvalDraft({ question: item.question || "", answer: item.corrected_answer || "" }); setActivePage("eval"); }}
             onReview={async (item, input) => {
               try {
                 const updated = await reviewFeedback(item.id, input);
-                setFeedback((items) => items.map((current) => current.id === updated.id ? updated : current));
+                setFeedback((items) => items.map((current) => current.id === updated.id ? { ...updated, question: updated.question || current.question, original_answer: updated.original_answer || current.original_answer } : current));
                 setToast({ tone: "success", message: "反馈审核结果已保存。" });
               } catch (error) {
                 setToast({ tone: "error", message: error instanceof ApiRequestError ? error.message : "反馈审核保存失败。" });
@@ -4133,21 +3496,11 @@ export default function Index() {
           />
         )}
         {activePage === "eval" && (
-          <EvalView
-            cases={evalCases}
-            runs={evalRuns}
-            versions={evalVersions}
-            result={evalResult}
-            loading={loadingEval}
-            onRun={handleRunEval}
-            onRetry={() => void loadEvalData()}
-            onCreateCase={handleCreateEvalCase}
-            onDeleteCase={handleDeleteEvalCase}
-            onReviewResult={handleReviewEvalResult}
-            onCreateVersion={handleCreateEvalVersion}
-            onRunVersion={handleRunEvalVersion}
-            comparison={evalComparison}
-            onCompare={handleCompareEvalRuns}
+          <EvaluationView key={currentSpace.id}
+            spaceId={currentSpace.id} categories={categories}
+            initialQuestion={evalDraft?.question} initialAnswer={evalDraft?.answer}
+            onSeedConsumed={() => setEvalDraft(null)}
+            notify={(message) => setToast({ tone: "success", message })}
           />
         )}
         {activePage === "settings" && (
@@ -4187,17 +3540,14 @@ export default function Index() {
     );
   }, [
     activePage,
+    handoffQuestion,
+    selectedDocumentId,
     categories,
     tags,
     creating,
     currentSpace,
     documents,
     documentsError,
-    evalCases,
-    evalVersions,
-    evalRuns,
-    evalResult,
-    evalComparison,
     feedback,
     feedbackBusy,
     members,
@@ -4217,13 +3567,6 @@ export default function Index() {
     handleAvailability,
     handleFeedback,
     handleRetry,
-    handleRunEval,
-    handleCreateEvalCase,
-    handleDeleteEvalCase,
-    handleReviewEvalResult,
-    handleCreateEvalVersion,
-    handleRunEvalVersion,
-    handleCompareEvalRuns,
     handleSend,
     handleShare,
     handleToggleCategory,
@@ -4238,10 +3581,8 @@ export default function Index() {
     handleAddMember,
     handleChangeMemberRole,
     handleRemoveMember,
-    loadingEval,
     loadingFeedback,
     loadingSpaces,
-    loadEvalData,
     loadFeedbackData,
     loadSpaceData,
     loadShareLinks,
@@ -4250,7 +3591,7 @@ export default function Index() {
     loadSpaces,
     messages,
     pageError,
-    selectPage,
+    evalDraft,
     shareLinks,
     spaces,
     streaming,
@@ -4294,6 +3635,11 @@ export default function Index() {
       </AppShell>
       {usingDemo && <View className='demo-ribbon'>演示数据 · API 未连接</View>}
       <AppToast toast={toast} />
+      {feedbackDraft && <FeedbackDialog onCancel={() => setFeedbackDraft(null)} onSubmit={async (reason, comment) => {
+        await sendFeedback(feedbackDraft.messageId, { rating: feedbackDraft.rating, reason, comment: comment || undefined });
+        setFeedbackDraft(null); setToast({ tone: "success", message: "反馈已保存。" });
+      }}
+      />}
     </>
   );
 }

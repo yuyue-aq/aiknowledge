@@ -226,7 +226,7 @@ class FeedbackService:
             role = await role_reader(space_id=space_id, user_id=owner_user_id)
             if role is None:
                 raise FeedbackNotFoundError("反馈记录不存在。")
-            order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+            order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.ADMIN: 2, SpaceRole.OWNER: 3}
             if order[role] < order[minimum_role]:
                 raise FeedbackAccessDeniedError("你没有执行反馈审核的权限。")
             return
