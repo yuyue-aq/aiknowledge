@@ -1,0 +1,18 @@
+{
+  "count": 500,
+  "unique_cases": 500,
+  "unique_question_strings": 500,
+  "kinds": {
+    "事实": 81,
+    "综合": 194,
+    "计算": 100,
+    "追问": 75,
+    "拒答": 50
+  },
+  "gold_sha256": "9880a2b3b5f6894aa7b3ee8a930ac5761e72761c45144b5580157bbbf8184916",
+  "strict_target": 0.9,
+  "min_complete": 451,
+  "source": "original fictional corpus 14 days / 30 days",
+  "limitation": "500 distinct cases, including follow-up history; shared facts, templated combinations and hypothetical arithmetic are correlated; not 500 independent documents or unseen domains",
+  "sha256_representation": "UTF-8 text with line endings normalized to LF"
+}

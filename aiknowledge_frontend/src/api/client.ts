@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro'
 
 export type SpaceVisibility = 'PRIVATE' | 'PUBLIC'
+export type SpaceKind = 'PERSONAL' | 'TEAM'
 export type SpacePlan = 'FREE' | 'PRO' | 'TEAM'
 export type Space = {
   id: string
@@ -9,6 +10,7 @@ export type Space = {
   description: string | null
   visibility: SpaceVisibility
   guest_feedback_enabled: boolean
+  kind?: SpaceKind
   plan?: SpacePlan
   created_at: string
   updated_at: string
@@ -66,6 +68,7 @@ export type Conversation = {
 export type ConversationSummary = Conversation
 
 export type Citation = {
+  source_available?: boolean
   document_name: string
   quoted_text: string
   page_number: number | null
@@ -169,6 +172,8 @@ export type FeedbackReason =
   | 'INCOMPLETE'
   | 'MISSING_MATERIAL'
 export type Feedback = {
+  question?: string | null
+  original_answer?: string | null
   id: string
   message_id: string
   rating: FeedbackRating
@@ -197,7 +202,7 @@ export type SpaceMember = {
   user_id: string
   email: string
   display_name: string
-  role: 'OWNER' | 'EDITOR' | 'MEMBER'
+  role: 'OWNER' | 'ADMIN' | 'EDITOR' | 'MEMBER'
   created_at: string
 }
 
@@ -244,6 +249,9 @@ export type EvalCase = {
   scope: 'OWNER' | 'PUBLIC' | 'OUT_OF_SCOPE'
   category_ids: string[]
   created_at: string
+  answerable?: boolean | null
+  expected_behavior?: string | null
+  evidence_refs?: EvidenceRef[]
 }
 
 export type EvalSetVersion = {
@@ -263,6 +271,9 @@ export type EvalResult = {
   citation_count: number
   reviewer_score: number | null
   reviewer_note: string | null
+  execution_snapshot?: Record<string, unknown> | null
+  retrieval_metrics?: Record<string, number | boolean | null> | null
+  failure_code?: string | null
 }
 
 export type EvalDetail = {
@@ -275,6 +286,11 @@ export type EvalDetail = {
     completed_at: string | null
     failure_message: string | null
     created_at: string
+    progress_total?: number
+    progress_completed?: number
+    heartbeat_at?: string | null
+    task_id?: string | null
+    failure_code?: string | null
   }
   results: EvalResult[]
   summary: {
@@ -291,6 +307,14 @@ export type EvalDetail = {
     answered_rate: number
     citation_rate: number
     reviewed_accuracy: number | null
+    answer_accuracy?: number | null
+    reviewed_coverage?: number | null
+    retrieval_measured_count?: number
+    document_recall_at_k?: number | null
+    document_hit_at_k?: number | null
+    evidence_recall_at_k?: number | null
+    evidence_overlap_at_k?: number | null
+    correct_refusal_rate?: number | null
   }
 }
 
@@ -301,6 +325,9 @@ export type EvalRunComparison = {
   baseline_summary: EvalDetail['summary']
   candidate_summary: EvalDetail['summary']
   delta: Record<string, number | null>
+  same_test_set: boolean
+  question_changes: Array<{ eval_case_id: string; baseline_question: string | null; candidate_question: string | null;
+    comparable: boolean; baseline_status: string | null; candidate_status: string | null; baseline_score: number | null; candidate_score: number | null }>
 }
 
 type ApiOptions = {
@@ -308,6 +335,8 @@ type ApiOptions = {
   data?: unknown
   headers?: Record<string, string>
   skipAuthRefresh?: boolean
+  signal?: AbortSignal
+  timeoutMs?: number
 }
 
 export type AuthUser = {
@@ -367,6 +396,10 @@ function readAuthSession(): AuthSession | null {
   return authSession
 }
 
+export function getAuthUserId(): string | null {
+  return readAuthSession()?.user.id || null
+}
+
 export function saveAuthSession(session: AuthSession, remember = true): void {
   authSession = session
   rememberAuthSession = remember
@@ -400,6 +433,7 @@ async function refreshAccessToken(): Promise<boolean> {
     try {
       const response = await Taro.request<AuthResponse>({
         url: urlFor('/auth/refresh'),
+        cache: 'reload',
         method: 'POST',
         data: { refresh_token: current.tokens.refresh_token },
         header: { 'content-type': 'application/json' }
@@ -433,11 +467,14 @@ const readError = (data: unknown, status: number) => {
 }
 
 export async function requestJson<T>(path: string, options: ApiOptions = {}): Promise<T> {
+  if (options.signal?.aborted) throw new ApiRequestError('请求已取消。', 0, 'REQUEST_ABORTED')
   const isPublic = path.startsWith('/public/')
   const current = readAuthSession()
   try {
-    const response = await Taro.request<T>({
+    const task = Taro.request<T>({
       url: urlFor(path),
+      cache: 'reload',
+      timeout: options.timeoutMs ?? 60000,
       method: options.method ?? 'GET',
       data: options.data,
       header: {
@@ -447,6 +484,11 @@ export async function requestJson<T>(path: string, options: ApiOptions = {}): Pr
       },
       credentials: 'include'
     } as Parameters<typeof Taro.request<T>>[0])
+    const abort = () => task.abort?.()
+    options.signal?.addEventListener('abort', abort, { once: true })
+    let response: Awaited<typeof task>
+    try { response = await task } finally { options.signal?.removeEventListener('abort', abort) }
+    if (options.signal?.aborted) throw new ApiRequestError('请求已取消。', 0, 'REQUEST_ABORTED')
     if (response.statusCode === 401 && !isPublic && !options.skipAuthRefresh && (!path.startsWith('/auth/') || path === '/auth/me')) {
       if (await refreshAccessToken()) return requestJson<T>(path, { ...options, skipAuthRefresh: true })
       if (readAuthSession() === current) clearAuthSession()
@@ -454,7 +496,12 @@ export async function requestJson<T>(path: string, options: ApiOptions = {}): Pr
     if (response.statusCode >= 400) throw readError(response.data, response.statusCode)
     return response.data
   } catch (error) {
+    if (options.signal?.aborted) throw new ApiRequestError('请求已取消。', 0, 'REQUEST_ABORTED')
     if (error instanceof ApiRequestError) throw error
+    const failure = error as { name?: string; errMsg?: string; message?: string } | null
+    if (failure?.name === 'AbortError' || /timeout|timed.out/i.test(failure?.errMsg ?? failure?.message ?? '')) {
+      throw new ApiRequestError('请求等待超时，首次加载向量模型可能较慢，请稍后重试。', 0, 'REQUEST_TIMEOUT')
+    }
     throw new ApiRequestError('网络连接失败，请确认后端服务已启动。', 0)
   }
 }
@@ -491,6 +538,7 @@ export async function listSpaces(): Promise<Space[]> {
 }
 
 export async function createSpace(input: {
+  kind?: SpaceKind
   name: string
   description?: string
   visibility: SpaceVisibility
@@ -582,20 +630,39 @@ export async function retryDocument(documentId: string): Promise<KnowledgeDocume
   return result.document
 }
 
-export async function uploadDocument(
-  spaceId: string,
+type DocumentSubmission = { document: KnowledgeDocument; version_id: string; processing_enqueued: boolean }
+
+export function uploadDocument(spaceId: string, file: UploadFile, categoryId: string | null, onProgress?: (progress: number) => void): Promise<DocumentSubmission> {
+  return uploadDocumentAt(`/spaces/${spaceId}/documents`, file, categoryId, onProgress)
+}
+
+export function uploadDocumentVersion(documentId: string, file: File, onProgress?: (progress: number) => void, signal?: AbortSignal): Promise<DocumentSubmission> {
+  return uploadDocumentAt(`/documents/${documentId}/versions`, file, null, onProgress, signal)
+}
+
+export function retryDocumentVersion(documentId: string, versionId: string): Promise<DocumentSubmission> {
+  return requestJson(`/documents/${documentId}/versions/${versionId}/retry`, { method: 'POST' })
+}
+
+async function uploadDocumentAt(
+  path: string,
   file: UploadFile,
   categoryId: string | null,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
+  signal?: AbortSignal
 ): Promise<{ document: KnowledgeDocument; version_id: string; processing_enqueued: boolean }> {
   const isBrowserFile = typeof File !== 'undefined' && file instanceof File
+  if (signal?.aborted) throw new ApiRequestError('上传已取消。', 0, 'REQUEST_ABORTED')
   if (process.env.TARO_ENV === 'h5' && isBrowserFile && typeof XMLHttpRequest !== 'undefined') {
     return new Promise((resolve, reject) => {
       const request = new XMLHttpRequest()
+      const abort = () => request.abort()
+      const cleanup = () => signal?.removeEventListener('abort', abort)
+      signal?.addEventListener('abort', abort, { once: true })
       const body = new FormData()
       body.append('file', file, file.name)
       if (categoryId) body.append('category_id', categoryId)
-      request.open('POST', urlFor(`/spaces/${spaceId}/documents`))
+      request.open('POST', urlFor(path))
       request.withCredentials = true
       const token = readAuthSession()?.tokens.access_token
       if (token) request.setRequestHeader('Authorization', `Bearer ${token}`)
@@ -604,14 +671,15 @@ export async function uploadDocument(
         if (event.lengthComputable) onProgress?.(Math.round((event.loaded / event.total) * 100))
       }
       request.onload = () => {
+        cleanup()
         if (request.status >= 200 && request.status < 300) {
           resolve(request.response as { document: KnowledgeDocument; version_id: string; processing_enqueued: boolean })
         } else {
           reject(readError(request.response, request.status))
         }
       }
-      request.onerror = () => reject(new ApiRequestError('上传失败，请检查网络后重试。', 0))
-      request.onabort = () => reject(new ApiRequestError('上传已取消。', 0))
+      request.onerror = () => { cleanup(); reject(new ApiRequestError('上传失败，请检查网络后重试。', 0)) }
+      request.onabort = () => { cleanup(); reject(new ApiRequestError('上传已取消。', 0, 'REQUEST_ABORTED')) }
       request.send(body)
     })
   }
@@ -620,7 +688,7 @@ export async function uploadDocument(
     throw new ApiRequestError("当前平台无法读取所选文件，请重新选择。", 0)
   }
   const task = Taro.uploadFile({
-    url: urlFor(`/spaces/${spaceId}/documents`),
+    url: urlFor(path),
     filePath: file.path,
     fileName: file.name,
     name: 'file',
@@ -706,7 +774,10 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
       if (!payload || payload === '[DONE]') continue
       try {
         const parsed = JSON.parse(payload) as T & { text?: unknown }
-        if (eventName === 'delta' && typeof parsed.text === 'string') {
+        if (eventName === 'error') {
+          onText('')
+          throw readError(parsed, 409)
+        } else if (eventName === 'delta' && typeof parsed.text === 'string') {
           streamedText += parsed.text
           onText(streamedText)
         } else if (typeof parsed.answer === 'string') {
@@ -714,7 +785,8 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
           streamedText = parsed.answer
           onText(parsed.answer)
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof ApiRequestError) throw error
         // Ignore malformed events; an absent final answer still fails below.
       }
     }
@@ -736,6 +808,9 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
         consumeEvents(events)
         if (done) break
       }
+    } catch (failure) {
+      await reader.cancel().catch(() => undefined)
+      throw failure
     } finally {
       reader.releaseLock()
     }
@@ -859,11 +934,11 @@ export async function listMembers(spaceId: string): Promise<SpaceMember[]> {
   return requestJson<SpaceMember[]>(`/spaces/${spaceId}/members`)
 }
 
-export async function addMember(spaceId: string, input: { email: string; role: 'EDITOR' | 'MEMBER' }): Promise<SpaceMember> {
+export async function addMember(spaceId: string, input: { email: string; role: 'ADMIN' | 'EDITOR' | 'MEMBER' }): Promise<SpaceMember> {
   return requestJson<SpaceMember>(`/spaces/${spaceId}/members`, { method: 'POST', data: input })
 }
 
-export async function changeMemberRole(spaceId: string, userId: string, role: 'EDITOR' | 'MEMBER'): Promise<SpaceMember> {
+export async function changeMemberRole(spaceId: string, userId: string, role: 'ADMIN' | 'EDITOR' | 'MEMBER'): Promise<SpaceMember> {
   return requestJson<SpaceMember>(`/spaces/${spaceId}/members/${userId}`, { method: 'PATCH', data: { role } })
 }
 
@@ -925,6 +1000,9 @@ export async function createEvalCase(spaceId: string, input: {
   expected_document_ids?: string[]
   scope?: EvalCase['scope']
   category_ids?: string[]
+  answerable?: boolean | null
+  expected_behavior?: string | null
+  evidence_refs?: EvidenceRef[]
 }): Promise<EvalCase> {
   return requestJson<EvalCase>(`/spaces/${spaceId}/eval-cases`, { method: 'POST', data: input })
 }
@@ -935,6 +1013,9 @@ export async function updateEvalCase(caseId: string, input: Partial<{
   expected_document_ids: string[]
   scope: EvalCase['scope']
   category_ids: string[]
+  answerable: boolean | null
+  expected_behavior: string | null
+  evidence_refs: EvidenceRef[]
 }>): Promise<EvalCase> {
   return requestJson<EvalCase>(`/eval-cases/${caseId}`, { method: 'PATCH', data: input })
 }
@@ -978,6 +1059,88 @@ export async function listEvalVersions(spaceId: string, limit = 20): Promise<Eva
 
 export async function runEvalVersion(versionId: string): Promise<EvalDetail> {
   return requestJson<EvalDetail>(`/eval-versions/${versionId}/runs`, { method: 'POST' })
+}
+
+export type EvidenceRef = {
+  document_id: string
+  document_version_id: string
+  source_block_id: string
+  char_start: number
+  char_end: number
+  text_hash: string
+  required: boolean
+}
+
+export type RetrievalItem = {
+  rank: number
+  chunk_id: string
+  document_id: string
+  document_version_id: string | null
+  document_name: string
+  content: string
+  page_number: number | null
+  ordinal: number
+  score: number
+  source_block_id: string | null
+  char_start: number | null
+  char_end: number | null
+  content_hash: string | null
+  token_count: number | null
+}
+
+export type RetrievalRun = {
+  status: 'COMPLETED'
+  run_id: string
+  space_id: string
+  question: string
+  top_k: number
+  access_revision: number
+  knowledge_revision: number
+  model_name: string
+  created_at: string
+  timings_ms: { embedding: number; search: number; total: number }
+  items: RetrievalItem[]
+  unavailable_chunk_ids: string[]
+}
+
+export type OwnerDocumentDetail = {
+  document: KnowledgeDocument
+  versions: Array<{ id: string; version_number: number; status: string; parser_version: string;
+    embedding_model: string; embedding_dimension: number; created_at: string }>
+  chunks: RetrievalItem[]
+}
+
+export async function getOwnerDocumentDetail(spaceId: string, documentId: string, signal?: AbortSignal): Promise<OwnerDocumentDetail> {
+  return requestJson<OwnerDocumentDetail>(`/owner/spaces/${spaceId}/documents/${documentId}`, { signal })
+}
+
+export type EvalEvidence = { items: RetrievalItem[]; unavailable_chunk_ids: string[]; snapshot_available: boolean }
+export function getEvalEvidence(runId: string, resultId: string, signal?: AbortSignal): Promise<EvalEvidence> {
+  return requestJson(`/owner/eval-runs/${runId}/results/${resultId}/evidence`, { signal })
+}
+
+export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal): Promise<RetrievalRun> {
+  return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK }, signal, timeoutMs: 660000 })
+}
+
+export async function getRetrievalRun(runId: string, signal?: AbortSignal): Promise<RetrievalRun> {
+  return requestJson<RetrievalRun>(`/owner/retrieval-runs/${runId}`, { signal })
+}
+
+export async function enqueueEvaluation(spaceId: string): Promise<EvalRun> {
+  return requestJson<EvalRun>(`/spaces/${spaceId}/eval-runs/async`, { method: 'POST' })
+}
+
+export async function enqueueEvalVersion(versionId: string): Promise<EvalRun> {
+  return requestJson<EvalRun>(`/eval-versions/${versionId}/runs/async`, { method: 'POST' })
+}
+
+export async function getEvalRun(runId: string, signal?: AbortSignal): Promise<EvalDetail> {
+  return requestJson<EvalDetail>(`/eval-runs/${runId}`, { signal })
+}
+
+export async function retryEvalRun(runId: string): Promise<EvalRun> {
+  return requestJson<EvalRun>(`/eval-runs/${runId}/retry`, { method: 'POST' })
 }
 
 export function formatFileSize(bytes: number): string {

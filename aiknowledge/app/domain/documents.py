@@ -6,6 +6,10 @@ from enum import StrEnum
 from uuid import UUID
 
 
+class DocumentVersionConflictError(ValueError):
+    pass
+
+
 class DocumentFormat(StrEnum):
     PDF = "PDF"
     DOCX = "DOCX"
@@ -167,6 +171,7 @@ class StoredDocumentVersion:
     status: DocumentVersionStatus
     created_at: datetime
     activated_at: datetime | None = None
+    source_snapshot: dict[str, object] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -183,6 +188,9 @@ class PersistedChunk:
     content_hash: str
     token_count: int
     embedding: list[float]
+    source_block_id: str | None = None
+    char_start: int | None = None
+    char_end: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

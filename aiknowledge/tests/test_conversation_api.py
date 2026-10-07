@@ -23,6 +23,24 @@ from app.main import create_app
 from app.api.v1.conversations import OwnerAnswerResponse, _as_sse
 
 
+@pytest.mark.asyncio
+async def test_sse_stops_output_when_access_is_revoked_mid_stream():
+    from types import SimpleNamespace
+    checks = 0
+    async def disconnected():
+        return False
+    async def check():
+        nonlocal checks
+        checks += 1
+        return checks == 1
+    payload = OwnerAnswerResponse.model_construct(answer='证据回答' * 30)
+    response = _as_sse(payload, SimpleNamespace(is_disconnected=disconnected), scope_check=check)
+    events = [event async for event in response.body_iterator]
+    assert len([x for x in events if x.startswith('event: delta')]) == 1
+    assert any('SCOPE_CHANGED' in x for x in events)
+    assert not any(x.startswith('event: answer') or x.startswith('event: done') for x in events)
+
+
 class FakeConversationService:
     def __init__(self, space_id: UUID, share_link_id: UUID) -> None:
         self.space_id = space_id

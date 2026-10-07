@@ -46,6 +46,8 @@ class DocumentManagementRepository(Protocol):
         self, document_id: UUID
     ) -> tuple[StoredDocument, StoredDocumentVersion] | None: ...
 
+    async def retry_failed_version(self, document_id: UUID, version_id: UUID) -> tuple[StoredDocument, StoredDocumentVersion] | None: ...
+
     async def fail_processing_version(
         self, *, version_id: UUID, code: DocumentFailureCode, message: str
     ) -> None: ...
@@ -129,6 +131,23 @@ class DocumentManagementService:
                 return context
         return retried
 
+    async def retry_version(self, document_id: UUID, version_id: UUID, *, owner_user_id: UUID | None = None) -> DocumentSubmission:
+        await self._get_mutable_document(document_id, owner_user_id=owner_user_id)
+        retried = await self._repository.retry_failed_version(document_id, version_id)
+        if retried is None:
+            raise DocumentRetryNotAllowedError("只有失败且没有其他处理任务的版本可以重试。")
+        await self._repository.commit()
+        enqueued = True
+        try:
+            await self._dispatcher.enqueue_processing(version_id)
+        except Exception:
+            enqueued = False
+            await self._repository.fail_processing_version(version_id=version_id,
+                code=DocumentFailureCode.QUEUE_UNAVAILABLE, message="处理队列暂不可用，请稍后重试。")
+            await self._repository.commit()
+        current = await self._repository.get_document(document_id)
+        return DocumentSubmission(current or retried[0], retried[1], enqueued)
+
     async def delete(self, document_id: UUID, *, owner_user_id: UUID | None = None) -> StoredDocument:
         document = await self._get_mutable_document(document_id, owner_user_id=owner_user_id)
         await self._repository.mark_document_deleted(document_id)
@@ -197,7 +216,7 @@ class DocumentManagementService:
 
     @staticmethod
     def _role_at_least(actual: SpaceRole, minimum: SpaceRole) -> bool:
-        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.ADMIN: 2, SpaceRole.OWNER: 3}
         return order[actual] >= order[minimum]
 
 
@@ -215,6 +234,12 @@ class DocumentApplicationService:
 
     async def upload(self, **kwargs: object) -> DocumentSubmission:
         return await self._upload_service.upload(**kwargs)
+
+    async def replace_document(self, document_id: UUID, **kwargs: object) -> DocumentSubmission:
+        return await self._upload_service.replace_document(document_id, **kwargs)
+
+    async def retry_version(self, document_id: UUID, version_id: UUID, **kwargs: object) -> DocumentSubmission:
+        return await self._management_service.retry_version(document_id, version_id, **kwargs)
 
     async def list_documents(self, space_id: UUID, **kwargs: object) -> list[StoredDocument]:
         return await self._management_service.list_documents(space_id, **kwargs)  # type: ignore[arg-type]

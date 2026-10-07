@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import get_database_session, get_optional_current_user
+from app.api.dependencies import get_database_session, get_optional_current_user, get_current_user
 from app.core.errors import AppError
 from app.domain.conversations import (
     EvalCase,
@@ -25,6 +25,7 @@ from app.domain.conversations import (
     EvaluationRunDetail,
 )
 from app.domain.users import User
+from app.domain.evaluation import EvidenceRef
 
 
 router = APIRouter(tags=["evaluations"])
@@ -73,6 +74,9 @@ class EvalCaseCreateRequest(BaseModel):
     expected_document_ids: list[UUID] = Field(default_factory=list, max_length=100)
     scope: EvalScope = EvalScope.OWNER
     category_ids: list[UUID] = Field(default_factory=list, max_length=100)
+    answerable: bool | None = Field(default=None, strict=True)
+    expected_behavior: str | None = Field(default=None, pattern='^(ANSWERED|INSUFFICIENT_EVIDENCE|OUT_OF_SCOPE|CONFLICT)$')
+    evidence_refs: list[EvidenceRef] = Field(default_factory=list, max_length=100)
 
 
 class EvalCaseUpdateRequest(BaseModel):
@@ -83,6 +87,9 @@ class EvalCaseUpdateRequest(BaseModel):
     expected_document_ids: list[UUID] | None = Field(default=None, max_length=100)
     scope: EvalScope | None = None
     category_ids: list[UUID] | None = Field(default=None, max_length=100)
+    answerable: bool | None = Field(default=None, strict=True)
+    expected_behavior: str | None = Field(default=None, pattern='^(ANSWERED|INSUFFICIENT_EVIDENCE|OUT_OF_SCOPE|CONFLICT)$')
+    evidence_refs: list[EvidenceRef] | None = Field(default=None, max_length=100)
 
 
 class EvalCaseResponse(BaseModel):
@@ -94,6 +101,9 @@ class EvalCaseResponse(BaseModel):
     scope: EvalScope
     category_ids: list[UUID]
     created_at: datetime
+    answerable: bool | None = None
+    expected_behavior: str | None = None
+    evidence_refs: list[EvidenceRef] = Field(default_factory=list)
 
     @classmethod
     def from_domain(cls, case: EvalCase) -> "EvalCaseResponse":
@@ -106,6 +116,9 @@ class EvalCaseResponse(BaseModel):
             scope=case.scope,
             category_ids=list(case.category_ids),
             created_at=case.created_at,
+            answerable=case.answerable,
+            expected_behavior=case.expected_behavior,
+            evidence_refs=list(case.evidence_refs),
         )
 
 
@@ -117,6 +130,7 @@ class EvalSetVersionCreateRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
     label: str = Field(min_length=1, max_length=120)
+    case_ids: list[UUID] | None = Field(default=None, min_length=1, max_length=50)
 
 
 class EvalSetVersionResponse(BaseModel):
@@ -151,6 +165,9 @@ class EvalResultResponse(BaseModel):
     citation_count: int
     reviewer_score: float | None
     reviewer_note: str | None
+    execution_snapshot: dict[str, object] | None = None
+    retrieval_metrics: dict[str, object] | None = None
+    failure_code: str | None = None
 
     @classmethod
     def from_domain(cls, result: EvalResult) -> "EvalResultResponse":
@@ -162,6 +179,9 @@ class EvalResultResponse(BaseModel):
             citation_count=result.citation_count,
             reviewer_score=result.reviewer_score,
             reviewer_note=result.reviewer_note,
+            execution_snapshot=result.execution_snapshot,
+            retrieval_metrics=result.retrieval_metrics,
+            failure_code=result.failure_code,
         )
 
 
@@ -174,6 +194,11 @@ class EvalRunResponse(BaseModel):
     completed_at: datetime | None
     failure_message: str | None
     created_at: datetime
+    progress_total: int = 0
+    progress_completed: int = 0
+    heartbeat_at: datetime | None = None
+    task_id: str | None = None
+    failure_code: str | None = None
 
     @classmethod
     def from_domain(cls, run: EvalRun) -> "EvalRunResponse":
@@ -186,6 +211,11 @@ class EvalRunResponse(BaseModel):
             completed_at=run.completed_at,
             failure_message=run.failure_message,
             created_at=run.created_at,
+            progress_total=run.progress_total,
+            progress_completed=run.progress_completed,
+            heartbeat_at=run.heartbeat_at,
+            task_id=run.task_id,
+            failure_code=run.failure_code,
         )
 
 
@@ -207,6 +237,14 @@ class EvalSummaryResponse(BaseModel):
     answered_rate: float = 0.0
     citation_rate: float = 0.0
     reviewed_accuracy: float | None = None
+    answer_accuracy: float | None = None
+    reviewed_coverage: float | None = None
+    retrieval_measured_count: int = 0
+    document_recall_at_k: float | None = None
+    document_hit_at_k: float | None = None
+    evidence_recall_at_k: float | None = None
+    evidence_overlap_at_k: float | None = None
+    correct_refusal_rate: float | None = None
 
 
 class EvalRunDetailResponse(BaseModel):
@@ -229,12 +267,15 @@ class EvalRunComparisonResponse(BaseModel):
     baseline_summary: EvalSummaryResponse
     candidate_summary: EvalSummaryResponse
     delta: dict[str, float | None]
+    same_test_set: bool
+    question_changes: list[dict[str, object]]
 
     @classmethod
     def from_domain(cls, comparison: EvaluationRunComparison) -> "EvalRunComparisonResponse":
         baseline_summary = _summary(comparison.baseline)
         candidate_summary = _summary(comparison.candidate)
         metric_names = (
+            "answer_accuracy", "reviewed_coverage", "document_recall_at_k", "document_hit_at_k", "evidence_recall_at_k", "correct_refusal_rate",
             "total",
             "answered",
             "insufficient_evidence",
@@ -263,6 +304,8 @@ class EvalRunComparisonResponse(BaseModel):
             baseline_summary=baseline_summary,
             candidate_summary=candidate_summary,
             delta=delta,
+            same_test_set=comparison.same_test_set,
+            question_changes=comparison.question_changes,
         )
 
 
@@ -275,7 +318,19 @@ class EvalResultReviewRequest(BaseModel):
 
 def _summary(detail: EvaluationRunDetail) -> EvalSummaryResponse:
     results = detail.results
+    reviewed = [item for item in results if item.reviewer_score is not None]
+    def mean_metric(key):
+        values = [item.retrieval_metrics[key] for item in results if item.retrieval_metrics is not None and item.retrieval_metrics.get(key) is not None]
+        return sum(values)/len(values) if values else None
     return EvalSummaryResponse(
+        answer_accuracy=sum(item.reviewer_score == 1. for item in reviewed)/len(reviewed) if reviewed else None,
+        reviewed_coverage=len(reviewed)/len(results) if results else None,
+        retrieval_measured_count=sum(item.retrieval_metrics is not None and item.retrieval_metrics.get('document_recall_at_k') is not None for item in results),
+        document_recall_at_k=mean_metric('document_recall_at_k'),
+        document_hit_at_k=mean_metric('document_hit_at_k'),
+        evidence_recall_at_k=mean_metric('evidence_recall_at_k'),
+        evidence_overlap_at_k=mean_metric('evidence_overlap_at_k'),
+        correct_refusal_rate=mean_metric('refusal_correct'),
         total=len(results),
         answered=sum(result.answer_status.value == "ANSWERED" for result in results),
         insufficient_evidence=sum(
@@ -364,6 +419,7 @@ async def create_eval_case(
 ) -> EvalCaseResponse:
     try:
         kwargs = {"space_id": space_id, **payload.model_dump()}
+        kwargs['evidence_refs'] = tuple(payload.evidence_refs)
         if _current_user is not None:
             kwargs["owner_user_id"] = _current_user.id
         case = await service.create_case(**kwargs)
@@ -388,6 +444,9 @@ async def update_eval_case(
             "expected_document_ids",
             "scope",
             "category_ids",
+            'answerable',
+            'expected_behavior',
+            'evidence_refs',
         )
         if field in payload.model_fields_set
     }
@@ -521,7 +580,7 @@ async def create_evaluation_version(
     service: EvaluationServicePort = Depends(get_evaluation_service),
     _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
 ) -> EvalSetVersionResponse:
-    kwargs: dict[str, object] = {"space_id": space_id, **payload.model_dump()}
+    kwargs: dict[str, object] = {"space_id": space_id, **payload.model_dump(exclude_unset=True)}
     if _current_user is not None:
         kwargs["owner_user_id"] = _current_user.id
     try:
@@ -600,3 +659,33 @@ async def review_evaluation_result(
         _translate_evaluation_error(error)
         raise
     return EvalResultResponse.from_domain(result)
+
+
+@router.post('/spaces/{space_id}/eval-runs/async', status_code=202, response_model=EvalRunResponse)
+async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service)):
+    try:
+        run = await service.enqueue_run(space_id=space_id, owner_user_id=user.id)
+    except Exception as error:
+        _translate_evaluation_error(error)
+        raise
+    return EvalRunResponse.from_domain(run)
+
+
+@router.post('/eval-versions/{version_id}/runs/async', status_code=202, response_model=EvalRunResponse)
+async def enqueue_version(version_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service)):
+    try:
+        run = await service.enqueue_run(version_id=version_id, owner_user_id=user.id)
+    except Exception as error:
+        _translate_evaluation_error(error)
+        raise
+    return EvalRunResponse.from_domain(run)
+
+
+@router.post('/eval-runs/{run_id}/retry', status_code=202, response_model=EvalRunResponse)
+async def redispatch_evaluation(run_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service)):
+    try:
+        run = await service.redispatch_run(run_id, owner_user_id=user.id)
+    except Exception as error:
+        _translate_evaluation_error(error)
+        raise
+    return EvalRunResponse.from_domain(run)

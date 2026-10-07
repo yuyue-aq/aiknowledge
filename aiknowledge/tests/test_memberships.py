@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
 
-from app.domain.spaces import KnowledgeSpace, SpaceVisibility
+from app.domain.spaces import KnowledgeSpace, SpaceVisibility, SpaceKind
 from app.domain.users import SpaceMembership, SpaceRole, User, UserStatus
 from app.services.memberships import (
     MembershipAccessDeniedError,
@@ -24,6 +24,7 @@ class FakeMembershipRepository:
             id=uuid4(), name="空间", description=None, visibility=SpaceVisibility.PRIVATE,
             guest_feedback_enabled=False, created_at=self.now, updated_at=self.now,
             owner_user_id=self.owner.id,
+            kind=SpaceKind.TEAM,
         )
         self.memberships: dict[tuple[UUID, UUID], SpaceMembership] = {
             (self.space.id, self.owner.id): SpaceMembership(self.space.id, self.owner.id, SpaceRole.OWNER, self.now)
@@ -91,3 +92,35 @@ async def test_duplicate_or_cross_space_member_mutations_are_rejected() -> None:
 
     with pytest.raises(MembershipAccessDeniedError):
         await service.list_members(space_id=repository.space.id, actor_user_id=repository.member.id)
+
+
+@pytest.mark.asyncio
+async def test_personal_space_rejects_additional_administrators_and_members():
+    repository = FakeMembershipRepository()
+    repository.space = replace(repository.space, kind=SpaceKind.PERSONAL)
+    service = MembershipService(repository=repository)
+    for role in (SpaceRole.ADMIN, SpaceRole.EDITOR, SpaceRole.MEMBER):
+        with pytest.raises(MembershipAccessDeniedError, match="个人空间"):
+            await service.add_member(space_id=repository.space.id, actor_user_id=repository.owner.id,
+                                     email=repository.member.email, role=role)
+    assert len(repository.memberships) == 1
+
+
+@pytest.mark.asyncio
+async def test_team_administrator_can_manage_knowledge_but_cannot_manage_members_or_become_owner():
+    repository = FakeMembershipRepository()
+    service = MembershipService(repository=repository)
+    member = await service.add_member(space_id=repository.space.id, actor_user_id=repository.owner.id,
+                                      email=repository.member.email, role=SpaceRole.ADMIN)
+    assert member.role is SpaceRole.ADMIN
+    assert service._role_at_least(SpaceRole.ADMIN, SpaceRole.EDITOR)
+    assert not service._role_at_least(SpaceRole.ADMIN, SpaceRole.OWNER)
+    with pytest.raises(MembershipAccessDeniedError):
+        await service.change_role(space_id=repository.space.id, actor_user_id=repository.member.id,
+                                  member_user_id=repository.member.id, role=SpaceRole.OWNER)
+    with pytest.raises(MembershipAccessDeniedError):
+        await service.change_role(space_id=repository.space.id, actor_user_id=repository.owner.id,
+                                  member_user_id=repository.member.id, role=SpaceRole.OWNER)
+    changed = await service.change_role(space_id=repository.space.id, actor_user_id=repository.owner.id,
+                                       member_user_id=repository.member.id, role=SpaceRole.MEMBER)
+    assert changed.role is SpaceRole.MEMBER

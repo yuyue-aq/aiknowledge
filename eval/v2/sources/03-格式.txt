@@ -1,0 +1,1 @@
+松岚协作台支持可复制文本的PDF、DOCX、Markdown和TXT；扫描PDF暂不支持OCR。

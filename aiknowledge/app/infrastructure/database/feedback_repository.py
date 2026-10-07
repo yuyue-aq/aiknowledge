@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Sequence
+from dataclasses import replace
 from uuid import UUID
 
 from sqlalchemy import exists, or_, select
@@ -18,6 +19,7 @@ from app.infrastructure.database.models import (
     ConversationRecord,
     KnowledgeSpaceRecord,
     MessageRecord,
+    RagRunRecord,
     SpaceMembershipRecord,
 )
 from app.domain.users import SpaceRole
@@ -127,8 +129,9 @@ class SqlAlchemyFeedbackRepository:
         is_guest: bool | None = None,
     ) -> list[Feedback]:
         statement = (
-            select(FeedbackRecord)
+            select(FeedbackRecord, RagRunRecord.rewritten_question, MessageRecord.content)
             .join(MessageRecord, FeedbackRecord.message_id == MessageRecord.id)
+            .outerjoin(RagRunRecord, RagRunRecord.message_id == MessageRecord.id)
             .join(
                 ConversationRecord,
                 MessageRecord.conversation_id == ConversationRecord.id,
@@ -142,8 +145,9 @@ class SqlAlchemyFeedbackRepository:
             statement = statement.where(FeedbackRecord.rating == rating)
         if is_guest is not None:
             statement = statement.where(FeedbackRecord.is_guest == is_guest)
-        records = await self._session.scalars(statement)
-        return [self._to_feedback(record, space_id=space_id) for record in records.all()]
+        records = await self._session.execute(statement)
+        return [replace(self._to_feedback(record, space_id=space_id), question=question, original_answer=answer)
+            for record, question, answer in records.all()]
 
     async def get_feedback(self, feedback_id: UUID) -> Feedback | None:
         record = await self._session.get(FeedbackRecord, feedback_id)

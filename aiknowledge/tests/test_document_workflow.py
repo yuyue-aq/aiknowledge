@@ -196,6 +196,9 @@ async def test_upload_persists_a_processing_version_before_dispatching_an_opaque
     assert dispatcher.commit_count_when_enqueued == 1
     assert result.document.id == document.id
     assert result.version.id == version.id
+    assert version.chunk_config['token_count_strategy'] == 'model_tokenizer'
+    assert version.chunk_config['max_tokens_including_special'] == 512
+    assert version.chunk_config['preserve_source_offsets'] is True
 
 
 @pytest.mark.asyncio
@@ -269,6 +272,25 @@ async def test_worker_activates_a_version_only_after_parser_and_embedding_succee
     assert chunks[0].content == "可检索资料"
     assert chunks[0].embedding == [0.1, 0.2, 0.3]
     assert repository.failed is None
+
+
+@pytest.mark.asyncio
+async def test_worker_retains_actual_token_count_and_exact_source_offsets():
+    repository, storage = FakeRepository(), FakeStorage()
+    submitted = await create_upload_service(repository, storage, FakeDispatcher(repository)).upload(
+        space_id=uuid4(), category_id=None, filename='资料.txt', content=b'source', content_type='text/plain')
+
+    class TokenizedIngestion(FakeIngestionService):
+        async def prepare(self, document):
+            prepared = await super().prepare(document)
+            return PreparedDocument(chunks=(replace(prepared.chunks[0], token_count=4,
+                source_block_id='block-1', char_start=7, char_end=12),))
+
+    processor = DocumentProcessingService(repository=repository, storage=storage, parser=FakeParser(), ingestion_service=TokenizedIngestion())
+    await processor.process(submitted.version.id)
+    chunk = repository.activated[1][0]
+    assert chunk.token_count == 4
+    assert (chunk.source_block_id, chunk.char_start, chunk.char_end) == ('block-1', 7, 12)
 
 
 @pytest.mark.asyncio

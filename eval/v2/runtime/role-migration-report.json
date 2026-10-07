@@ -1,0 +1,7 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "populated_0016_to_0022_preserves_versions_chunks_unknown_coordinates",
+    "database_rejects_second_owner_without_demotion_or_data_loss"
+  ]
+}

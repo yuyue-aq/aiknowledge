@@ -1,0 +1,2527 @@
+[
+  {
+    "id": "T001",
+    "question": "根据这份虚构档案，档案人物叫什么？",
+    "expected_answer": "林知远",
+    "kind": "事实",
+    "required_facts": [
+      "林知远"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "379e6b5d-5f68-4a6c-b41d-a1ff2ebbc1a4",
+    "response": {
+      "message_id": "8a76f2cc-b68f-40c8-bf66-4b4dde100266",
+      "status": "ANSWERED",
+      "answer": "档案人物叫林知远。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "仅用于 RAG 验收 | 不含真实个人信息\n第 1 页\n01 基本信息与教育经历\n林知远项目档案与知识库规则 | 虚构资料 | RAG-DEMO-001 | 版本 1.0\n资料说明\n本资料中的人物、学校、公司、项目与指标均为虚构，仅用于知识库功能验收。资料编号：RAG-DEMO-001。\n版本：1.0。更新时间：2026-10-03。\n基本信息\n姓名：林知远。求职方向：Python 后端开发与 RAG 应用开发。当前所在地：南京。最高学历：本科。该资\n料未提供手机号、邮箱、身份证号、薪资、家庭信息或真实联系方式。\n教育经历\n2021 年 9 月至 2025 年 6 月，林知远就读于虚构的江宁信息学院，专业为软件工程，获得工学学士学位。毕业\n设计为“课程资料检索助手”。\n专业技能\n熟悉 Python、FastAPI、PostgreSQL、Redis 和 Docker；能够使用 React 与 TypeScript 开发管理页面；了解 PDF\n解析、文本分块、Embedding、余弦相似度、向量检索与引用生成。\n工作经历\n2025 年 7 月至 2026 年 2 月，在虚构的青禾软件工作室担任后端开发实习生，参与接口开发、日志排查和自动\n化测试。团队规模、主管姓名和离职原因均未记录。\n项目总览\n项目 A 是“知舟私有知识库”，侧重文档检索与有依据问答；项目 B 是“仓流库存管理”，侧重库存业务与\n并发控制。两个项目的职责、指标和技术栈分别记录于后续章节。",
+          "page_number": 1,
+          "ordinal": 1,
+          "score": 0.351782
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T002",
+    "question": "根据这份虚构档案，他的求职方向有哪些？",
+    "expected_answer": "Python后端开发与RAG应用开发",
+    "kind": "事实",
+    "required_facts": [
+      "Python后端开发与RAG应用开发"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "764ca3eb-a58e-4da6-a471-5321dd576b00",
+    "response": {
+      "message_id": "3abe3217-33a5-4fd0-8978-25bd6fd5b9e1",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T003",
+    "question": "根据这份虚构档案，他当前位于哪座城市？",
+    "expected_answer": "南京",
+    "kind": "事实",
+    "required_facts": [
+      "南京"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "6d773435-f43a-4dd1-9b47-a349724967cb",
+    "response": {
+      "message_id": "f766ef0a-438d-4336-8adb-29e68c39a4b2",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T004",
+    "question": "根据这份虚构档案，他的最高学历是什么？",
+    "expected_answer": "本科",
+    "kind": "事实",
+    "required_facts": [
+      "本科"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "0a751886-0406-479e-b27e-769840717859",
+    "response": {
+      "message_id": "25c8eac8-a37e-4b16-ada4-ea77dab59dbb",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T005",
+    "question": "根据这份虚构档案，学校名称是什么？",
+    "expected_answer": "江宁信息学院，虚构学校",
+    "kind": "事实",
+    "required_facts": [
+      "江宁信息学院，虚构学校"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "98294f42-4cb5-4c0b-b445-c046581a1f29",
+    "response": {
+      "message_id": "a076acf9-678f-4b0e-ba87-baa345d061fa",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T006",
+    "question": "根据这份虚构档案，本科专业是什么？",
+    "expected_answer": "软件工程",
+    "kind": "事实",
+    "required_facts": [
+      "软件工程"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "575e8ce0-7f5b-4a48-a1df-eb59b7e8dc04",
+    "response": {
+      "message_id": "fd8d9590-fa35-42b2-a77c-9fff0b084201",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T007",
+    "question": "根据这份虚构档案，取得哪类学位？",
+    "expected_answer": "工学学士",
+    "kind": "事实",
+    "required_facts": [
+      "工学学士"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "825c7a0c-e9df-4206-99ec-3c70d85556ca",
+    "response": {
+      "message_id": "f6105a26-8972-4b02-a78c-3985b090f9dc",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T008",
+    "question": "根据这份虚构档案，入学和毕业的年月是什么？",
+    "expected_answer": "2021年9月至2025年6月",
+    "kind": "事实",
+    "required_facts": [
+      "2021年9月至2025年6月"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "0b56e061-9d0a-44dc-8d79-d7e0c37359ec",
+    "response": {
+      "message_id": "9586c0e6-b5fe-4c7a-88e3-81543d2434fb",
+      "status": "ANSWERED",
+      "answer": "根据档案，林知远于2021年9月入学，2025年6月毕业。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "2021 年 9 月至 2025 年 6 月，林知远就读于虚构的江宁信息学院，专业为软件工程，获得工学学士学位。毕业设计为“课程资料检索助手”。",
+          "page_number": null,
+          "ordinal": 4,
+          "score": 0.517331
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T009",
+    "question": "根据这份虚构档案，毕业设计名称是什么？",
+    "expected_answer": "课程资料检索助手",
+    "kind": "事实",
+    "required_facts": [
+      "课程资料检索助手"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "b1d3bbd2-b3be-4c2e-ad76-3ace980903d4",
+    "response": {
+      "message_id": "53d676c8-75c3-4eaf-b62f-3e0f8b217f06",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T010",
+    "question": "根据这份虚构档案，实习单位叫什么？",
+    "expected_answer": "青禾软件工作室，虚构单位",
+    "kind": "事实",
+    "required_facts": [
+      "青禾软件工作室，虚构单位"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "f8176982-ceb1-41f2-9369-befbdfe7ef56",
+    "response": {
+      "message_id": "a95dc669-1328-42a5-9b9a-ea644dabafbb",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T011",
+    "question": "根据这份虚构档案，实习起止年月是什么？",
+    "expected_answer": "2025年7月至2026年2月",
+    "kind": "事实",
+    "required_facts": [
+      "2025年7月至2026年2月"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "07f31c14-f08d-4d98-bfa1-12554b8ee09d",
+    "response": {
+      "message_id": "915c18ce-5313-496d-b09a-4bc8735b2831",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T012",
+    "question": "根据这份虚构档案，实习岗位是什么？",
+    "expected_answer": "后端开发实习生",
+    "kind": "事实",
+    "required_facts": [
+      "后端开发实习生"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "41711a35-75ec-4535-89dc-2b691077c42b",
+    "response": {
+      "message_id": "e3264525-6d11-4d00-8064-435ec79d498f",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T013",
+    "question": "根据这份虚构档案，实习参与了哪些工作？",
+    "expected_answer": "接口开发、日志排查、自动化测试",
+    "kind": "事实",
+    "required_facts": [
+      "接口开发、日志排查、自动化测试"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "319fbdad-af38-42e2-b806-e545d6437373",
+    "response": {
+      "message_id": "6ed2b566-b9b4-44c7-8808-acdcae202c60",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T014",
+    "question": "根据这份虚构档案，档案编号是什么？",
+    "expected_answer": "RAG-DEMO-001",
+    "kind": "事实",
+    "required_facts": [
+      "RAG-DEMO-001"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "28f172f4-9c6c-4fe0-b086-fdc041932850",
+    "response": {
+      "message_id": "8b4e558f-6c87-43f4-a397-df9d4edd399d",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T015",
+    "question": "根据这份虚构档案，档案版本是什么？",
+    "expected_answer": "1.0",
+    "kind": "事实",
+    "required_facts": [
+      "1.0"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "218ba2a6-66fc-4c19-8b42-581b1e899d9f",
+    "response": {
+      "message_id": "f69241ef-b286-4019-9f90-d5ca738a9db1",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T016",
+    "question": "根据这份虚构档案，档案更新时间是哪天？",
+    "expected_answer": "2026-10-03",
+    "kind": "事实",
+    "required_facts": [
+      "2026-10-03"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "94b5abe2-03ad-4d65-b089-4a836b6389ce",
+    "response": {
+      "message_id": "1a7672f0-2058-4991-add7-2ff864fc6079",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T017",
+    "question": "根据这份虚构档案，这些人物和项目是否真实？",
+    "expected_answer": "全部虚构，仅供知识库功能验收",
+    "kind": "事实",
+    "required_facts": [
+      "全部虚构，仅供知识库功能验收"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "3742df8a-285d-4f27-8447-2eaef4778168",
+    "response": {
+      "message_id": "4a98f3d9-85c5-4b74-a7dc-e401836bc102",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T018",
+    "question": "根据这份虚构档案，项目A的全名是什么？",
+    "expected_answer": "知舟私有知识库",
+    "kind": "事实",
+    "required_facts": [
+      "知舟私有知识库"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "7a61f549-357c-4bac-802e-3c6a36a1142d",
+    "response": {
+      "message_id": "73b6a1b4-a9a3-4460-b97a-8d03d7f757b7",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T019",
+    "question": "根据这份虚构档案，项目A的编号是什么？",
+    "expected_answer": "PRJ-A",
+    "kind": "事实",
+    "required_facts": [
+      "PRJ-A"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "27d4973c-c74f-4040-9415-f902953d9304",
+    "response": {
+      "message_id": "0b3118a9-8b74-49bc-9f01-4f8f0a2b1c2b",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T020",
+    "question": "根据这份虚构档案，项目A起止年月是什么？",
+    "expected_answer": "2026年3月至2026年6月",
+    "kind": "事实",
+    "required_facts": [
+      "2026年3月至2026年6月"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "c99e5126-ce37-4522-9f96-2b210427aeb5",
+    "response": {
+      "message_id": "664bf59f-3f8e-4096-88a9-933f299d506e",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T021",
+    "question": "根据这份虚构档案，林知远在项目A中的角色是什么？",
+    "expected_answer": "独立开发者",
+    "kind": "事实",
+    "required_facts": [
+      "独立开发者"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "23238df7-45df-45dd-8eca-2d020709189b",
+    "response": {
+      "message_id": "c9517b03-3fa2-4b22-a6fb-8bdc3b9a9845",
+      "status": "ANSWERED",
+      "answer": "林知远在项目A（知舟私有知识库）中担任独立开发者，负责需求分析、前后端实现、测试与部署。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.txt",
+          "quoted_text": "；了解 PDF 解析、文本分块、Embedding、余弦相似度、向量检索与引用生成。\n工作经历\n2025 年 7 月至 2026 年 2 月，在虚构的青禾软件工作室担任后端开发实习生，参与接口开发、日志排查和自动化测试。团队规模、主管姓名和离职原因均未记录。\n项目总览\n项目 A 是“知舟私有知识库”，侧重文档检索与有依据问答；项目 B 是“仓流库存管理”，侧重库存业务与并发控制。两个项目的职责、指标和技术栈分别记录于后续章节。\n02 项目经历：知舟私有知识库\n项目时间与角色\n项目名称：知舟私有知识库。项目编号：PRJ-A。开发时间：2026 年 3 月至 2026 年 6 月。林知远担任独立开发者，负责需求分析、前后端实现、测试与部署。\n项目目标与技术栈\n项目服务于个人学习资料整理，支持上传 PDF、Markdown 和 TXT 后进行有依据问答。后端采用 Python 与 FastAPI，前端采用 React 与 TypeScript；PostgreSQL 保存业务数据，pgvector 保存向量，Redis 管理异步任务，Docker Compose 用于本地部署。\n个人职责\n林知远实现了文档上传、解析、分块、Embedding、Top K 检索、答案引用、文档停用和空间权限校验。检索阶段先限定空间与资料状态，再进行向量相似度排序。\n分块与检索策略\nMarkdown 先按标题分段；TXT 先按空行划分段落；PDF 保存页码后按段落切分。",
+          "page_number": null,
+          "ordinal": 2,
+          "score": 0.406212
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T022",
+    "question": "根据这份虚构档案，项目A服务哪类需求？",
+    "expected_answer": "个人学习资料整理、文档检索与有依据问答",
+    "kind": "事实",
+    "required_facts": [
+      "个人学习资料整理、文档检索与有依据问答"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "36a2f2f7-67c9-472a-9f73-91e022c37e49",
+    "response": {
+      "message_id": "dd88c896-4129-46fc-81f9-dce9bb74d7e2",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T023",
+    "question": "根据这份虚构档案，项目A接受哪些文件格式？",
+    "expected_answer": "PDF、Markdown、TXT",
+    "kind": "事实",
+    "required_facts": [
+      "PDF、Markdown、TXT"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "832bc0b4-ebdb-4dca-a1a9-a5970dbfa1d4",
+    "response": {
+      "message_id": "59c87343-67a1-4555-9dca-41ce68a80f66",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T024",
+    "question": "根据这份虚构档案，项目A的后端语言与框架是什么？",
+    "expected_answer": "Python、FastAPI",
+    "kind": "事实",
+    "required_facts": [
+      "Python、FastAPI"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "ce375281-6e57-4ad6-b6cb-f75958e60bf8",
+    "response": {
+      "message_id": "7369a999-24a7-4953-bee6-5b2d69518ed5",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T025",
+    "question": "根据这份虚构档案，项目A前端使用什么技术？",
+    "expected_answer": "React、TypeScript",
+    "kind": "事实",
+    "required_facts": [
+      "React、TypeScript"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "10d591d9-20d5-41e7-b81d-5275456d86d5",
+    "response": {
+      "message_id": "a53f1f3e-e395-4707-9451-db3decf2f9cc",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T026",
+    "question": "根据这份虚构档案，项目A的PostgreSQL保存什么？",
+    "expected_answer": "业务数据",
+    "kind": "事实",
+    "required_facts": [
+      "业务数据"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "06c0feab-a3ba-4140-977f-28706b3228c4",
+    "response": {
+      "message_id": "8abf60cc-5175-46ec-b76f-f2f15026d291",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T027",
+    "question": "根据这份虚构档案，项目A的pgvector保存什么？",
+    "expected_answer": "向量",
+    "kind": "事实",
+    "required_facts": [
+      "向量"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "8ce80dc4-a15f-4802-8d4a-cc80c35b3184",
+    "response": {
+      "message_id": "9848b86d-7f4c-4f5b-99e4-9d6fc58223c4",
+      "status": "ANSWERED",
+      "answer": "项目A（知舟私有知识库）使用 pgvector 保存向量。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.txt",
+          "quoted_text": "；了解 PDF 解析、文本分块、Embedding、余弦相似度、向量检索与引用生成。\n工作经历\n2025 年 7 月至 2026 年 2 月，在虚构的青禾软件工作室担任后端开发实习生，参与接口开发、日志排查和自动化测试。团队规模、主管姓名和离职原因均未记录。\n项目总览\n项目 A 是“知舟私有知识库”，侧重文档检索与有依据问答；项目 B 是“仓流库存管理”，侧重库存业务与并发控制。两个项目的职责、指标和技术栈分别记录于后续章节。\n02 项目经历：知舟私有知识库\n项目时间与角色\n项目名称：知舟私有知识库。项目编号：PRJ-A。开发时间：2026 年 3 月至 2026 年 6 月。林知远担任独立开发者，负责需求分析、前后端实现、测试与部署。\n项目目标与技术栈\n项目服务于个人学习资料整理，支持上传 PDF、Markdown 和 TXT 后进行有依据问答。后端采用 Python 与 FastAPI，前端采用 React 与 TypeScript；PostgreSQL 保存业务数据，pgvector 保存向量，Redis 管理异步任务，Docker Compose 用于本地部署。\n个人职责\n林知远实现了文档上传、解析、分块、Embedding、Top K 检索、答案引用、文档停用和空间权限校验。检索阶段先限定空间与资料状态，再进行向量相似度排序。\n分块与检索策略\nMarkdown 先按标题分段；TXT 先按空行划分段落；PDF 保存页码后按段落切分。",
+          "page_number": null,
+          "ordinal": 2,
+          "score": 0.342839
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T028",
+    "question": "根据这份虚构档案，项目A的Redis负责什么？",
+    "expected_answer": "异步任务",
+    "kind": "事实",
+    "required_facts": [
+      "异步任务"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "7f7f5999-6109-4eee-a6ca-d022596ddeb1",
+    "response": {
+      "message_id": "3b8fe1eb-c502-49ce-9c44-fd856fb0ae82",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T029",
+    "question": "根据这份虚构档案，项目A如何进行本地部署？",
+    "expected_answer": "Docker Compose",
+    "kind": "事实",
+    "required_facts": [
+      "Docker Compose"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "a0228a30-9a4a-4281-bebc-765b5ed232f5",
+    "response": {
+      "message_id": "e9095da1-d5aa-4767-b2d8-479b8ef27f35",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T030",
+    "question": "根据这份虚构档案，林知远在项目A负责哪些开发阶段？",
+    "expected_answer": "需求分析、前后端实现、测试、部署",
+    "kind": "事实",
+    "required_facts": [
+      "需求分析、前后端实现、测试、部署"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "3cc453d2-093a-4eb8-95bb-cb107069ed92",
+    "response": {
+      "message_id": "0ef78278-2c0c-4909-816c-d73c8873b313",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T031",
+    "question": "根据这份虚构档案，项目A的Markdown先如何分段？",
+    "expected_answer": "按标题分段",
+    "kind": "事实",
+    "required_facts": [
+      "按标题分段"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "e88da8e5-f901-4fa6-8f11-802aafa10bc3",
+    "response": {
+      "message_id": "6c610f00-d73d-4981-b439-85435a1b61bd",
+      "status": "ANSWERED",
+      "answer": "Markdown 先按标题分段。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "仅用于 RAG 验收 | 不含真实个人信息\n第 2 页\n02 项目经历：知舟私有知识库\n林知远项目档案与知识库规则 | 虚构资料 | RAG-DEMO-001 | 版本 1.0\n项目时间与角色\n项目名称：知舟私有知识库。项目编号：PRJ-A。开发时间：2026 年 3 月至 2026 年 6 月。林知远担任独立开\n发者，负责需求分析、前后端实现、测试与部署。\n项目目标与技术栈\n项目服务于个人学习资料整理，支持上传 PDF、Markdown 和 TXT 后进行有依据问答。后端采用 Python 与\nFastAPI，前端采用 React 与 TypeScript；PostgreSQL 保存业务数据，pgvector 保存向量，Redis 管理异步任务，\nDocker Compose 用于本地部署。\n个人职责\n林知远实现了文档上传、解析、分块、Embedding、Top K 检索、答案引用、文档停用和空间权限校验。检索\n阶段先限定空间与资料状态，再进行向量相似度排序。\n分块与检索策略\nMarkdown 先按标题分段；TXT 先按空行划分段落；PDF 保存页码后按段落切分。目标片段长度为 400 至\n700 个汉字，重叠长度为 80 个汉字。项目经历按项目名称分别组织，避免把整份简历作为一个片段。默认\nTop K 为 5。\n模型与回答规则\nEmbedding 使用 BAAI/bge-large-zh-v1.5，向量维度为 1024。系统使用余弦相似度衡量相关性。答案必须依据\n当前空间内已启用的资料；证据不足时应明确拒答，不得补造事实。",
+          "page_number": 2,
+          "ordinal": 2,
+          "score": 0.47698
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "排序。\n分块与检索策略\nMarkdown 先按标题分段；TXT 先按空行划分段落；PDF 保存页码后按段落切分。目标片段长度为 400 至\n700 个汉字，重叠长度为 80 个汉字。项目经历按项目名称分别组织，避免把整份简历作为一个片段。默认\nTop K 为 5。\n模型与回答规则\nEmbedding 使用 BAAI/bge-large-zh-v1.5，向量维度为 1024。系统使用余弦相似度衡量相关性。答案必须依据\n当前空间内已启用的资料；证据不足时应明确拒答，不得补造事实。检索测试只返回片段，不调用生成模型。\n测试结果与限制\n在虚构的 50 道测试题和 200 份中文文档上，Recall@5 为 0.86。模型预热后，单次检索 P95 耗时为 1.8 秒；该\n指标不包括模型冷启动和答案生成。人工答案正确率为 0.90。这些指标仅是本测试资料中的示例数据，并非\n当前知溯系统的测量结果。\n解决的问题\n首次模型加载曾耗时约 160 秒，超过前端 60 秒等待上限。林知远为检索请求设置单独的等待时间，并区分超\n时与普通网络错误。另通过过滤停用资料，防止检索继续返回旧内容。",
+          "page_number": 2,
+          "ordinal": 3,
+          "score": 0.503007
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T032",
+    "question": "根据这份虚构档案，项目A的TXT先如何分段？",
+    "expected_answer": "按空行划分段落",
+    "kind": "事实",
+    "required_facts": [
+      "按空行划分段落"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "393b763a-b499-413c-8e0c-2d31c40953b8",
+    "response": {
+      "message_id": "53364562-b96c-4c02-91a2-84a082055f64",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T033",
+    "question": "根据这份虚构档案，项目A的PDF先保留什么再切分？",
+    "expected_answer": "保留页码，再按段落切分",
+    "kind": "事实",
+    "required_facts": [
+      "保留页码，再按段落切分"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "8501c8d9-ae48-48a3-b1c5-4ee40538b923",
+    "response": {
+      "message_id": "bb7f8c78-6b3c-436f-bfb6-2df6b284bf06",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T034",
+    "question": "根据这份虚构档案，项目A目标片段长度是什么？",
+    "expected_answer": "400至700个汉字",
+    "kind": "事实",
+    "required_facts": [
+      "400至700个汉字"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "81a974e1-ecbb-4f75-9412-699feb140ea7",
+    "response": {
+      "message_id": "8d0f7467-9fc8-4113-b4f8-6b7d6f49d282",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T035",
+    "question": "根据这份虚构档案，项目A相邻片段重叠多长？",
+    "expected_answer": "80个汉字",
+    "kind": "事实",
+    "required_facts": [
+      "80个汉字"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "8e12bfce-0d3b-4739-b3fd-217799ee6895",
+    "response": {
+      "message_id": "85218392-0851-43e5-89f0-55e7ebaf63f2",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T036",
+    "question": "根据这份虚构档案，项目经历应该怎样组织片段？",
+    "expected_answer": "按项目名称分别组织，避免整份简历作为一个片段",
+    "kind": "事实",
+    "required_facts": [
+      "按项目名称分别组织，避免整份简历作为一个片段"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "01960827-e40b-47c1-afba-ba4232fa95e4",
+    "response": {
+      "message_id": "fd33594e-38a5-4427-8edb-a0d4b9d1da33",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T037",
+    "question": "根据这份虚构档案，项目A默认Top K是多少？",
+    "expected_answer": "5",
+    "kind": "事实",
+    "required_facts": [
+      "5"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "55b0cc06-ffac-44ef-88b5-4cb233ca5379",
+    "response": {
+      "message_id": "4818a5e9-7145-4eef-96df-ee766286b54d",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T038",
+    "question": "根据这份虚构档案，项目A的Embedding模型是什么？",
+    "expected_answer": "BAAI/bge-large-zh-v1.5",
+    "kind": "事实",
+    "required_facts": [
+      "BAAI/bge-large-zh-v1.5"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "66055eac-3f60-4aea-b9ea-650302fb85af",
+    "response": {
+      "message_id": "839a047c-7c9a-474b-bf68-480bc81e1d41",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T039",
+    "question": "根据这份虚构档案，项目A向量有多少维？",
+    "expected_answer": "1024",
+    "kind": "事实",
+    "required_facts": [
+      "1024"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "8112a84e-3701-417f-8fe1-1031f1eef613",
+    "response": {
+      "message_id": "cef3a6bb-9add-4921-bda6-0bc576286ba9",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T040",
+    "question": "根据这份虚构档案，项目A使用什么相似度？",
+    "expected_answer": "余弦相似度",
+    "kind": "事实",
+    "required_facts": [
+      "余弦相似度"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "dc9ea283-63d5-4238-a3ce-c4ab1fb762b1",
+    "response": {
+      "message_id": "f67a8c02-be19-4223-86ea-e4307c953a2b",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T041",
+    "question": "根据这份虚构档案，项目A排序前先过滤哪些范围？",
+    "expected_answer": "空间与资料状态",
+    "kind": "事实",
+    "required_facts": [
+      "空间与资料状态"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "34b1e758-8a70-44bf-853b-4682c186af64",
+    "response": {
+      "message_id": "25ec22c8-87ef-4c9e-83a6-78c22e1a0607",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T042",
+    "question": "根据这份虚构档案，项目A证据不足时应如何回答？",
+    "expected_answer": "明确拒答，不补造事实",
+    "kind": "事实",
+    "required_facts": [
+      "明确拒答，不补造事实"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "0d8393dd-fdb4-4c5e-878e-d124a03fbb5c",
+    "response": {
+      "message_id": "4cb1198a-d29c-481a-bc1d-34c3455a2344",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T043",
+    "question": "根据这份虚构档案，项目A纯检索测试是否调用生成模型？",
+    "expected_answer": "不调用，只返回片段",
+    "kind": "事实",
+    "required_facts": [
+      "不调用，只返回片段"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "306a3a40-a780-4f32-ae9a-7a69cf1d516f",
+    "response": {
+      "message_id": "7b723055-5f8e-42b4-89fe-aae31dbf122b",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T044",
+    "question": "根据这份虚构档案，示例Recall@5是多少？",
+    "expected_answer": "0.86，虚构示例指标",
+    "kind": "事实",
+    "required_facts": [
+      "0.86，虚构示例指标"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "6fd54649-ffe5-461a-818d-aa4cbf89f320",
+    "response": {
+      "message_id": "a1244106-6cbe-4e0b-8080-c549922e0345",
+      "status": "ANSWERED",
+      "answer": "示例 Recall@5 为 0.86。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "在虚构的 50 道测试题和 200 份中文文档上，Recall@5 为 0.86。模型预热后，单次检索 P95 耗时为 1.8 秒；该指标不包括模型冷启动和答案生成。人工答案正确率为 0.90。这些指标仅是本测试资料中的示例数据，并非当前知溯系统的测量结果。",
+          "page_number": null,
+          "ordinal": 13,
+          "score": 0.551971
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T045",
+    "question": "根据这份虚构档案，示例人工答案正确率是多少？",
+    "expected_answer": "0.90，虚构示例指标",
+    "kind": "事实",
+    "required_facts": [
+      "0.90，虚构示例指标"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "54958199-e74e-421a-9b98-a88d5c551901",
+    "response": {
+      "message_id": "5611badf-908a-4f96-909d-e9c3ce365194",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T046",
+    "question": "根据这份虚构档案，示例评测有多少题和多少文档？",
+    "expected_answer": "50道题，200份中文文档",
+    "kind": "事实",
+    "required_facts": [
+      "50道题，200份中文文档"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "b9e463d6-8633-4394-a07f-7bc1abbedfb8",
+    "response": {
+      "message_id": "23c0e4a6-9d6c-4322-b7dc-cc84d843fca9",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T047",
+    "question": "根据这份虚构档案，示例检索P95是什么且排除了什么？",
+    "expected_answer": "预热后1.8秒，不含模型冷启动与答案生成",
+    "kind": "事实",
+    "required_facts": [
+      "预热后1.8秒，不含模型冷启动与答案生成"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "95348f08-dd1e-4cfd-98ca-276b84a0514d",
+    "response": {
+      "message_id": "32204c6c-dde9-4a24-ad3e-8925c0668502",
+      "status": "ANSWERED",
+      "answer": "示例中，模型预热后单次检索 P95 耗时为 1.8 秒；该指标不包括模型冷启动和答案生成。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "在虚构的 50 道测试题和 200 份中文文档上，Recall@5 为 0.86。模型预热后，单次检索 P95 耗时为 1.8 秒；该指标不包括模型冷启动和答案生成。人工答案正确率为 0.90。这些指标仅是本测试资料中的示例数据，并非当前知溯系统的测量结果。",
+          "page_number": null,
+          "ordinal": 13,
+          "score": 0.446557
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T048",
+    "question": "根据这份虚构档案，示例指标能否代表当前知溯测量结果？",
+    "expected_answer": "不能，仅虚构示例",
+    "kind": "事实",
+    "required_facts": [
+      "不能，仅虚构示例"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "53094b7b-4418-4b1b-b6bf-04c039fee8d2",
+    "response": {
+      "message_id": "744859fd-1aa4-4a8f-b605-b8b148524a14",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T049",
+    "question": "根据这份虚构档案，示例首次模型加载和前端等待上限是多少？",
+    "expected_answer": "约160秒、60秒",
+    "kind": "事实",
+    "required_facts": [
+      "约160秒、60秒"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "c8b5c05b-21ab-4fa3-8200-53dec9029576",
+    "response": {
+      "message_id": "3ba6ce9b-72f2-4d0b-9d13-4e9436ad0116",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T050",
+    "question": "根据这份虚构档案，项目A怎样解决首次加载超时问题？",
+    "expected_answer": "检索单独等待时间，区分超时与普通网络错误",
+    "kind": "事实",
+    "required_facts": [
+      "检索单独等待时间，区分超时与普通网络错误"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "bb574ea4-2922-4b4f-9f86-2677b61010cc",
+    "response": {
+      "message_id": "3dc36e64-d4b7-44fc-ad4a-f85b79253877",
+      "status": "ANSWERED",
+      "answer": "项目A（知舟私有知识库）针对首次模型加载耗时约160秒、超过前端60秒等待上限的问题，为检索请求设置单独的等待时间，并区分超时与普通网络错误；同时通过过滤停用资料，防止检索继续返回旧内容。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "首次模型加载曾耗时约 160 秒，超过前端 60 秒等待上限。林知远为检索请求设置单独的等待时间，并区分超时与普通网络错误。另通过过滤停用资料，防止检索继续返回旧内容。",
+          "page_number": null,
+          "ordinal": 14,
+          "score": 0.520245
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T051",
+    "question": "根据这份虚构档案，项目B的全名和编号是什么？",
+    "expected_answer": "仓流库存管理，PRJ-B",
+    "kind": "事实",
+    "required_facts": [
+      "仓流库存管理，PRJ-B"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "337b085d-93b0-47e7-80a1-6182754a0137",
+    "response": {
+      "message_id": "4f0e86c6-aa28-4f8f-b946-bbb1f3006ef6",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T052",
+    "question": "根据这份虚构档案，项目B开发起止年月是什么？",
+    "expected_answer": "2026年7月至2026年9月",
+    "kind": "事实",
+    "required_facts": [
+      "2026年7月至2026年9月"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "29e79819-2496-4e5f-adb0-64a7d39977e9",
+    "response": {
+      "message_id": "2ea10b20-cfba-4807-9a8a-82d4cfc701fa",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T053",
+    "question": "根据这份虚构档案，项目B团队有几人？",
+    "expected_answer": "3人",
+    "kind": "事实",
+    "required_facts": [
+      "3人"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "73ab186a-a612-41a6-8816-104a6af63ec8",
+    "response": {
+      "message_id": "37d4b6d7-d175-4caf-873a-54e44ec3b7bd",
+      "status": "ANSWERED",
+      "answer": "项目B（仓流库存管理）团队共3人。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "项目名称：仓流库存管理。项目编号：PRJ-B。开发时间：2026 年 7 月至 2026 年 9 月。团队共 3 人。林知远担任后端开发者，负责库存接口和并发控制，未负责移动端页面。",
+          "page_number": null,
+          "ordinal": 15,
+          "score": 0.37618
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T054",
+    "question": "根据这份虚构档案，林知远在项目B负责什么？",
+    "expected_answer": "后端开发者，库存接口与并发控制，不负责移动端页面",
+    "kind": "事实",
+    "required_facts": [
+      "后端开发者，库存接口与并发控制，不负责移动端页面"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "dd3db9ed-db52-44e5-ba4b-f180ed28a6a7",
+    "response": {
+      "message_id": "940697d7-3773-4425-9568-44b4d9e54aad",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T055",
+    "question": "根据这份虚构档案，项目B服务哪个仓库？",
+    "expected_answer": "晨星文具仓库，虚构仓库",
+    "kind": "事实",
+    "required_facts": [
+      "晨星文具仓库，虚构仓库"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "4155c133-7a69-4f22-8b99-feceb347c009",
+    "response": {
+      "message_id": "3bcaa86a-b74e-4b91-8160-e0cb464ca374",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T056",
+    "question": "根据这份虚构档案，项目B已实现哪些业务？",
+    "expected_answer": "商品入库、出库、库存查询、操作审计",
+    "kind": "事实",
+    "required_facts": [
+      "商品入库、出库、库存查询、操作审计"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "43a14648-e7e1-43c8-a570-fcaeebc9bbba",
+    "response": {
+      "message_id": "c416c261-76d7-471e-ac14-58d9e62f1d83",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T057",
+    "question": "根据这份虚构档案，项目B后端技术是什么？",
+    "expected_answer": "Python、FastAPI、PostgreSQL、Redis",
+    "kind": "事实",
+    "required_facts": [
+      "Python、FastAPI、PostgreSQL、Redis"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "4d34dafa-7971-4460-aae0-dd77251c7548",
+    "response": {
+      "message_id": "cf9fea50-384b-4b0d-b49f-84fb89b9de76",
+      "status": "ANSWERED",
+      "answer": "项目B（仓流库存管理）后端采用 Python、FastAPI、PostgreSQL 和 Redis。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.txt",
+          "quoted_text": "足时应明确拒答，不得补造事实。检索测试只返回片段，不调用生成模型。\n测试结果与限制\n在虚构的 50 道测试题和 200 份中文文档上，Recall@5 为 0.86。模型预热后，单次检索 P95 耗时为 1.8 秒；该指标不包括模型冷启动和答案生成。人工答案正确率为 0.90。这些指标仅是本测试资料中的示例数据，并非当前知溯系统的测量结果。\n解决的问题\n首次模型加载曾耗时约 160 秒，超过前端 60 秒等待上限。林知远为检索请求设置单独的等待时间，并区分超时与普通网络错误。另通过过滤停用资料，防止检索继续返回旧内容。\n03 项目经历：仓流库存管理\n项目时间与角色\n项目名称：仓流库存管理。项目编号：PRJ-B。开发时间：2026 年 7 月至 2026 年 9 月。团队共 3 人。林知远担任后端开发者，负责库存接口和并发控制，未负责移动端页面。\n业务范围与技术栈\n项目面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计。后端采用 Python、FastAPI、PostgreSQL 和 Redis；前端由另一位成员使用 Vue 开发。项目 B 没有使用 pgvector，也没有使用 Embedding 或 RAG。\n库存规则\n库存数量必须为非负整数。每个出库请求携带唯一的幂等键；同一幂等键重复提交，不应重复扣减库存。库存不足时返回明确的业务错误，整个出库事务回滚。\n并发控制方案\n",
+          "page_number": null,
+          "ordinal": 4,
+          "score": 0.347128
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.txt",
+          "quoted_text": "并发控制，未负责移动端页面。\n业务范围与技术栈\n项目面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计。后端采用 Python、FastAPI、PostgreSQL 和 Redis；前端由另一位成员使用 Vue 开发。项目 B 没有使用 pgvector，也没有使用 Embedding 或 RAG。\n库存规则\n库存数量必须为非负整数。每个出库请求携带唯一的幂等键；同一幂等键重复提交，不应重复扣减库存。库存不足时返回明确的业务错误，整个出库事务回滚。\n并发控制方案\n林知远使用数据库事务与行级锁处理出库操作：先锁定目标库存记录，检查库存是否足够，再扣减数量并写入审计记录。Redis 用于热点库存查询缓存，不承担最终库存一致性判断。\n验收案例\n商品“蓝色笔记本”的初始库存为 120 本。第一次出库 35 本成功后，库存为 85 本。用同一幂等键重复提交这次请求，库存仍为 85 本。随后尝试出库 100 本失败，库存仍为 85 本。\n个人贡献与限制\n林知远编写了重复请求、库存不足、事务回滚与并发出库的后端测试，并添加操作审计日志。该项目未实现支付、配送、财务对账或跨仓库调拨。线上营业额和真实客户数量未记录。\n04 知识库使用规则与版本校验\n个人空间与团队空间\n个人空间仅由拥有者管理。团队空间有一个拥有者，可以有多个管理员。",
+          "page_number": null,
+          "ordinal": 5,
+          "score": 0.338437
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T058",
+    "question": "根据这份虚构档案，项目B前端技术和负责者是什么？",
+    "expected_answer": "Vue，由另一位成员开发",
+    "kind": "事实",
+    "required_facts": [
+      "Vue，由另一位成员开发"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "811953a7-a64c-499a-a225-0b02d0d73e79",
+    "response": {
+      "message_id": "27bebf06-5637-4a56-beec-a01090c05a4d",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T059",
+    "question": "根据这份虚构档案，项目B是否使用pgvector和Embedding或RAG？",
+    "expected_answer": "均没有使用",
+    "kind": "事实",
+    "required_facts": [
+      "均没有使用"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "554dea5b-f249-45a5-8797-f606740f651c",
+    "response": {
+      "message_id": "575e91bf-d99f-4951-8c5f-f5fe59f846d3",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T060",
+    "question": "根据这份虚构档案，项目B库存数值有什么约束？",
+    "expected_answer": "非负整数",
+    "kind": "事实",
+    "required_facts": [
+      "非负整数"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "f5b2edca-428a-47ed-9e1a-3baeff03ac10",
+    "response": {
+      "message_id": "48c13472-f734-4b47-b838-14f0646fb935",
+      "status": "ANSWERED",
+      "answer": "项目B（仓流库存管理）的库存数量必须为非负整数。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.txt",
+          "quoted_text": "足时应明确拒答，不得补造事实。检索测试只返回片段，不调用生成模型。\n测试结果与限制\n在虚构的 50 道测试题和 200 份中文文档上，Recall@5 为 0.86。模型预热后，单次检索 P95 耗时为 1.8 秒；该指标不包括模型冷启动和答案生成。人工答案正确率为 0.90。这些指标仅是本测试资料中的示例数据，并非当前知溯系统的测量结果。\n解决的问题\n首次模型加载曾耗时约 160 秒，超过前端 60 秒等待上限。林知远为检索请求设置单独的等待时间，并区分超时与普通网络错误。另通过过滤停用资料，防止检索继续返回旧内容。\n03 项目经历：仓流库存管理\n项目时间与角色\n项目名称：仓流库存管理。项目编号：PRJ-B。开发时间：2026 年 7 月至 2026 年 9 月。团队共 3 人。林知远担任后端开发者，负责库存接口和并发控制，未负责移动端页面。\n业务范围与技术栈\n项目面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计。后端采用 Python、FastAPI、PostgreSQL 和 Redis；前端由另一位成员使用 Vue 开发。项目 B 没有使用 pgvector，也没有使用 Embedding 或 RAG。\n库存规则\n库存数量必须为非负整数。每个出库请求携带唯一的幂等键；同一幂等键重复提交，不应重复扣减库存。库存不足时返回明确的业务错误，整个出库事务回滚。\n并发控制方案\n",
+          "page_number": null,
+          "ordinal": 4,
+          "score": 0.42714
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.txt",
+          "quoted_text": "并发控制，未负责移动端页面。\n业务范围与技术栈\n项目面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计。后端采用 Python、FastAPI、PostgreSQL 和 Redis；前端由另一位成员使用 Vue 开发。项目 B 没有使用 pgvector，也没有使用 Embedding 或 RAG。\n库存规则\n库存数量必须为非负整数。每个出库请求携带唯一的幂等键；同一幂等键重复提交，不应重复扣减库存。库存不足时返回明确的业务错误，整个出库事务回滚。\n并发控制方案\n林知远使用数据库事务与行级锁处理出库操作：先锁定目标库存记录，检查库存是否足够，再扣减数量并写入审计记录。Redis 用于热点库存查询缓存，不承担最终库存一致性判断。\n验收案例\n商品“蓝色笔记本”的初始库存为 120 本。第一次出库 35 本成功后，库存为 85 本。用同一幂等键重复提交这次请求，库存仍为 85 本。随后尝试出库 100 本失败，库存仍为 85 本。\n个人贡献与限制\n林知远编写了重复请求、库存不足、事务回滚与并发出库的后端测试，并添加操作审计日志。该项目未实现支付、配送、财务对账或跨仓库调拨。线上营业额和真实客户数量未记录。\n04 知识库使用规则与版本校验\n个人空间与团队空间\n个人空间仅由拥有者管理。团队空间有一个拥有者，可以有多个管理员。",
+          "page_number": null,
+          "ordinal": 5,
+          "score": 0.385749
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T061",
+    "question": "根据这份虚构档案，项目B重复出库请求怎样识别？",
+    "expected_answer": "每请求唯一幂等键，同一键不重复扣减",
+    "kind": "事实",
+    "required_facts": [
+      "每请求唯一幂等键，同一键不重复扣减"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "812a0f6d-1c53-434b-902f-03c13c1701f7",
+    "response": {
+      "message_id": "e22dbce3-c3ea-4bcc-b415-53575b5b2229",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T062",
+    "question": "根据这份虚构档案，项目B库存不足时怎么办？",
+    "expected_answer": "明确业务错误，整个出库事务回滚",
+    "kind": "事实",
+    "required_facts": [
+      "明确业务错误，整个出库事务回滚"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "f6867b92-13bc-49b9-8e64-523f76b7ccd2",
+    "response": {
+      "message_id": "555d88f1-9c36-4242-adb0-9a4f4b26042f",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T063",
+    "question": "根据这份虚构档案，项目B怎样控制并发出库？",
+    "expected_answer": "数据库事务与行级锁",
+    "kind": "事实",
+    "required_facts": [
+      "数据库事务与行级锁"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "fc53f497-2a81-4224-af9f-eb773f6484b2",
+    "response": {
+      "message_id": "264f362f-d528-4ef3-a1c4-20f4724feed1",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T064",
+    "question": "根据这份虚构档案，项目B出库处理顺序是什么？",
+    "expected_answer": "锁定目标记录、检查足够、扣减、写审计记录",
+    "kind": "事实",
+    "required_facts": [
+      "锁定目标记录、检查足够、扣减、写审计记录"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "619533a8-993b-4aee-b7cd-c0384566e01f",
+    "response": {
+      "message_id": "af0c771e-6ad1-4a49-983e-221cace455bb",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T065",
+    "question": "根据这份虚构档案，项目B的Redis负责什么且不负责什么？",
+    "expected_answer": "热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "事实",
+    "required_facts": [
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "5b3f932f-9772-468b-9062-560840cd1043",
+    "response": {
+      "message_id": "c7a15e71-67f6-442e-a7b3-12c30ba07527",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T066",
+    "question": "根据这份虚构档案，蓝色笔记本的初始库存是多少？",
+    "expected_answer": "120本",
+    "kind": "事实",
+    "required_facts": [
+      "120本"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "50bfd053-099e-4755-9051-35fba3cd6fd4",
+    "response": {
+      "message_id": "1ea013c0-92d5-4fa6-8e6e-93b0df37975d",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T067",
+    "question": "根据这份虚构档案，蓝色笔记本首次出库数量与剩余库存是多少？",
+    "expected_answer": "出库35本成功，剩85本",
+    "kind": "事实",
+    "required_facts": [
+      "出库35本成功，剩85本"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "876e3bf8-f227-403b-8397-419dde9324bb",
+    "response": {
+      "message_id": "b07977d0-191b-4025-8215-c36ca840ae63",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T068",
+    "question": "根据这份虚构档案，重复首次出库后以及再出库100本失败后各剩多少？",
+    "expected_answer": "均85本，同幂等键不重扣，不足回滚",
+    "kind": "事实",
+    "required_facts": [
+      "均85本，同幂等键不重扣，不足回滚"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "9799268a-be3c-4da9-b232-0a3ce2e8309b",
+    "response": {
+      "message_id": "a79881a8-6c79-42c8-a1ea-1e7cfd5f8929",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T069",
+    "question": "根据这份虚构档案，项目B有哪些后端测试？",
+    "expected_answer": "重复请求、库存不足、事务回滚、并发出库",
+    "kind": "事实",
+    "required_facts": [
+      "重复请求、库存不足、事务回滚、并发出库"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "3e0071da-132a-4d47-9478-b298e7c13a6a",
+    "response": {
+      "message_id": "1e5528b1-b525-43d6-8a91-dd61321bac35",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T070",
+    "question": "根据这份虚构档案，项目B明确没有实现哪些业务？",
+    "expected_answer": "支付、配送、财务对账、跨仓库调拨",
+    "kind": "事实",
+    "required_facts": [
+      "支付、配送、财务对账、跨仓库调拨"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "969e8f96-a908-4dca-aac3-9e6db52576e6",
+    "response": {
+      "message_id": "c86c5f7b-e81b-4296-b011-7467ca7a8905",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T071",
+    "question": "根据这份虚构档案，个人空间由谁管理？",
+    "expected_answer": "仅拥有者",
+    "kind": "事实",
+    "required_facts": [
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "b5f9a331-369c-4b86-b714-0a891304e8d9",
+    "response": {
+      "message_id": "7e723872-1518-4df1-b99d-739fc6e8268c",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T072",
+    "question": "根据这份虚构档案，团队空间拥有者与管理员的数量规则是什么？",
+    "expected_answer": "一个拥有者，多个管理员",
+    "kind": "事实",
+    "required_facts": [
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "8d54fe65-1125-4637-8e14-ce55cc1164e8",
+    "response": {
+      "message_id": "64bd851e-a5e0-437e-9c3f-85d62b2bd7b2",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T073",
+    "question": "根据这份虚构档案，团队管理员可以做哪些管理工作？",
+    "expected_answer": "管理资料、查看原文引用、检索测试、管理评测",
+    "kind": "事实",
+    "required_facts": [
+      "管理资料、查看原文引用、检索测试、管理评测"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "04ae3310-8e83-4b7d-9200-4ba2885f1a6e",
+    "response": {
+      "message_id": "387e8c1b-5553-4583-adc2-e86783a40b59",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T074",
+    "question": "根据这份虚构档案，哪些管理操作仅归拥有者？",
+    "expected_answer": "成员管理、拥有权转移、删除空间、公开分享配置",
+    "kind": "事实",
+    "required_facts": [
+      "成员管理、拥有权转移、删除空间、公开分享配置"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "bf5cfc2d-f0f7-4c71-a07e-8477b539f6fd",
+    "response": {
+      "message_id": "057347df-231b-4d7c-9c18-8ec9588cad18",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T075",
+    "question": "根据这份虚构档案，公开问答可以使用哪些资料？",
+    "expected_answer": "分享范围内已授权且已启用资料，不能返回私密资料",
+    "kind": "事实",
+    "required_facts": [
+      "分享范围内已授权且已启用资料，不能返回私密资料"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "a8acff7e-1936-4e64-8279-a211c330b681",
+    "response": {
+      "message_id": "e73f62a6-0cf8-4b42-84c3-9fc87626be28",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T076",
+    "question": "根据这份虚构档案，撤销分享链接后访客能否继续提问？",
+    "expected_answer": "不能",
+    "kind": "事实",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "0232b49e-c46b-4b96-973d-e11a06129758",
+    "response": {
+      "message_id": "2302cdf0-9580-4b09-9066-66a25d88c3c2",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T077",
+    "question": "根据这份虚构档案，上传新版本后以什么为依据？",
+    "expected_answer": "已生效的新版本",
+    "kind": "事实",
+    "required_facts": [
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "197579f7-8cc6-4c35-9551-0d97e18b7de3",
+    "response": {
+      "message_id": "6d1164db-e29a-45b9-90f1-847ac4256178",
+      "status": "ANSWERED",
+      "answer": "上传新版本后，系统应以已生效的新版本作为依据。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "上传新版本后，系统应以已生效的新版本作为依据。停用资料后，后续检索与问答不得继续使用该资料。旧会话中的历史回答不等于当前资料仍可作为依据。",
+          "page_number": null,
+          "ordinal": 24,
+          "score": 0.527019
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T078",
+    "question": "根据这份虚构档案，停用文档后新检索与问答能否再用它？",
+    "expected_answer": "不能继续使用",
+    "kind": "事实",
+    "required_facts": [
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "c9103ed8-87fa-4337-80ac-caa9256e4ffa",
+    "response": {
+      "message_id": "028786f9-04d8-4337-bcbf-bf7511addecc",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T079",
+    "question": "根据这份虚构档案，旧会话仍显示答案能否证明旧资料可继续作为依据？",
+    "expected_answer": "不能，历史回答不等于当前证据",
+    "kind": "事实",
+    "required_facts": [
+      "不能，历史回答不等于当前证据"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "c3a277d7-69a9-4217-9707-58666a2455e1",
+    "response": {
+      "message_id": "091164c0-4357-4ad6-90cf-26fdf7375961",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T080",
+    "question": "根据这份虚构档案，计算结果应怎样表述？",
+    "expected_answer": "可以按资料数字推算，但不能声称是原文记录",
+    "kind": "事实",
+    "required_facts": [
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "8e21347d-be1d-4adf-9fcd-e251e123122b",
+    "response": {
+      "message_id": "b69f080d-4c6d-45f3-ae10-6c79edc495ae",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T081",
+    "question": "根据这份虚构档案，版本1.0试用期与资料保留周期是什么？",
+    "expected_answer": "14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "事实",
+    "required_facts": [
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "f34ecf08-85a3-4252-bd7f-22dfbff9754a",
+    "response": {
+      "message_id": "79dd57dc-63c5-45c1-a8f6-c5bb1c211865",
+      "status": "ANSWERED",
+      "answer": "知识库试用期为 14 天，资料保留周期为 30 天。这两项是版本 1.0 的测试事实，与实际产品套餐和运营规则无关。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.txt",
+          "quoted_text": "行。\n公开分享边界\n公开问答仅能使用分享范围内已授权且已启用的资料。私密资料不得通过公开链接返回。链接撤销后，访客不能继续使用该链接提问。\n答案与引用规则\n回答应列出问题相关的事实并引用对应资料。计算题可以根据资料中的数字进行计算，但不能把推算结果说成原文记录。资料未覆盖的内容应说明“资料未提供相关信息”。\n更新与停用规则\n上传新版本后，系统应以已生效的新版本作为依据。停用资料后，后续检索与问答不得继续使用该资料。旧会话中的历史回答不等于当前资料仍可作为依据。\n版本校验事实\n知识库试用期为 14 天。资料保留周期为 30 天。这两项是版本 1.0 的测试事实，与实际产品套餐和运营规则无关。\n资料范围\n本资料没有记录林知远的工资、英语考试分数、具体家庭住址或项目 A 的真实公网地址。也没有记录 2027 年发生的项目、在其他公司任职的情况或项目 B 的 AI 模型供应商。",
+          "page_number": null,
+          "ordinal": 7,
+          "score": 0.430086
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T082",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）林知远在项目A负责哪些开发阶段；2）示例评测有多少题和多少文档。",
+    "expected_answer": "需求分析、前后端实现、测试、部署；50道题，200份中文文档",
+    "kind": "综合",
+    "required_facts": [
+      "需求分析、前后端实现、测试、部署",
+      "50道题，200份中文文档"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "2a672b7f-8237-4ac8-8c61-09043ed255bc",
+    "response": {
+      "message_id": "9109944a-48ac-4920-aa40-a3bddaa981a7",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T083",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习单位叫什么；2）项目A的Embedding模型是什么；3）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "青禾软件工作室，虚构单位；BAAI/bge-large-zh-v1.5；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "青禾软件工作室，虚构单位",
+      "BAAI/bge-large-zh-v1.5",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "md",
+    "conversation_id": "b5411afd-5e55-4671-9c6e-5694827d468c",
+    "response": {
+      "message_id": "1589ae3e-62c0-4596-9a42-96e3b0db7976",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T084",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习参与了哪些工作；2）项目经历应该怎样组织片段；3）团队管理员可以做哪些管理工作；4）计算结果应怎样表述。",
+    "expected_answer": "接口开发、日志排查、自动化测试；按项目名称分别组织，避免整份简历作为一个片段；管理资料、查看原文引用、检索测试、管理评测；可以按资料数字推算，但不能声称是原文记录",
+    "kind": "综合",
+    "required_facts": [
+      "接口开发、日志排查、自动化测试",
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "管理资料、查看原文引用、检索测试、管理评测",
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "19ecc188-d812-4ce9-9629-cd34f9534563",
+    "response": {
+      "message_id": "2c67a2be-5f55-4df4-aec3-9dc5df0fbd44",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T085",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）这些人物和项目是否真实；2）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "全部虚构，仅供知识库功能验收；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "全部虚构，仅供知识库功能验收",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "0141032a-518a-454f-b512-79aa362627d7",
+    "response": {
+      "message_id": "f28c4659-79d8-41f8-ad66-04cb63b87cae",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T087",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）档案更新时间是哪天；3）项目A前端使用什么技术；4）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "林知远；2026-10-03；React、TypeScript；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "2026-10-03",
+      "React、TypeScript",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "d5a373f7-104a-47c7-94e1-6b151a6c40e5",
+    "response": {
+      "message_id": "dd1cce51-fb7e-425d-931a-7d0a00f60e88",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T088",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A服务哪类需求；2）项目B明确没有实现哪些业务。",
+    "expected_answer": "个人学习资料整理、文档检索与有依据问答；支付、配送、财务对账、跨仓库调拨",
+    "kind": "综合",
+    "required_facts": [
+      "个人学习资料整理、文档检索与有依据问答",
+      "支付、配送、财务对账、跨仓库调拨"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "2f49d789-72e4-428b-801d-b7c4094120b2",
+    "response": {
+      "message_id": "b407366d-9792-48b2-8326-475a4aa7a948",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T090",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PostgreSQL保存什么；2）示例检索P95是什么且排除了什么；3）项目B库存不足时怎么办；4）上传新版本后以什么为依据。",
+    "expected_answer": "业务数据；预热后1.8秒，不含模型冷启动与答案生成；明确业务错误，整个出库事务回滚；已生效的新版本",
+    "kind": "综合",
+    "required_facts": [
+      "业务数据",
+      "预热后1.8秒，不含模型冷启动与答案生成",
+      "明确业务错误，整个出库事务回滚",
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "9774954a-0d4f-401e-afc2-ce1252bb6ba0",
+    "response": {
+      "message_id": "a02fdfe1-1038-4579-86e1-1becaed11458",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T091",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）项目A的Markdown先如何分段。",
+    "expected_answer": "林知远；按标题分段",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "按标题分段"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "2e543509-cbb0-4339-a675-d7ac59cd3960",
+    "response": {
+      "message_id": "13ca248f-a3b5-4192-901e-daf9a3255c2f",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T093",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）入学和毕业的年月是什么；3）项目A的Redis负责什么；4）项目B明确没有实现哪些业务。",
+    "expected_answer": "工学学士；2021年9月至2025年6月；异步任务；支付、配送、财务对账、跨仓库调拨",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "2021年9月至2025年6月",
+      "异步任务",
+      "支付、配送、财务对账、跨仓库调拨"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "357aa2c7-f807-4b2d-ad40-0b87acd5033a",
+    "response": {
+      "message_id": "65cbf799-b738-435f-a703-3e0b1f5c0eb9",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T094",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）实习岗位是什么。",
+    "expected_answer": "工学学士；后端开发实习生",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "后端开发实习生"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "2034c633-176a-4df6-9be7-168cc771ddda",
+    "response": {
+      "message_id": "1ed046cb-c8f6-4ba3-9d33-9b4eeb88aa47",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T096",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）档案版本是什么；3）项目B是否使用pgvector和Embedding或RAG；4）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "本科；1.0；均没有使用；120本",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "1.0",
+      "均没有使用",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "fe321427-3e8c-45bc-9703-2c904b6ba0cf",
+    "response": {
+      "message_id": "58607cd9-a55f-4aa7-94f4-40c7519513d7",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T097",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A默认Top K是多少。",
+    "expected_answer": "工学学士；5",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "5"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "3d3e2a55-91a9-4de4-86f9-261acec4ab9a",
+    "response": {
+      "message_id": "7c23a766-5eee-42e6-ba80-c2e7e409670e",
+      "status": "ANSWERED",
+      "answer": "1）学位：林知远获得工学学士学位（2021年9月至2025年6月就读于虚构的江宁信息学院，专业为软件工程）。2）项目A（知舟私有知识库）默认Top K为5。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "仅用于 RAG 验收 | 不含真实个人信息\n第 1 页\n01 基本信息与教育经历\n林知远项目档案与知识库规则 | 虚构资料 | RAG-DEMO-001 | 版本 1.0\n资料说明\n本资料中的人物、学校、公司、项目与指标均为虚构，仅用于知识库功能验收。资料编号：RAG-DEMO-001。\n版本：1.0。更新时间：2026-10-03。\n基本信息\n姓名：林知远。求职方向：Python 后端开发与 RAG 应用开发。当前所在地：南京。最高学历：本科。该资\n料未提供手机号、邮箱、身份证号、薪资、家庭信息或真实联系方式。\n教育经历\n2021 年 9 月至 2025 年 6 月，林知远就读于虚构的江宁信息学院，专业为软件工程，获得工学学士学位。毕业\n设计为“课程资料检索助手”。\n专业技能\n熟悉 Python、FastAPI、PostgreSQL、Redis 和 Docker；能够使用 React 与 TypeScript 开发管理页面；了解 PDF\n解析、文本分块、Embedding、余弦相似度、向量检索与引用生成。\n工作经历\n2025 年 7 月至 2026 年 2 月，在虚构的青禾软件工作室担任后端开发实习生，参与接口开发、日志排查和自动\n化测试。团队规模、主管姓名和离职原因均未记录。\n项目总览\n项目 A 是“知舟私有知识库”，侧重文档检索与有依据问答；项目 B 是“仓流库存管理”，侧重库存业务与\n并发控制。两个项目的职责、指标和技术栈分别记录于后续章节。",
+          "page_number": 1,
+          "ordinal": 1,
+          "score": 0.408856
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "仅用于 RAG 验收 | 不含真实个人信息\n第 2 页\n02 项目经历：知舟私有知识库\n林知远项目档案与知识库规则 | 虚构资料 | RAG-DEMO-001 | 版本 1.0\n项目时间与角色\n项目名称：知舟私有知识库。项目编号：PRJ-A。开发时间：2026 年 3 月至 2026 年 6 月。林知远担任独立开\n发者，负责需求分析、前后端实现、测试与部署。\n项目目标与技术栈\n项目服务于个人学习资料整理，支持上传 PDF、Markdown 和 TXT 后进行有依据问答。后端采用 Python 与\nFastAPI，前端采用 React 与 TypeScript；PostgreSQL 保存业务数据，pgvector 保存向量，Redis 管理异步任务，\nDocker Compose 用于本地部署。\n个人职责\n林知远实现了文档上传、解析、分块、Embedding、Top K 检索、答案引用、文档停用和空间权限校验。检索\n阶段先限定空间与资料状态，再进行向量相似度排序。\n分块与检索策略\nMarkdown 先按标题分段；TXT 先按空行划分段落；PDF 保存页码后按段落切分。目标片段长度为 400 至\n700 个汉字，重叠长度为 80 个汉字。项目经历按项目名称分别组织，避免把整份简历作为一个片段。默认\nTop K 为 5。\n模型与回答规则\nEmbedding 使用 BAAI/bge-large-zh-v1.5，向量维度为 1024。系统使用余弦相似度衡量相关性。答案必须依据\n当前空间内已启用的资料；证据不足时应明确拒答，不得补造事实。",
+          "page_number": 2,
+          "ordinal": 2,
+          "score": 0.477339
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T099",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A前端使用什么技术；3）项目B是否使用pgvector和Embedding或RAG；4）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "工学学士；React、TypeScript；均没有使用；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "React、TypeScript",
+      "均没有使用",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "684bf80a-9139-429b-a2ea-2f2a425ee67b",
+    "response": {
+      "message_id": "0eaab4f1-d98c-4fbb-8659-98547c7e9037",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T100",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例首次模型加载和前端等待上限是多少；2）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "约160秒、60秒；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "约160秒、60秒",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "3e98a8ba-92e7-4964-8300-b23cc4b71c77",
+    "response": {
+      "message_id": "d093c2b4-3355-431d-80ae-a29473ab78c3",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T102",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A怎样解决首次加载超时问题；2）项目B有哪些后端测试；3）个人空间由谁管理；4）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "检索单独等待时间，区分超时与普通网络错误；重复请求、库存不足、事务回滚、并发出库；仅拥有者；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "检索单独等待时间，区分超时与普通网络错误",
+      "重复请求、库存不足、事务回滚、并发出库",
+      "仅拥有者",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "95f465f8-6ae7-4fb9-85cf-5f20ed450076",
+    "response": {
+      "message_id": "c7a20d74-8786-4236-ba61-4f8ec4b78d44",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T103",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习岗位是什么；2）项目A的全名是什么。",
+    "expected_answer": "后端开发实习生；知舟私有知识库",
+    "kind": "综合",
+    "required_facts": [
+      "后端开发实习生",
+      "知舟私有知识库"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "7e4a48bb-f9d7-4df3-baaa-1e0536e0b4c5",
+    "response": {
+      "message_id": "65603bdf-2845-49b8-a886-49593f5ccb0c",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T105",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）学校名称是什么；2）项目经历应该怎样组织片段；3）示例指标能否代表当前知溯测量结果；4）项目B库存数值有什么约束。",
+    "expected_answer": "江宁信息学院，虚构学校；按项目名称分别组织，避免整份简历作为一个片段；不能，仅虚构示例；非负整数",
+    "kind": "综合",
+    "required_facts": [
+      "江宁信息学院，虚构学校",
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "不能，仅虚构示例",
+      "非负整数"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "5e5e217b-4109-41d4-8c8b-84794680a6b5",
+    "response": {
+      "message_id": "d908e6f0-549a-40dd-ace8-946274d4f9bd",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T106",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例人工答案正确率是多少；2）项目B后端技术是什么。",
+    "expected_answer": "0.90，虚构示例指标；Python、FastAPI、PostgreSQL、Redis",
+    "kind": "综合",
+    "required_facts": [
+      "0.90，虚构示例指标",
+      "Python、FastAPI、PostgreSQL、Redis"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "c8fd23d7-d245-46a5-b696-9eaf56108732",
+    "response": {
+      "message_id": "b3435137-ff42-44f6-a8a9-87511641ac2f",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T108",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）林知远在项目A负责哪些开发阶段；2）示例人工答案正确率是多少；3）项目B库存数值有什么约束；4）项目B重复出库请求怎样识别。",
+    "expected_answer": "需求分析、前后端实现、测试、部署；0.90，虚构示例指标；非负整数；每请求唯一幂等键，同一键不重复扣减",
+    "kind": "综合",
+    "required_facts": [
+      "需求分析、前后端实现、测试、部署",
+      "0.90，虚构示例指标",
+      "非负整数",
+      "每请求唯一幂等键，同一键不重复扣减"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "d972121c-d3c3-4275-8fc0-bc11127e25c6",
+    "response": {
+      "message_id": "bf81d3b3-41ea-4410-868f-be2109ca1372",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T109",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PostgreSQL保存什么；2）项目A的Embedding模型是什么。",
+    "expected_answer": "业务数据；BAAI/bge-large-zh-v1.5",
+    "kind": "综合",
+    "required_facts": [
+      "业务数据",
+      "BAAI/bge-large-zh-v1.5"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "b5c142ed-e046-4561-b72b-19f4709446b0",
+    "response": {
+      "message_id": "d7234eb4-e975-4814-9384-4419d4fefc19",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T111",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）取得哪类学位；3）项目B服务哪个仓库；4）团队空间拥有者与管理员的数量规则是什么。",
+    "expected_answer": "林知远；工学学士；晨星文具仓库，虚构仓库；一个拥有者，多个管理员",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "工学学士",
+      "晨星文具仓库，虚构仓库",
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "e9e73c26-d6e2-4cd6-9256-2e739a6f2564",
+    "response": {
+      "message_id": "6b36c5a3-d413-462d-a2ff-4695ca7071be",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T112",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的全名是什么；2）项目A纯检索测试是否调用生成模型。",
+    "expected_answer": "知舟私有知识库；不调用，只返回片段",
+    "kind": "综合",
+    "required_facts": [
+      "知舟私有知识库",
+      "不调用，只返回片段"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "a67c93aa-6d92-4c79-84ea-d2214b33386c",
+    "response": {
+      "message_id": "9f58c0a9-2eee-439e-917c-3cac7fc67756",
+      "status": "ANSWERED",
+      "answer": "1）项目A的全名是“知舟私有知识库”。2）项目A的纯检索测试不调用生成模型：证据明确说明“检索测试只返回片段，不调用生成模型”。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "仅用于 RAG 验收 | 不含真实个人信息\n第 1 页\n01 基本信息与教育经历\n林知远项目档案与知识库规则 | 虚构资料 | RAG-DEMO-001 | 版本 1.0\n资料说明\n本资料中的人物、学校、公司、项目与指标均为虚构，仅用于知识库功能验收。资料编号：RAG-DEMO-001。\n版本：1.0。更新时间：2026-10-03。\n基本信息\n姓名：林知远。求职方向：Python 后端开发与 RAG 应用开发。当前所在地：南京。最高学历：本科。该资\n料未提供手机号、邮箱、身份证号、薪资、家庭信息或真实联系方式。\n教育经历\n2021 年 9 月至 2025 年 6 月，林知远就读于虚构的江宁信息学院，专业为软件工程，获得工学学士学位。毕业\n设计为“课程资料检索助手”。\n专业技能\n熟悉 Python、FastAPI、PostgreSQL、Redis 和 Docker；能够使用 React 与 TypeScript 开发管理页面；了解 PDF\n解析、文本分块、Embedding、余弦相似度、向量检索与引用生成。\n工作经历\n2025 年 7 月至 2026 年 2 月，在虚构的青禾软件工作室担任后端开发实习生，参与接口开发、日志排查和自动\n化测试。团队规模、主管姓名和离职原因均未记录。\n项目总览\n项目 A 是“知舟私有知识库”，侧重文档检索与有依据问答；项目 B 是“仓流库存管理”，侧重库存业务与\n并发控制。两个项目的职责、指标和技术栈分别记录于后续章节。",
+          "page_number": 1,
+          "ordinal": 1,
+          "score": 0.380207
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "排序。\n分块与检索策略\nMarkdown 先按标题分段；TXT 先按空行划分段落；PDF 保存页码后按段落切分。目标片段长度为 400 至\n700 个汉字，重叠长度为 80 个汉字。项目经历按项目名称分别组织，避免把整份简历作为一个片段。默认\nTop K 为 5。\n模型与回答规则\nEmbedding 使用 BAAI/bge-large-zh-v1.5，向量维度为 1024。系统使用余弦相似度衡量相关性。答案必须依据\n当前空间内已启用的资料；证据不足时应明确拒答，不得补造事实。检索测试只返回片段，不调用生成模型。\n测试结果与限制\n在虚构的 50 道测试题和 200 份中文文档上，Recall@5 为 0.86。模型预热后，单次检索 P95 耗时为 1.8 秒；该\n指标不包括模型冷启动和答案生成。人工答案正确率为 0.90。这些指标仅是本测试资料中的示例数据，并非\n当前知溯系统的测量结果。\n解决的问题\n首次模型加载曾耗时约 160 秒，超过前端 60 秒等待上限。林知远为检索请求设置单独的等待时间，并区分超\n时与普通网络错误。另通过过滤停用资料，防止检索继续返回旧内容。",
+          "page_number": 2,
+          "ordinal": 3,
+          "score": 0.505844
+        }
+      ]
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T114",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）档案编号是什么；3）项目A前端使用什么技术；4）旧会话仍显示答案能否证明旧资料可继续作为依据。",
+    "expected_answer": "工学学士；RAG-DEMO-001；React、TypeScript；不能，历史回答不等于当前证据",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "RAG-DEMO-001",
+      "React、TypeScript",
+      "不能，历史回答不等于当前证据"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "e2a9d37c-4224-41f8-9e36-2b20f3634c9d",
+    "response": {
+      "message_id": "07134051-369b-4e4b-92aa-68272cf0ae84",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T115",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A相邻片段重叠多长；2）示例指标能否代表当前知溯测量结果。",
+    "expected_answer": "80个汉字；不能，仅虚构示例",
+    "kind": "综合",
+    "required_facts": [
+      "80个汉字",
+      "不能，仅虚构示例"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "8b435b94-ec1e-4d13-92c7-222cdff4e3c2",
+    "response": {
+      "message_id": "bb144e99-afbb-4cca-8208-9626e594ed56",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T117",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）档案更新时间是哪天；3）项目A的编号是什么；4）项目A的Embedding模型是什么。",
+    "expected_answer": "2021年9月至2025年6月；2026-10-03；PRJ-A；BAAI/bge-large-zh-v1.5",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "2026-10-03",
+      "PRJ-A",
+      "BAAI/bge-large-zh-v1.5"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "6b0d9ae7-2c2a-4d2d-a80c-dbe2b337eb08",
+    "response": {
+      "message_id": "0f2a0788-7df6-459e-adfd-68fb29b3d0b1",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T118",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目A的全名是什么。",
+    "expected_answer": "2021年9月至2025年6月；知舟私有知识库",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "知舟私有知识库"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "310b7962-883b-4d90-9027-7d8243ac1a3e",
+    "response": {
+      "message_id": "0613713c-3a54-47ce-8219-c630a906681d",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T120",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例检索P95是什么且排除了什么；2）项目B的全名和编号是什么；3）林知远在项目B负责什么；4）重复首次出库后以及再出库100本失败后各剩多少。",
+    "expected_answer": "预热后1.8秒，不含模型冷启动与答案生成；仓流库存管理，PRJ-B；后端开发者，库存接口与并发控制，不负责移动端页面；均85本，同幂等键不重扣，不足回滚",
+    "kind": "综合",
+    "required_facts": [
+      "预热后1.8秒，不含模型冷启动与答案生成",
+      "仓流库存管理，PRJ-B",
+      "后端开发者，库存接口与并发控制，不负责移动端页面",
+      "均85本，同幂等键不重扣，不足回滚"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "a8bfe26f-3b95-4ca9-b858-5de82b652510",
+    "response": {
+      "message_id": "5f1b65fc-0d72-4f19-8a2f-f964cc0cf220",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T121",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "本科；120本",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "pdf",
+    "conversation_id": "8103a748-b350-4295-ac3e-15e727e2446d",
+    "response": {
+      "message_id": "038a5800-30c0-452c-a13a-3b9ff9109483",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T123",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的求职方向有哪些；2）学校名称是什么；3）项目A服务哪类需求；4）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "Python后端开发与RAG应用开发；江宁信息学院，虚构学校；个人学习资料整理、文档检索与有依据问答；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "Python后端开发与RAG应用开发",
+      "江宁信息学院，虚构学校",
+      "个人学习资料整理、文档检索与有依据问答",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "b5a124e9-0dfa-49eb-9318-577cd3a57f1c",
+    "response": {
+      "message_id": "f7a326f4-da29-4996-a72e-d91d7d2c648f",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T126",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的编号是什么；2）项目A的Embedding模型是什么；3）项目B的全名和编号是什么；4）项目B后端技术是什么。",
+    "expected_answer": "PRJ-A；BAAI/bge-large-zh-v1.5；仓流库存管理，PRJ-B；Python、FastAPI、PostgreSQL、Redis",
+    "kind": "综合",
+    "required_facts": [
+      "PRJ-A",
+      "BAAI/bge-large-zh-v1.5",
+      "仓流库存管理，PRJ-B",
+      "Python、FastAPI、PostgreSQL、Redis"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "5f9f51ca-4383-4ed9-a55c-0413548a1244",
+    "response": {
+      "message_id": "300119cd-dd78-4659-95f7-11babbfab3c8",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T129",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目A的pgvector保存什么；3）示例评测有多少题和多少文档；4）计算结果应怎样表述。",
+    "expected_answer": "2021年9月至2025年6月；向量；50道题，200份中文文档；可以按资料数字推算，但不能声称是原文记录",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "向量",
+      "50道题，200份中文文档",
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "09bd1eb1-3a13-4f0b-98c8-f3e16a450a39",
+    "response": {
+      "message_id": "2234e752-dc0f-4460-8cb6-c6b991aa9db2",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T132",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A起止年月是什么；2）项目A接受哪些文件格式；3）项目B的Redis负责什么且不负责什么；4）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "2026年3月至2026年6月；PDF、Markdown、TXT；热点库存查询缓存，不承担最终库存一致性判断；120本",
+    "kind": "综合",
+    "required_facts": [
+      "2026年3月至2026年6月",
+      "PDF、Markdown、TXT",
+      "热点库存查询缓存，不承担最终库存一致性判断",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "60ad1ed3-831e-44a8-a060-c5d30f010ab8",
+    "response": {
+      "message_id": "74bad705-411c-4971-8964-e00120414445",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  },
+  {
+    "id": "T135",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的求职方向有哪些；2）学校名称是什么；3）实习单位叫什么；4）项目B是否使用pgvector和Embedding或RAG。",
+    "expected_answer": "Python后端开发与RAG应用开发；江宁信息学院，虚构学校；青禾软件工作室，虚构单位；均没有使用",
+    "kind": "综合",
+    "required_facts": [
+      "Python后端开发与RAG应用开发",
+      "江宁信息学院，虚构学校",
+      "青禾软件工作室，虚构单位",
+      "均没有使用"
+    ],
+    "answerable": true,
+    "format": "txt",
+    "conversation_id": "68a2c7d2-7234-4cb2-ae09-2df2a034c256",
+    "response": {
+      "message_id": "565a81ed-b544-4801-a74d-ef9287a2cbf5",
+      "status": "FAILED",
+      "answer": "模型服务暂时不可用，请稍后重试。",
+      "model": null,
+      "citations": []
+    },
+    "setup_response": null
+  }
+]

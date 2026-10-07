@@ -21,6 +21,7 @@ from app.domain.spaces import (
     SpaceNotFoundError,
     SpaceRuleViolationError,
     SpacePlan,
+    SpaceKind,
     SpaceVisibility,
     PublicQuestionRecord,
 )
@@ -91,6 +92,7 @@ class SpaceCreateRequest(BaseModel):
     name: str = Field(min_length=1, max_length=120)
     description: str | None = Field(default=None, max_length=2000)
     visibility: SpaceVisibility = SpaceVisibility.PRIVATE
+    kind: SpaceKind = SpaceKind.PERSONAL
     guest_feedback_enabled: bool = False
 
 
@@ -112,6 +114,7 @@ class SpaceResponse(BaseModel):
     visibility: SpaceVisibility
     guest_feedback_enabled: bool
     plan: SpacePlan
+    kind: SpaceKind
     created_at: datetime
     updated_at: datetime
 
@@ -125,6 +128,7 @@ class SpaceResponse(BaseModel):
             visibility=space.visibility,
             guest_feedback_enabled=space.guest_feedback_enabled,
             plan=space.plan,
+            kind=space.kind,
             created_at=space.created_at,
             updated_at=space.updated_at,
         )

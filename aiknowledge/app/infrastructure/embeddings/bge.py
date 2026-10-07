@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import math
 from collections.abc import Callable, Sequence
 from typing import Any
+
+from app.services.token_budget import TokenBudget, TokenSlice
 
 
 class EmbeddingBackendUnavailable(RuntimeError):
@@ -52,14 +55,35 @@ class BgeEmbeddingClient:
         self._timeout_seconds = timeout_seconds
         self._max_retries = max_retries
         self._model_factory = model_factory or self._default_model_factory
+        self._custom_factory = model_factory is not None
         self._model: object | None = None
         self._initialization_lock = asyncio.Lock()
+        self._encoding_lock = asyncio.Lock()
+        self._encoding_task: asyncio.Task | None = None
 
     async def embed_queries(self, texts: Sequence[str]) -> list[list[float]]:
         return await self._embed(texts, encoder_name="encode_queries")
 
     async def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
         return await self._embed(texts, encoder_name="encode_corpus")
+
+    async def split_document_text(self, text: str) -> list[TokenSlice]:
+        model = await self._get_model()
+        budget = self._token_budget(model)
+        if budget is None:
+            raise EmbeddingBackendUnavailable('模型没有提供 tokenizer，无法验证资料长度。')
+        return await asyncio.to_thread(budget.split, text, overlap_characters=240)
+
+    def _token_budget(self, model: object) -> TokenBudget | None:
+        tokenizer = getattr(model, 'tokenizer', None)
+        if tokenizer is None:
+            if self._custom_factory:
+                # Legacy test ports may deliberately omit a real tokenizer.
+                return None
+            raise EmbeddingBackendUnavailable('向量模型未提供可用的 tokenizer。')
+        config = getattr(getattr(model, 'model', None), 'config', None)
+        capacity = min(512, int(getattr(config, 'max_position_embeddings', 512)))
+        return TokenBudget(tokenizer, capacity=capacity)
 
     async def _embed(
         self, texts: Sequence[str], *, encoder_name: str
@@ -69,6 +93,13 @@ class BgeEmbeddingClient:
             return []
 
         model = await self._get_model()
+        budget = self._token_budget(model)
+        if budget is not None:
+            for text in normalized_texts:
+                if encoder_name == 'encode_queries':
+                    budget.validate_query(text, prefix=self.QUERY_INSTRUCTION)
+                elif budget.count(text) > budget.capacity:
+                    raise EmbeddingDimensionError('资料片段超过模型输入上限，需要重新分块。')
         encoder = getattr(model, encoder_name, None)
         if not callable(encoder):
             raise EmbeddingBackendUnavailable(
@@ -79,22 +110,42 @@ class BgeEmbeddingClient:
         for start in range(0, len(normalized_texts), self._batch_size):
             batch = normalized_texts[start : start + self._batch_size]
             raw_vectors = await self._encode_batch_with_retry(encoder, batch)
-            vectors.extend(self._coerce_and_validate_vectors(raw_vectors))
+            validated = self._coerce_and_validate_vectors(raw_vectors)
+            if len(validated) != len(batch):
+                raise EmbeddingDimensionError('向量模型返回数量与输入不一致。')
+            vectors.extend(validated)
         return vectors
 
     async def _encode_batch_with_retry(
         self, encoder: Callable[[Sequence[str]], Any], batch: Sequence[str]
     ) -> Any:
+        try:
+            await asyncio.wait_for(self._encoding_lock.acquire(), timeout=self._timeout_seconds)
+        except asyncio.TimeoutError as exc:
+            raise EmbeddingBackendUnavailable('本地向量模型排队超时，请稍后重试。') from exc
+        try:
+            return await self._encode_exclusive_with_retry(encoder, batch)
+        finally:
+            self._encoding_lock.release()
+
+    async def _encode_exclusive_with_retry(
+        self, encoder: Callable[[Sequence[str]], Any], batch: Sequence[str]
+    ) -> Any:
         for attempt in range(self._max_retries + 1):
+            if self._encoding_task is not None and not self._encoding_task.done():
+                raise EmbeddingBackendUnavailable('本地向量模型仍在处理，请稍后重试。')
+            # A Python thread cannot be cancelled by wait_for. Retain and shield
+            # it so timeout/cancellation never permits a second concurrent job.
+            self._encoding_task = asyncio.create_task(asyncio.to_thread(encoder, batch))
+            self._encoding_task.add_done_callback(lambda task: task.exception() if not task.cancelled() else None)
             try:
                 return await asyncio.wait_for(
-                    asyncio.to_thread(encoder, batch), timeout=self._timeout_seconds
+                    asyncio.shield(self._encoding_task), timeout=self._timeout_seconds
                 )
             except asyncio.TimeoutError as exc:
-                if attempt >= self._max_retries:
-                    raise EmbeddingBackendUnavailable(
-                        "本地向量模型处理超时，请稍后重试。"
-                    ) from exc
+                raise EmbeddingBackendUnavailable(
+                    '本地向量模型处理超时，请稍后重试。'
+                ) from exc
             except (RuntimeError, OSError) as exc:
                 if attempt >= self._max_retries:
                     raise EmbeddingBackendUnavailable(
@@ -138,6 +189,8 @@ class BgeEmbeddingClient:
                     f"Embedding dimension mismatch: expected {self._expected_dimension}, "
                     f"received {len(vector)}."
                 )
+            if not all(math.isfinite(x) for x in vector) or math.hypot(*vector) == 0:
+                raise EmbeddingDimensionError("Embedding must contain finite non-zero values.")
             vectors.append(vector)
         return vectors
 
@@ -159,4 +212,5 @@ class BgeEmbeddingClient:
             model_name,
             query_instruction_for_retrieval=query_instruction_for_retrieval,
             use_fp16=use_fp16,
+            normalize_embeddings=True,
         )

@@ -208,6 +208,7 @@ class QuestionRequest(BaseModel):
 
 
 class OwnerCitationResponse(BaseModel):
+    source_available: bool = True
     document_name: str
     quoted_text: str
     page_number: int | None
@@ -217,6 +218,7 @@ class OwnerCitationResponse(BaseModel):
     @classmethod
     def from_domain(cls, citation: CitationSnapshot) -> "OwnerCitationResponse":
         return cls(
+            source_available=citation.source_available,
             document_name=citation.document_name,
             quoted_text=citation.quoted_text,
             page_number=citation.page_number,
@@ -397,15 +399,21 @@ def _chunk_text(text: str, *, chunk_size: int = _SSE_CHUNK_SIZE) -> tuple[str, .
     return tuple(text[index : index + chunk_size] for index in range(0, len(text), chunk_size))
 
 
-def _as_sse(payload: BaseModel, request: Request) -> StreamingResponse:
+def _as_sse(payload: BaseModel, request: Request, *, scope_check=None) -> StreamingResponse:
     async def events():
         answer = getattr(payload, "answer", "")
         for chunk in _chunk_text(answer):
             if await request.is_disconnected():
                 return
+            if scope_check is not None and not await scope_check():
+                yield 'event: error\ndata: {"code":"SCOPE_CHANGED","message":"访问范围已变化，请重新提问。"}\n\n'
+                return
             yield f"event: delta\ndata: {json.dumps({'text': chunk}, ensure_ascii=False)}\n\n"
             await asyncio.sleep(0)
         if await request.is_disconnected():
+            return
+        if scope_check is not None and not await scope_check():
+            yield 'event: error\ndata: {"code":"SCOPE_CHANGED","message":"访问范围已变化，请重新提问。"}\n\n'
             return
         yield f"event: answer\ndata: {json.dumps(payload.model_dump(mode='json'), ensure_ascii=False)}\n\n"
         await asyncio.sleep(0)
@@ -418,6 +426,25 @@ def _as_sse(payload: BaseModel, request: Request) -> StreamingResponse:
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+def _public_stream_check(request: Request, scope: PublicRetrievalScope, result: ConversationAnswer):
+    if result.scope_snapshot is None:
+        return None  # injected V1 fixture; production answers carry a snapshot
+    async def check():
+        from app.infrastructure.database.conversation_repository import SqlAlchemyConversationRepository
+        # Request-scoped sessions are closed before a streaming response. Each
+        # event check owns a short independent transaction and rechecks expiry.
+        try:
+            async with request.app.state.database.session() as session:
+                repo = SqlAlchemyConversationRepository(session)
+                snapshot = await repo.generation_scope_snapshot(space_id=scope.space_id, user_id=None, public_scope=scope)
+                return snapshot == result.scope_snapshot and await repo.validate_generation_chunks(
+                    space_id=scope.space_id, public_scope=scope,
+                    chunk_ids=tuple(x.chunk_id for x in result.citations if x.chunk_id is not None))
+        except Exception:
+            return False
+    return check
 
 
 @router.post(
@@ -697,4 +724,4 @@ async def ask_public(
         _translate_conversation_error(error)
         raise
     response = PublicAnswerResponse.from_domain(result)
-    return _as_sse(response, request) if payload.stream else response
+    return _as_sse(response, request, scope_check=_public_stream_check(request, scope, result)) if payload.stream else response

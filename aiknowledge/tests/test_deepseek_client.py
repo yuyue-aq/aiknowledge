@@ -14,6 +14,25 @@ from app.infrastructure.llm.deepseek import (
 
 
 @pytest.mark.asyncio
+async def test_owned_client_bounds_connection_wait_without_shortening_generation(monkeypatch):
+    transport=httpx.MockTransport(lambda request:httpx.Response(200,json={'choices':[{'message':{'content':'ok'}}]}))
+    owned=httpx.AsyncClient(transport=transport)
+    observed=[]
+    def factory(*,timeout):
+        observed.append(timeout)
+        return owned
+    monkeypatch.setattr(httpx,'AsyncClient',factory)
+    client=DeepSeekChatClient(api_key='test',timeout_seconds=60)
+    try:
+        await client.generate([ChatMessage(role='user',content='test')])
+        assert isinstance(observed[0],httpx.Timeout)
+        assert observed[0].connect == 10
+        assert observed[0].read == 60
+    finally:
+        await client.aclose()
+
+
+@pytest.mark.asyncio
 async def test_deepseek_client_uses_the_current_flash_model_and_openai_compatible_shape() -> None:
     observed_request: dict[str, object] = {}
 
@@ -44,7 +63,7 @@ async def test_deepseek_client_uses_the_current_flash_model_and_openai_compatibl
     assert observed_request["url"] == "https://api.deepseek.com/chat/completions"
     assert observed_request["headers"]["authorization"] == "Bearer test-key"
     assert observed_request["payload"] == {
-        "model": "deepseek-v4-flash",
+        "model": "deepseek-flash",
         "messages": [
             {"role": "system", "content": "只使用提供的证据。"},
             {"role": "user", "content": "知识库能做什么？"},
@@ -58,6 +77,12 @@ async def test_deepseek_client_uses_the_current_flash_model_and_openai_compatibl
     assert result.model == "deepseek-v4-flash"
     assert result.usage.total_tokens == 18
     await http_client.aclose()
+
+
+def test_settings_default_to_official_flash_model() -> None:
+    from app.core.config import Settings
+
+    assert Settings(_env_file=None).deepseek_model == "deepseek-flash"
 
 
 @pytest.mark.asyncio

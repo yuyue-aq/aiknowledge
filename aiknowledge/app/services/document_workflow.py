@@ -41,6 +41,10 @@ class DocumentScopeError(ValueError):
 
 
 class DocumentRepository(Protocol):
+    async def get_document(self, document_id: UUID) -> StoredDocument | None: ...
+
+    async def create_replacement_version(self, document: StoredDocument, version: StoredDocumentVersion) -> StoredDocumentVersion: ...
+
     async def has_space_access(self, *, space_id: UUID, user_id: UUID) -> bool: ...
 
     async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None: ...
@@ -170,6 +174,7 @@ class DocumentUploadService:
         effective_at: datetime | None = None,
         expires_at: datetime | None = None,
         owner_user_id: UUID | None = None,
+        _replacing_document: StoredDocument | None = None,
     ) -> DocumentSubmission:
         validate_document_availability(
             effective_at=effective_at,
@@ -194,7 +199,7 @@ class DocumentUploadService:
                     raise DocumentScopeError("文档所属的空间或分类不存在。")
             if role_reader is not None and role is None:
                 raise DocumentScopeError("文档所属的空间或分类不存在。")
-        if self._usage_service is not None:
+        if self._usage_service is not None and _replacing_document is None:
             await self._usage_service.ensure_document_allowed(
                 space_id, owner_user_id=owner_user_id
             )
@@ -205,9 +210,10 @@ class DocumentUploadService:
             raise DocumentAlreadyExistsError("该空间中已存在相同内容的活动文档。")
 
         now = self._now()
-        document_id = self._key_factory()
+        document_id = _replacing_document.id if _replacing_document else self._key_factory()
         version_id = self._key_factory()
-        storage_key = f"documents/{space_id}/{document_id}/source{extension}"
+        storage_key = (f"documents/{space_id}/{document_id}/{version_id}/source{extension}" if _replacing_document
+            else f"documents/{space_id}/{document_id}/source{extension}")
         document = StoredDocument(
             id=document_id,
             space_id=space_id,
@@ -237,10 +243,16 @@ class DocumentUploadService:
             chunk_config={
                 "max_characters": 1800,
                 "overlap_characters": 240,
-                "token_count_strategy": "cjk_character_proxy",
+                "overlap_limit": "half_chunk",
+                "token_count_strategy": "model_tokenizer",
+                "max_tokens_including_special": 512,
+                "preserve_source_offsets": True,
+                "strategy_version": "sentence-token-budget-v2",
             },
             status=DocumentVersionStatus.PROCESSING,
             created_at=now,
+            source_snapshot={'storage_key': storage_key, 'original_filename': safe_filename, 'mime_type': resolved_mime,
+                'size_bytes': len(content), 'sha256': source_hash},
         )
         await self._storage.put_bytes(
             object_key=storage_key,
@@ -249,7 +261,11 @@ class DocumentUploadService:
             metadata={"sha256": source_hash},
         )
         try:
-            await self._repository.create_processing_document(document, version)
+            if _replacing_document:
+                version = await self._repository.create_replacement_version(_replacing_document, version)
+                document = _replacing_document
+            else:
+                await self._repository.create_processing_document(document, version)
             # A worker must never observe a task before its idempotency key is
             # durable in PostgreSQL.
             await self._repository.commit()
@@ -275,11 +291,24 @@ class DocumentUploadService:
             context = await self._repository.get_processing_context(version.id)
             if context is not None:
                 document, version = context
+                if _replacing_document:
+                    document = _replacing_document
         return DocumentSubmission(
             document=document,
             version=version,
             processing_enqueued=enqueued,
         )
+
+    async def replace_document(self, document_id: UUID, *, filename: str, content: bytes, content_type: str | None,
+        owner_user_id: UUID | None = None) -> DocumentSubmission:
+        document = await self._repository.get_document(document_id)
+        if document is None or document.status is DocumentStatus.DELETED:
+            raise DocumentScopeError('文档不存在。')
+        if document.status is not DocumentStatus.READY or document.active_version_id is None:
+            raise DocumentUploadError('请先完成当前资料的处理，再上传新版本。')
+        return await self.upload(space_id=document.space_id, category_id=document.category_id, filename=filename,
+            content=content, content_type=content_type, owner_user_id=owner_user_id, is_enabled=document.is_enabled,
+            effective_at=document.effective_at, expires_at=document.expires_at, _replacing_document=document)
 
     def _validate_upload(
         self, *, filename: str, content: bytes, content_type: str | None
@@ -357,7 +386,7 @@ class DocumentUploadService:
 
     @staticmethod
     def _role_at_least(actual: SpaceRole, minimum: SpaceRole) -> bool:
-        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.OWNER: 2}
+        order = {SpaceRole.MEMBER: 0, SpaceRole.EDITOR: 1, SpaceRole.ADMIN: 2, SpaceRole.OWNER: 3}
         return order[actual] >= order[minimum]
 
 
@@ -420,10 +449,11 @@ class DocumentProcessingService:
                 page_number=chunk.page_number,
                 content=chunk.content,
                 content_hash=hashlib.sha256(chunk.content.encode("utf-8")).hexdigest(),
-                # The BGE chunker is character-based for CJK text; retaining a
-                # conservative proxy makes later evaluation reproducible.
-                token_count=max(1, len(chunk.content)),
+                token_count=chunk.token_count if chunk.token_count is not None else max(1, len(chunk.content)),
                 embedding=chunk.embedding,
+                source_block_id=chunk.source_block_id,
+                char_start=chunk.char_start,
+                char_end=chunk.char_end,
             )
             for chunk in prepared.chunks
         )

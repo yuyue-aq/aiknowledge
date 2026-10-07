@@ -354,4 +354,4 @@ def _documents_checksum(documents: Sequence[SourceDocument]) -> str:
 
 
 def _role_rank(role: SpaceRole) -> int:
-    return {SpaceRole.MEMBER: 1, SpaceRole.EDITOR: 2, SpaceRole.OWNER: 3}[role]
+    return {SpaceRole.MEMBER: 1, SpaceRole.EDITOR: 2, SpaceRole.ADMIN: 3, SpaceRole.OWNER: 4}[role]

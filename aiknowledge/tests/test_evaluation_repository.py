@@ -15,6 +15,22 @@ from app.domain.conversations import (
 from app.domain.rag import AnswerStatus
 from app.infrastructure.database.evaluation_repository import SqlAlchemyEvaluationRepository
 from app.infrastructure.database.models import EvalCaseRecord, EvalResultRecord, EvalRunRecord
+from app.domain.evaluation import EvidenceRef
+
+
+@pytest.mark.asyncio
+async def test_repository_round_trips_v2_evidence_labels_and_execution_metrics():
+    session = FakeSession()
+    repo = SqlAlchemyEvaluationRepository(session)
+    evidence = EvidenceRef(uuid4(), uuid4(), 'block-1', 0, 3, 'a'*64)
+    case = EvalCase(uuid4(), uuid4(), '问题', '答案', (), EvalScope.OWNER, (), datetime.now(UTC),
+        answerable=True, expected_behavior='ANSWERED', evidence_refs=(evidence,))
+    await repo.add_case(case)
+    assert (await repo.get_case(case.id)) == case
+    result = EvalResult(uuid4(), uuid4(), case.id, AnswerStatus.FAILED, '模型故障', 0,
+        execution_snapshot={'retrieved_chunks': []}, retrieval_metrics={'document_hit_at_k': 0.}, failure_code='LLM_UNAVAILABLE')
+    await repo.add_result(result)
+    assert (await repo.get_result(result.id)) == result
 
 
 class FakeSession:

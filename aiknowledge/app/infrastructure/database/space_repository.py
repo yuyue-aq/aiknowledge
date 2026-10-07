@@ -74,6 +74,7 @@ class SqlAlchemySpaceRepository:
                 visibility=space.visibility,
                 guest_feedback_enabled=space.guest_feedback_enabled,
                 plan=space.plan,
+                kind=space.kind,
                 created_at=space.created_at,
                 updated_at=space.updated_at,
                 deleted_at=space.deleted_at,
@@ -91,6 +92,7 @@ class SqlAlchemySpaceRepository:
         record.visibility = space.visibility
         record.guest_feedback_enabled = space.guest_feedback_enabled
         record.plan = space.plan
+        record.kind = space.kind
         record.updated_at = space.updated_at
         record.deleted_at = space.deleted_at
         await self._session.flush()
@@ -247,6 +249,7 @@ class SqlAlchemySpaceRepository:
             visibility=record.visibility,
             guest_feedback_enabled=record.guest_feedback_enabled,
             plan=record.plan,
+            kind=record.kind,
             created_at=record.created_at,
             updated_at=record.updated_at,
             deleted_at=record.deleted_at,

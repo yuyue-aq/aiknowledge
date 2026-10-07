@@ -1,0 +1,87 @@
+{
+  "total": 500,
+  "complete": 490,
+  "partial": 7,
+  "incorrect": 3,
+  "strict_pass_rate": 0.98,
+  "by_kind": {
+    "事实": {
+      "total": 81,
+      "complete": 81,
+      "partial": 0,
+      "incorrect": 0,
+      "strict_pass_rate": 1.0
+    },
+    "拒答": {
+      "total": 50,
+      "complete": 50,
+      "partial": 0,
+      "incorrect": 0,
+      "strict_pass_rate": 1.0
+    },
+    "综合": {
+      "total": 194,
+      "complete": 187,
+      "partial": 7,
+      "incorrect": 0,
+      "strict_pass_rate": 0.9639175257731959
+    },
+    "计算": {
+      "total": 100,
+      "complete": 100,
+      "partial": 0,
+      "incorrect": 0,
+      "strict_pass_rate": 1.0
+    },
+    "追问": {
+      "total": 75,
+      "complete": 72,
+      "partial": 0,
+      "incorrect": 3,
+      "strict_pass_rate": 0.96
+    }
+  },
+  "by_format": {
+    "pdf": {
+      "total": 167,
+      "complete": 166,
+      "partial": 0,
+      "incorrect": 1,
+      "strict_pass_rate": 0.9940119760479041
+    },
+    "md": {
+      "total": 167,
+      "complete": 159,
+      "partial": 7,
+      "incorrect": 1,
+      "strict_pass_rate": 0.9520958083832335
+    },
+    "txt": {
+      "total": 166,
+      "complete": 165,
+      "partial": 0,
+      "incorrect": 1,
+      "strict_pass_rate": 0.9939759036144579
+    }
+  },
+  "negative_refusal_status_correct": 50,
+  "citation_source_checks": 909,
+  "source_integrity": "PASSED",
+  "input_tokens": 1605122,
+  "output_tokens": 68908,
+  "product_actions": 575,
+  "prompt_versions": [
+    "rag-prompt-v2-multitask-assumptions"
+  ],
+  "grader_usage": {
+    "input_tokens": 223672,
+    "output_tokens": 15951,
+    "calls": 76,
+    "model": "deepseek-flash"
+  },
+  "assistant_overrides": 0,
+  "latency_p50_seconds": 4.252000000000001,
+  "latency_p95_seconds": 14.326,
+  "latency_max_seconds": 23.436,
+  "target_met": true
+}

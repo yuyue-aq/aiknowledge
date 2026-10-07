@@ -1,0 +1,5964 @@
+[
+  {
+    "id": "T001",
+    "question": "根据这份虚构档案，档案人物叫什么？",
+    "expected_answer": "林知远",
+    "kind": "事实",
+    "required_facts": [
+      "林知远"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T002",
+    "question": "根据这份虚构档案，他的求职方向有哪些？",
+    "expected_answer": "Python后端开发与RAG应用开发",
+    "kind": "事实",
+    "required_facts": [
+      "Python后端开发与RAG应用开发"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T003",
+    "question": "根据这份虚构档案，他当前位于哪座城市？",
+    "expected_answer": "南京",
+    "kind": "事实",
+    "required_facts": [
+      "南京"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T004",
+    "question": "根据这份虚构档案，他的最高学历是什么？",
+    "expected_answer": "本科",
+    "kind": "事实",
+    "required_facts": [
+      "本科"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T005",
+    "question": "根据这份虚构档案，学校名称是什么？",
+    "expected_answer": "江宁信息学院，虚构学校",
+    "kind": "事实",
+    "required_facts": [
+      "江宁信息学院，虚构学校"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T006",
+    "question": "根据这份虚构档案，本科专业是什么？",
+    "expected_answer": "软件工程",
+    "kind": "事实",
+    "required_facts": [
+      "软件工程"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T007",
+    "question": "根据这份虚构档案，取得哪类学位？",
+    "expected_answer": "工学学士",
+    "kind": "事实",
+    "required_facts": [
+      "工学学士"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T008",
+    "question": "根据这份虚构档案，入学和毕业的年月是什么？",
+    "expected_answer": "2021年9月至2025年6月",
+    "kind": "事实",
+    "required_facts": [
+      "2021年9月至2025年6月"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T009",
+    "question": "根据这份虚构档案，毕业设计名称是什么？",
+    "expected_answer": "课程资料检索助手",
+    "kind": "事实",
+    "required_facts": [
+      "课程资料检索助手"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T010",
+    "question": "根据这份虚构档案，实习单位叫什么？",
+    "expected_answer": "青禾软件工作室，虚构单位",
+    "kind": "事实",
+    "required_facts": [
+      "青禾软件工作室，虚构单位"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T011",
+    "question": "根据这份虚构档案，实习起止年月是什么？",
+    "expected_answer": "2025年7月至2026年2月",
+    "kind": "事实",
+    "required_facts": [
+      "2025年7月至2026年2月"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T012",
+    "question": "根据这份虚构档案，实习岗位是什么？",
+    "expected_answer": "后端开发实习生",
+    "kind": "事实",
+    "required_facts": [
+      "后端开发实习生"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T013",
+    "question": "根据这份虚构档案，实习参与了哪些工作？",
+    "expected_answer": "接口开发、日志排查、自动化测试",
+    "kind": "事实",
+    "required_facts": [
+      "接口开发、日志排查、自动化测试"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T014",
+    "question": "根据这份虚构档案，档案编号是什么？",
+    "expected_answer": "RAG-DEMO-001",
+    "kind": "事实",
+    "required_facts": [
+      "RAG-DEMO-001"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T015",
+    "question": "根据这份虚构档案，档案版本是什么？",
+    "expected_answer": "1.0",
+    "kind": "事实",
+    "required_facts": [
+      "1.0"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T016",
+    "question": "根据这份虚构档案，档案更新时间是哪天？",
+    "expected_answer": "2026-10-03",
+    "kind": "事实",
+    "required_facts": [
+      "2026-10-03"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T017",
+    "question": "根据这份虚构档案，这些人物和项目是否真实？",
+    "expected_answer": "全部虚构，仅供知识库功能验收",
+    "kind": "事实",
+    "required_facts": [
+      "全部虚构，仅供知识库功能验收"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T018",
+    "question": "根据这份虚构档案，项目A的全名是什么？",
+    "expected_answer": "知舟私有知识库",
+    "kind": "事实",
+    "required_facts": [
+      "知舟私有知识库"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T019",
+    "question": "根据这份虚构档案，项目A的编号是什么？",
+    "expected_answer": "PRJ-A",
+    "kind": "事实",
+    "required_facts": [
+      "PRJ-A"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T020",
+    "question": "根据这份虚构档案，项目A起止年月是什么？",
+    "expected_answer": "2026年3月至2026年6月",
+    "kind": "事实",
+    "required_facts": [
+      "2026年3月至2026年6月"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T021",
+    "question": "根据这份虚构档案，林知远在项目A中的角色是什么？",
+    "expected_answer": "独立开发者",
+    "kind": "事实",
+    "required_facts": [
+      "独立开发者"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T022",
+    "question": "根据这份虚构档案，项目A服务哪类需求？",
+    "expected_answer": "个人学习资料整理、文档检索与有依据问答",
+    "kind": "事实",
+    "required_facts": [
+      "个人学习资料整理、文档检索与有依据问答"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T023",
+    "question": "根据这份虚构档案，项目A接受哪些文件格式？",
+    "expected_answer": "PDF、Markdown、TXT",
+    "kind": "事实",
+    "required_facts": [
+      "PDF、Markdown、TXT"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T024",
+    "question": "根据这份虚构档案，项目A的后端语言与框架是什么？",
+    "expected_answer": "Python、FastAPI",
+    "kind": "事实",
+    "required_facts": [
+      "Python、FastAPI"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T025",
+    "question": "根据这份虚构档案，项目A前端使用什么技术？",
+    "expected_answer": "React、TypeScript",
+    "kind": "事实",
+    "required_facts": [
+      "React、TypeScript"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T026",
+    "question": "根据这份虚构档案，项目A的PostgreSQL保存什么？",
+    "expected_answer": "业务数据",
+    "kind": "事实",
+    "required_facts": [
+      "业务数据"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T027",
+    "question": "根据这份虚构档案，项目A的pgvector保存什么？",
+    "expected_answer": "向量",
+    "kind": "事实",
+    "required_facts": [
+      "向量"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T028",
+    "question": "根据这份虚构档案，项目A的Redis负责什么？",
+    "expected_answer": "异步任务",
+    "kind": "事实",
+    "required_facts": [
+      "异步任务"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T029",
+    "question": "根据这份虚构档案，项目A如何进行本地部署？",
+    "expected_answer": "Docker Compose",
+    "kind": "事实",
+    "required_facts": [
+      "Docker Compose"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T030",
+    "question": "根据这份虚构档案，林知远在项目A负责哪些开发阶段？",
+    "expected_answer": "需求分析、前后端实现、测试、部署",
+    "kind": "事实",
+    "required_facts": [
+      "需求分析、前后端实现、测试、部署"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T031",
+    "question": "根据这份虚构档案，项目A的Markdown先如何分段？",
+    "expected_answer": "按标题分段",
+    "kind": "事实",
+    "required_facts": [
+      "按标题分段"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T032",
+    "question": "根据这份虚构档案，项目A的TXT先如何分段？",
+    "expected_answer": "按空行划分段落",
+    "kind": "事实",
+    "required_facts": [
+      "按空行划分段落"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T033",
+    "question": "根据这份虚构档案，项目A的PDF先保留什么再切分？",
+    "expected_answer": "保留页码，再按段落切分",
+    "kind": "事实",
+    "required_facts": [
+      "保留页码，再按段落切分"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T034",
+    "question": "根据这份虚构档案，项目A目标片段长度是什么？",
+    "expected_answer": "400至700个汉字",
+    "kind": "事实",
+    "required_facts": [
+      "400至700个汉字"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T035",
+    "question": "根据这份虚构档案，项目A相邻片段重叠多长？",
+    "expected_answer": "80个汉字",
+    "kind": "事实",
+    "required_facts": [
+      "80个汉字"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T036",
+    "question": "根据这份虚构档案，项目经历应该怎样组织片段？",
+    "expected_answer": "按项目名称分别组织，避免整份简历作为一个片段",
+    "kind": "事实",
+    "required_facts": [
+      "按项目名称分别组织，避免整份简历作为一个片段"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T037",
+    "question": "根据这份虚构档案，项目A默认Top K是多少？",
+    "expected_answer": "5",
+    "kind": "事实",
+    "required_facts": [
+      "5"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T038",
+    "question": "根据这份虚构档案，项目A的Embedding模型是什么？",
+    "expected_answer": "BAAI/bge-large-zh-v1.5",
+    "kind": "事实",
+    "required_facts": [
+      "BAAI/bge-large-zh-v1.5"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T039",
+    "question": "根据这份虚构档案，项目A向量有多少维？",
+    "expected_answer": "1024",
+    "kind": "事实",
+    "required_facts": [
+      "1024"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T040",
+    "question": "根据这份虚构档案，项目A使用什么相似度？",
+    "expected_answer": "余弦相似度",
+    "kind": "事实",
+    "required_facts": [
+      "余弦相似度"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T041",
+    "question": "根据这份虚构档案，项目A排序前先过滤哪些范围？",
+    "expected_answer": "空间与资料状态",
+    "kind": "事实",
+    "required_facts": [
+      "空间与资料状态"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T042",
+    "question": "根据这份虚构档案，项目A证据不足时应如何回答？",
+    "expected_answer": "明确拒答，不补造事实",
+    "kind": "事实",
+    "required_facts": [
+      "明确拒答，不补造事实"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T043",
+    "question": "根据这份虚构档案，项目A纯检索测试是否调用生成模型？",
+    "expected_answer": "不调用，只返回片段",
+    "kind": "事实",
+    "required_facts": [
+      "不调用，只返回片段"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T044",
+    "question": "根据这份虚构档案，示例Recall@5是多少？",
+    "expected_answer": "0.86，虚构示例指标",
+    "kind": "事实",
+    "required_facts": [
+      "0.86，虚构示例指标"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T045",
+    "question": "根据这份虚构档案，示例人工答案正确率是多少？",
+    "expected_answer": "0.90，虚构示例指标",
+    "kind": "事实",
+    "required_facts": [
+      "0.90，虚构示例指标"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T046",
+    "question": "根据这份虚构档案，示例评测有多少题和多少文档？",
+    "expected_answer": "50道题，200份中文文档",
+    "kind": "事实",
+    "required_facts": [
+      "50道题，200份中文文档"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T047",
+    "question": "根据这份虚构档案，示例检索P95是什么且排除了什么？",
+    "expected_answer": "预热后1.8秒，不含模型冷启动与答案生成",
+    "kind": "事实",
+    "required_facts": [
+      "预热后1.8秒，不含模型冷启动与答案生成"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T048",
+    "question": "根据这份虚构档案，示例指标能否代表当前知溯测量结果？",
+    "expected_answer": "不能，仅虚构示例",
+    "kind": "事实",
+    "required_facts": [
+      "不能，仅虚构示例"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T049",
+    "question": "根据这份虚构档案，示例首次模型加载和前端等待上限是多少？",
+    "expected_answer": "约160秒、60秒",
+    "kind": "事实",
+    "required_facts": [
+      "约160秒、60秒"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T050",
+    "question": "根据这份虚构档案，项目A怎样解决首次加载超时问题？",
+    "expected_answer": "检索单独等待时间，区分超时与普通网络错误",
+    "kind": "事实",
+    "required_facts": [
+      "检索单独等待时间，区分超时与普通网络错误"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T051",
+    "question": "根据这份虚构档案，项目B的全名和编号是什么？",
+    "expected_answer": "仓流库存管理，PRJ-B",
+    "kind": "事实",
+    "required_facts": [
+      "仓流库存管理，PRJ-B"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T052",
+    "question": "根据这份虚构档案，项目B开发起止年月是什么？",
+    "expected_answer": "2026年7月至2026年9月",
+    "kind": "事实",
+    "required_facts": [
+      "2026年7月至2026年9月"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T053",
+    "question": "根据这份虚构档案，项目B团队有几人？",
+    "expected_answer": "3人",
+    "kind": "事实",
+    "required_facts": [
+      "3人"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T054",
+    "question": "根据这份虚构档案，林知远在项目B负责什么？",
+    "expected_answer": "后端开发者，库存接口与并发控制，不负责移动端页面",
+    "kind": "事实",
+    "required_facts": [
+      "后端开发者，库存接口与并发控制，不负责移动端页面"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T055",
+    "question": "根据这份虚构档案，项目B服务哪个仓库？",
+    "expected_answer": "晨星文具仓库，虚构仓库",
+    "kind": "事实",
+    "required_facts": [
+      "晨星文具仓库，虚构仓库"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T056",
+    "question": "根据这份虚构档案，项目B已实现哪些业务？",
+    "expected_answer": "商品入库、出库、库存查询、操作审计",
+    "kind": "事实",
+    "required_facts": [
+      "商品入库、出库、库存查询、操作审计"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T057",
+    "question": "根据这份虚构档案，项目B后端技术是什么？",
+    "expected_answer": "Python、FastAPI、PostgreSQL、Redis",
+    "kind": "事实",
+    "required_facts": [
+      "Python、FastAPI、PostgreSQL、Redis"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T058",
+    "question": "根据这份虚构档案，项目B前端技术和负责者是什么？",
+    "expected_answer": "Vue，由另一位成员开发",
+    "kind": "事实",
+    "required_facts": [
+      "Vue，由另一位成员开发"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T059",
+    "question": "根据这份虚构档案，项目B是否使用pgvector和Embedding或RAG？",
+    "expected_answer": "均没有使用",
+    "kind": "事实",
+    "required_facts": [
+      "均没有使用"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T060",
+    "question": "根据这份虚构档案，项目B库存数值有什么约束？",
+    "expected_answer": "非负整数",
+    "kind": "事实",
+    "required_facts": [
+      "非负整数"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T061",
+    "question": "根据这份虚构档案，项目B重复出库请求怎样识别？",
+    "expected_answer": "每请求唯一幂等键，同一键不重复扣减",
+    "kind": "事实",
+    "required_facts": [
+      "每请求唯一幂等键，同一键不重复扣减"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T062",
+    "question": "根据这份虚构档案，项目B库存不足时怎么办？",
+    "expected_answer": "明确业务错误，整个出库事务回滚",
+    "kind": "事实",
+    "required_facts": [
+      "明确业务错误，整个出库事务回滚"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T063",
+    "question": "根据这份虚构档案，项目B怎样控制并发出库？",
+    "expected_answer": "数据库事务与行级锁",
+    "kind": "事实",
+    "required_facts": [
+      "数据库事务与行级锁"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T064",
+    "question": "根据这份虚构档案，项目B出库处理顺序是什么？",
+    "expected_answer": "锁定目标记录、检查足够、扣减、写审计记录",
+    "kind": "事实",
+    "required_facts": [
+      "锁定目标记录、检查足够、扣减、写审计记录"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T065",
+    "question": "根据这份虚构档案，项目B的Redis负责什么且不负责什么？",
+    "expected_answer": "热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "事实",
+    "required_facts": [
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T066",
+    "question": "根据这份虚构档案，蓝色笔记本的初始库存是多少？",
+    "expected_answer": "120本",
+    "kind": "事实",
+    "required_facts": [
+      "120本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T067",
+    "question": "根据这份虚构档案，蓝色笔记本首次出库数量与剩余库存是多少？",
+    "expected_answer": "出库35本成功，剩85本",
+    "kind": "事实",
+    "required_facts": [
+      "出库35本成功，剩85本"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T068",
+    "question": "根据这份虚构档案，重复首次出库后以及再出库100本失败后各剩多少？",
+    "expected_answer": "均85本，同幂等键不重扣，不足回滚",
+    "kind": "事实",
+    "required_facts": [
+      "均85本，同幂等键不重扣，不足回滚"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T069",
+    "question": "根据这份虚构档案，项目B有哪些后端测试？",
+    "expected_answer": "重复请求、库存不足、事务回滚、并发出库",
+    "kind": "事实",
+    "required_facts": [
+      "重复请求、库存不足、事务回滚、并发出库"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T070",
+    "question": "根据这份虚构档案，项目B明确没有实现哪些业务？",
+    "expected_answer": "支付、配送、财务对账、跨仓库调拨",
+    "kind": "事实",
+    "required_facts": [
+      "支付、配送、财务对账、跨仓库调拨"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T071",
+    "question": "根据这份虚构档案，个人空间由谁管理？",
+    "expected_answer": "仅拥有者",
+    "kind": "事实",
+    "required_facts": [
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T072",
+    "question": "根据这份虚构档案，团队空间拥有者与管理员的数量规则是什么？",
+    "expected_answer": "一个拥有者，多个管理员",
+    "kind": "事实",
+    "required_facts": [
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T073",
+    "question": "根据这份虚构档案，团队管理员可以做哪些管理工作？",
+    "expected_answer": "管理资料、查看原文引用、检索测试、管理评测",
+    "kind": "事实",
+    "required_facts": [
+      "管理资料、查看原文引用、检索测试、管理评测"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T074",
+    "question": "根据这份虚构档案，哪些管理操作仅归拥有者？",
+    "expected_answer": "成员管理、拥有权转移、删除空间、公开分享配置",
+    "kind": "事实",
+    "required_facts": [
+      "成员管理、拥有权转移、删除空间、公开分享配置"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T075",
+    "question": "根据这份虚构档案，公开问答可以使用哪些资料？",
+    "expected_answer": "分享范围内已授权且已启用资料，不能返回私密资料",
+    "kind": "事实",
+    "required_facts": [
+      "分享范围内已授权且已启用资料，不能返回私密资料"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T076",
+    "question": "根据这份虚构档案，撤销分享链接后访客能否继续提问？",
+    "expected_answer": "不能",
+    "kind": "事实",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T077",
+    "question": "根据这份虚构档案，上传新版本后以什么为依据？",
+    "expected_answer": "已生效的新版本",
+    "kind": "事实",
+    "required_facts": [
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T078",
+    "question": "根据这份虚构档案，停用文档后新检索与问答能否再用它？",
+    "expected_answer": "不能继续使用",
+    "kind": "事实",
+    "required_facts": [
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T079",
+    "question": "根据这份虚构档案，旧会话仍显示答案能否证明旧资料可继续作为依据？",
+    "expected_answer": "不能，历史回答不等于当前证据",
+    "kind": "事实",
+    "required_facts": [
+      "不能，历史回答不等于当前证据"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T080",
+    "question": "根据这份虚构档案，计算结果应怎样表述？",
+    "expected_answer": "可以按资料数字推算，但不能声称是原文记录",
+    "kind": "事实",
+    "required_facts": [
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T081",
+    "question": "根据这份虚构档案，版本1.0试用期与资料保留周期是什么？",
+    "expected_answer": "14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "事实",
+    "required_facts": [
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T082",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）林知远在项目A负责哪些开发阶段；2）示例评测有多少题和多少文档。",
+    "expected_answer": "需求分析、前后端实现、测试、部署；50道题，200份中文文档",
+    "kind": "综合",
+    "required_facts": [
+      "需求分析、前后端实现、测试、部署",
+      "50道题，200份中文文档"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T083",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习单位叫什么；2）项目A的Embedding模型是什么；3）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "青禾软件工作室，虚构单位；BAAI/bge-large-zh-v1.5；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "青禾软件工作室，虚构单位",
+      "BAAI/bge-large-zh-v1.5",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T084",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习参与了哪些工作；2）项目经历应该怎样组织片段；3）团队管理员可以做哪些管理工作；4）计算结果应怎样表述。",
+    "expected_answer": "接口开发、日志排查、自动化测试；按项目名称分别组织，避免整份简历作为一个片段；管理资料、查看原文引用、检索测试、管理评测；可以按资料数字推算，但不能声称是原文记录",
+    "kind": "综合",
+    "required_facts": [
+      "接口开发、日志排查、自动化测试",
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "管理资料、查看原文引用、检索测试、管理评测",
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T085",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）这些人物和项目是否真实；2）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "全部虚构，仅供知识库功能验收；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "全部虚构，仅供知识库功能验收",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T086",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案编号是什么；2）项目B重复出库请求怎样识别；3）团队空间拥有者与管理员的数量规则是什么。",
+    "expected_answer": "RAG-DEMO-001；每请求唯一幂等键，同一键不重复扣减；一个拥有者，多个管理员",
+    "kind": "综合",
+    "required_facts": [
+      "RAG-DEMO-001",
+      "每请求唯一幂等键，同一键不重复扣减",
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T087",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）档案更新时间是哪天；3）项目A前端使用什么技术；4）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "林知远；2026-10-03；React、TypeScript；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "2026-10-03",
+      "React、TypeScript",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T088",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A服务哪类需求；2）项目B明确没有实现哪些业务。",
+    "expected_answer": "个人学习资料整理、文档检索与有依据问答；支付、配送、财务对账、跨仓库调拨",
+    "kind": "综合",
+    "required_facts": [
+      "个人学习资料整理、文档检索与有依据问答",
+      "支付、配送、财务对账、跨仓库调拨"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T089",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案版本是什么；2）项目A接受哪些文件格式；3）项目A排序前先过滤哪些范围。",
+    "expected_answer": "1.0；PDF、Markdown、TXT；空间与资料状态",
+    "kind": "综合",
+    "required_facts": [
+      "1.0",
+      "PDF、Markdown、TXT",
+      "空间与资料状态"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T090",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PostgreSQL保存什么；2）示例检索P95是什么且排除了什么；3）项目B库存不足时怎么办；4）上传新版本后以什么为依据。",
+    "expected_answer": "业务数据；预热后1.8秒，不含模型冷启动与答案生成；明确业务错误，整个出库事务回滚；已生效的新版本",
+    "kind": "综合",
+    "required_facts": [
+      "业务数据",
+      "预热后1.8秒，不含模型冷启动与答案生成",
+      "明确业务错误，整个出库事务回滚",
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T091",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）项目A的Markdown先如何分段。",
+    "expected_answer": "林知远；按标题分段",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "按标题分段"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T092",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A目标片段长度是什么；2）示例Recall@5是多少；3）团队管理员可以做哪些管理工作。",
+    "expected_answer": "400至700个汉字；0.86，虚构示例指标；管理资料、查看原文引用、检索测试、管理评测",
+    "kind": "综合",
+    "required_facts": [
+      "400至700个汉字",
+      "0.86，虚构示例指标",
+      "管理资料、查看原文引用、检索测试、管理评测"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T093",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）入学和毕业的年月是什么；3）项目A的Redis负责什么；4）项目B明确没有实现哪些业务。",
+    "expected_answer": "工学学士；2021年9月至2025年6月；异步任务；支付、配送、财务对账、跨仓库调拨",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "2021年9月至2025年6月",
+      "异步任务",
+      "支付、配送、财务对账、跨仓库调拨"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T094",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）实习岗位是什么。",
+    "expected_answer": "工学学士；后端开发实习生",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "后端开发实习生"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T095",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）学校名称是什么；3）本科专业是什么。",
+    "expected_answer": "南京；江宁信息学院，虚构学校；软件工程",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "江宁信息学院，虚构学校",
+      "软件工程"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T096",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）档案版本是什么；3）项目B是否使用pgvector和Embedding或RAG；4）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "本科；1.0；均没有使用；120本",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "1.0",
+      "均没有使用",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T097",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A默认Top K是多少。",
+    "expected_answer": "工学学士；5",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "5"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T098",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A证据不足时应如何回答；3）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "工学学士；明确拒答，不补造事实；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "明确拒答，不补造事实",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T099",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A前端使用什么技术；3）项目B是否使用pgvector和Embedding或RAG；4）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "工学学士；React、TypeScript；均没有使用；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "React、TypeScript",
+      "均没有使用",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T100",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例首次模型加载和前端等待上限是多少；2）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "约160秒、60秒；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "约160秒、60秒",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T101",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）这些人物和项目是否真实；2）项目A如何进行本地部署；3）项目B的全名和编号是什么。",
+    "expected_answer": "全部虚构，仅供知识库功能验收；Docker Compose；仓流库存管理，PRJ-B",
+    "kind": "综合",
+    "required_facts": [
+      "全部虚构，仅供知识库功能验收",
+      "Docker Compose",
+      "仓流库存管理，PRJ-B"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T102",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A怎样解决首次加载超时问题；2）项目B有哪些后端测试；3）个人空间由谁管理；4）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "检索单独等待时间，区分超时与普通网络错误；重复请求、库存不足、事务回滚、并发出库；仅拥有者；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "检索单独等待时间，区分超时与普通网络错误",
+      "重复请求、库存不足、事务回滚、并发出库",
+      "仅拥有者",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T103",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习岗位是什么；2）项目A的全名是什么。",
+    "expected_answer": "后端开发实习生；知舟私有知识库",
+    "kind": "综合",
+    "required_facts": [
+      "后端开发实习生",
+      "知舟私有知识库"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T104",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B的Redis负责什么且不负责什么；2）团队空间拥有者与管理员的数量规则是什么；3）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "热点库存查询缓存，不承担最终库存一致性判断；一个拥有者，多个管理员；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "热点库存查询缓存，不承担最终库存一致性判断",
+      "一个拥有者，多个管理员",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T105",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）学校名称是什么；2）项目经历应该怎样组织片段；3）示例指标能否代表当前知溯测量结果；4）项目B库存数值有什么约束。",
+    "expected_answer": "江宁信息学院，虚构学校；按项目名称分别组织，避免整份简历作为一个片段；不能，仅虚构示例；非负整数",
+    "kind": "综合",
+    "required_facts": [
+      "江宁信息学院，虚构学校",
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "不能，仅虚构示例",
+      "非负整数"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T106",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例人工答案正确率是多少；2）项目B后端技术是什么。",
+    "expected_answer": "0.90，虚构示例指标；Python、FastAPI、PostgreSQL、Redis",
+    "kind": "综合",
+    "required_facts": [
+      "0.90，虚构示例指标",
+      "Python、FastAPI、PostgreSQL、Redis"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T107",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目B团队有几人；3）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "2021年9月至2025年6月；3人；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "3人",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T108",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）林知远在项目A负责哪些开发阶段；2）示例人工答案正确率是多少；3）项目B库存数值有什么约束；4）项目B重复出库请求怎样识别。",
+    "expected_answer": "需求分析、前后端实现、测试、部署；0.90，虚构示例指标；非负整数；每请求唯一幂等键，同一键不重复扣减",
+    "kind": "综合",
+    "required_facts": [
+      "需求分析、前后端实现、测试、部署",
+      "0.90，虚构示例指标",
+      "非负整数",
+      "每请求唯一幂等键，同一键不重复扣减"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T109",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PostgreSQL保存什么；2）项目A的Embedding模型是什么。",
+    "expected_answer": "业务数据；BAAI/bge-large-zh-v1.5",
+    "kind": "综合",
+    "required_facts": [
+      "业务数据",
+      "BAAI/bge-large-zh-v1.5"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T110",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习单位叫什么；2）项目B开发起止年月是什么；3）林知远在项目B负责什么。",
+    "expected_answer": "青禾软件工作室，虚构单位；2026年7月至2026年9月；后端开发者，库存接口与并发控制，不负责移动端页面",
+    "kind": "综合",
+    "required_facts": [
+      "青禾软件工作室，虚构单位",
+      "2026年7月至2026年9月",
+      "后端开发者，库存接口与并发控制，不负责移动端页面"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T111",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）取得哪类学位；3）项目B服务哪个仓库；4）团队空间拥有者与管理员的数量规则是什么。",
+    "expected_answer": "林知远；工学学士；晨星文具仓库，虚构仓库；一个拥有者，多个管理员",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "工学学士",
+      "晨星文具仓库，虚构仓库",
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T112",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的全名是什么；2）项目A纯检索测试是否调用生成模型。",
+    "expected_answer": "知舟私有知识库；不调用，只返回片段",
+    "kind": "综合",
+    "required_facts": [
+      "知舟私有知识库",
+      "不调用，只返回片段"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T113",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习岗位是什么；2）项目B怎样控制并发出库；3）项目B明确没有实现哪些业务。",
+    "expected_answer": "后端开发实习生；数据库事务与行级锁；支付、配送、财务对账、跨仓库调拨",
+    "kind": "综合",
+    "required_facts": [
+      "后端开发实习生",
+      "数据库事务与行级锁",
+      "支付、配送、财务对账、跨仓库调拨"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T114",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）档案编号是什么；3）项目A前端使用什么技术；4）旧会话仍显示答案能否证明旧资料可继续作为依据。",
+    "expected_answer": "工学学士；RAG-DEMO-001；React、TypeScript；不能，历史回答不等于当前证据",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "RAG-DEMO-001",
+      "React、TypeScript",
+      "不能，历史回答不等于当前证据"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T115",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A相邻片段重叠多长；2）示例指标能否代表当前知溯测量结果。",
+    "expected_answer": "80个汉字；不能，仅虚构示例",
+    "kind": "综合",
+    "required_facts": [
+      "80个汉字",
+      "不能，仅虚构示例"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T116",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）项目A目标片段长度是什么；3）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "林知远；400至700个汉字；120本",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "400至700个汉字",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T117",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）档案更新时间是哪天；3）项目A的编号是什么；4）项目A的Embedding模型是什么。",
+    "expected_answer": "2021年9月至2025年6月；2026-10-03；PRJ-A；BAAI/bge-large-zh-v1.5",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "2026-10-03",
+      "PRJ-A",
+      "BAAI/bge-large-zh-v1.5"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T118",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目A的全名是什么。",
+    "expected_answer": "2021年9月至2025年6月；知舟私有知识库",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "知舟私有知识库"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T119",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的后端语言与框架是什么；2）项目A证据不足时应如何回答；3）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "Python、FastAPI；明确拒答，不补造事实；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "Python、FastAPI",
+      "明确拒答，不补造事实",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T120",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例检索P95是什么且排除了什么；2）项目B的全名和编号是什么；3）林知远在项目B负责什么；4）重复首次出库后以及再出库100本失败后各剩多少。",
+    "expected_answer": "预热后1.8秒，不含模型冷启动与答案生成；仓流库存管理，PRJ-B；后端开发者，库存接口与并发控制，不负责移动端页面；均85本，同幂等键不重扣，不足回滚",
+    "kind": "综合",
+    "required_facts": [
+      "预热后1.8秒，不含模型冷启动与答案生成",
+      "仓流库存管理，PRJ-B",
+      "后端开发者，库存接口与并发控制，不负责移动端页面",
+      "均85本，同幂等键不重扣，不足回滚"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T121",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "本科；120本",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T122",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A服务哪类需求；2）项目A的Embedding模型是什么；3）项目B团队有几人。",
+    "expected_answer": "个人学习资料整理、文档检索与有依据问答；BAAI/bge-large-zh-v1.5；3人",
+    "kind": "综合",
+    "required_facts": [
+      "个人学习资料整理、文档检索与有依据问答",
+      "BAAI/bge-large-zh-v1.5",
+      "3人"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T123",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的求职方向有哪些；2）学校名称是什么；3）项目A服务哪类需求；4）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "Python后端开发与RAG应用开发；江宁信息学院，虚构学校；个人学习资料整理、文档检索与有依据问答；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "Python后端开发与RAG应用开发",
+      "江宁信息学院，虚构学校",
+      "个人学习资料整理、文档检索与有依据问答",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T124",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目经历应该怎样组织片段；2）团队空间拥有者与管理员的数量规则是什么。",
+    "expected_answer": "按项目名称分别组织，避免整份简历作为一个片段；一个拥有者，多个管理员",
+    "kind": "综合",
+    "required_facts": [
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T125",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）毕业设计名称是什么；2）档案更新时间是哪天；3）项目A的TXT先如何分段。",
+    "expected_answer": "课程资料检索助手；2026-10-03；按空行划分段落",
+    "kind": "综合",
+    "required_facts": [
+      "课程资料检索助手",
+      "2026-10-03",
+      "按空行划分段落"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T126",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的编号是什么；2）项目A的Embedding模型是什么；3）项目B的全名和编号是什么；4）项目B后端技术是什么。",
+    "expected_answer": "PRJ-A；BAAI/bge-large-zh-v1.5；仓流库存管理，PRJ-B；Python、FastAPI、PostgreSQL、Redis",
+    "kind": "综合",
+    "required_facts": [
+      "PRJ-A",
+      "BAAI/bge-large-zh-v1.5",
+      "仓流库存管理，PRJ-B",
+      "Python、FastAPI、PostgreSQL、Redis"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T127",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B的全名和编号是什么；2）计算结果应怎样表述。",
+    "expected_answer": "仓流库存管理，PRJ-B；可以按资料数字推算，但不能声称是原文记录",
+    "kind": "综合",
+    "required_facts": [
+      "仓流库存管理，PRJ-B",
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T128",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A接受哪些文件格式；2）团队管理员可以做哪些管理工作；3）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "PDF、Markdown、TXT；管理资料、查看原文引用、检索测试、管理评测；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "PDF、Markdown、TXT",
+      "管理资料、查看原文引用、检索测试、管理评测",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T129",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目A的pgvector保存什么；3）示例评测有多少题和多少文档；4）计算结果应怎样表述。",
+    "expected_answer": "2021年9月至2025年6月；向量；50道题，200份中文文档；可以按资料数字推算，但不能声称是原文记录",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "向量",
+      "50道题，200份中文文档",
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T130",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习参与了哪些工作；2）项目A目标片段长度是什么。",
+    "expected_answer": "接口开发、日志排查、自动化测试；400至700个汉字",
+    "kind": "综合",
+    "required_facts": [
+      "接口开发、日志排查、自动化测试",
+      "400至700个汉字"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T131",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B开发起止年月是什么；2）项目B是否使用pgvector和Embedding或RAG；3）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "2026年7月至2026年9月；均没有使用；不能",
+    "kind": "综合",
+    "required_facts": [
+      "2026年7月至2026年9月",
+      "均没有使用",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T132",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A起止年月是什么；2）项目A接受哪些文件格式；3）项目B的Redis负责什么且不负责什么；4）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "2026年3月至2026年6月；PDF、Markdown、TXT；热点库存查询缓存，不承担最终库存一致性判断；120本",
+    "kind": "综合",
+    "required_facts": [
+      "2026年3月至2026年6月",
+      "PDF、Markdown、TXT",
+      "热点库存查询缓存，不承担最终库存一致性判断",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T133",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A默认Top K是多少；2）项目B团队有几人。",
+    "expected_answer": "5；3人",
+    "kind": "综合",
+    "required_facts": [
+      "5",
+      "3人"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T134",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Markdown先如何分段；2）项目A的Embedding模型是什么；3）上传新版本后以什么为依据。",
+    "expected_answer": "按标题分段；BAAI/bge-large-zh-v1.5；已生效的新版本",
+    "kind": "综合",
+    "required_facts": [
+      "按标题分段",
+      "BAAI/bge-large-zh-v1.5",
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T135",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的求职方向有哪些；2）学校名称是什么；3）实习单位叫什么；4）项目B是否使用pgvector和Embedding或RAG。",
+    "expected_answer": "Python后端开发与RAG应用开发；江宁信息学院，虚构学校；青禾软件工作室，虚构单位；均没有使用",
+    "kind": "综合",
+    "required_facts": [
+      "Python后端开发与RAG应用开发",
+      "江宁信息学院，虚构学校",
+      "青禾软件工作室，虚构单位",
+      "均没有使用"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T136",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的pgvector保存什么；2）项目A的Redis负责什么。",
+    "expected_answer": "向量；异步任务",
+    "kind": "综合",
+    "required_facts": [
+      "向量",
+      "异步任务"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T137",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A相邻片段重叠多长；2）项目B开发起止年月是什么；3）项目B服务哪个仓库。",
+    "expected_answer": "80个汉字；2026年7月至2026年9月；晨星文具仓库，虚构仓库",
+    "kind": "综合",
+    "required_facts": [
+      "80个汉字",
+      "2026年7月至2026年9月",
+      "晨星文具仓库，虚构仓库"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T138",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A目标片段长度是什么；2）示例人工答案正确率是多少；3）项目A怎样解决首次加载超时问题；4）项目B库存不足时怎么办。",
+    "expected_answer": "400至700个汉字；0.90，虚构示例指标；检索单独等待时间，区分超时与普通网络错误；明确业务错误，整个出库事务回滚",
+    "kind": "综合",
+    "required_facts": [
+      "400至700个汉字",
+      "0.90，虚构示例指标",
+      "检索单独等待时间，区分超时与普通网络错误",
+      "明确业务错误，整个出库事务回滚"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T139",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的全名是什么；2）示例检索P95是什么且排除了什么。",
+    "expected_answer": "知舟私有知识库；预热后1.8秒，不含模型冷启动与答案生成",
+    "kind": "综合",
+    "required_facts": [
+      "知舟私有知识库",
+      "预热后1.8秒，不含模型冷启动与答案生成"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T140",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PDF先保留什么再切分；2）蓝色笔记本的初始库存是多少；3）哪些管理操作仅归拥有者。",
+    "expected_answer": "保留页码，再按段落切分；120本；成员管理、拥有权转移、删除空间、公开分享配置",
+    "kind": "综合",
+    "required_facts": [
+      "保留页码，再按段落切分",
+      "120本",
+      "成员管理、拥有权转移、删除空间、公开分享配置"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T141",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）毕业设计名称是什么；2）项目A的编号是什么；3）示例人工答案正确率是多少；4）项目B后端技术是什么。",
+    "expected_answer": "课程资料检索助手；PRJ-A；0.90，虚构示例指标；Python、FastAPI、PostgreSQL、Redis",
+    "kind": "综合",
+    "required_facts": [
+      "课程资料检索助手",
+      "PRJ-A",
+      "0.90，虚构示例指标",
+      "Python、FastAPI、PostgreSQL、Redis"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T142",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A服务哪类需求；2）项目A的Redis负责什么。",
+    "expected_answer": "个人学习资料整理、文档检索与有依据问答；异步任务",
+    "kind": "综合",
+    "required_facts": [
+      "个人学习资料整理、文档检索与有依据问答",
+      "异步任务"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T143",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B库存数值有什么约束；2）项目B明确没有实现哪些业务；3）公开问答可以使用哪些资料。",
+    "expected_answer": "非负整数；支付、配送、财务对账、跨仓库调拨；分享范围内已授权且已启用资料，不能返回私密资料",
+    "kind": "综合",
+    "required_facts": [
+      "非负整数",
+      "支付、配送、财务对账、跨仓库调拨",
+      "分享范围内已授权且已启用资料，不能返回私密资料"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T144",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）实习起止年月是什么；3）项目B库存不足时怎么办；4）团队空间拥有者与管理员的数量规则是什么。",
+    "expected_answer": "2021年9月至2025年6月；2025年7月至2026年2月；明确业务错误，整个出库事务回滚；一个拥有者，多个管理员",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "2025年7月至2026年2月",
+      "明确业务错误，整个出库事务回滚",
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T145",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）这些人物和项目是否真实。",
+    "expected_answer": "本科；全部虚构，仅供知识库功能验收",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "全部虚构，仅供知识库功能验收"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T146",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Embedding模型是什么；2）项目A向量有多少维；3）项目B怎样控制并发出库。",
+    "expected_answer": "BAAI/bge-large-zh-v1.5；1024；数据库事务与行级锁",
+    "kind": "综合",
+    "required_facts": [
+      "BAAI/bge-large-zh-v1.5",
+      "1024",
+      "数据库事务与行级锁"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T147",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A接受哪些文件格式；2）项目A的Markdown先如何分段；3）项目B库存不足时怎么办；4）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "PDF、Markdown、TXT；按标题分段；明确业务错误，整个出库事务回滚；120本",
+    "kind": "综合",
+    "required_facts": [
+      "PDF、Markdown、TXT",
+      "按标题分段",
+      "明确业务错误，整个出库事务回滚",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T148",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）项目A服务哪类需求。",
+    "expected_answer": "本科；个人学习资料整理、文档检索与有依据问答",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "个人学习资料整理、文档检索与有依据问答"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T149",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的求职方向有哪些；2）项目A的Embedding模型是什么；3）项目A向量有多少维。",
+    "expected_answer": "Python后端开发与RAG应用开发；BAAI/bge-large-zh-v1.5；1024",
+    "kind": "综合",
+    "required_facts": [
+      "Python后端开发与RAG应用开发",
+      "BAAI/bge-large-zh-v1.5",
+      "1024"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T150",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）项目A前端使用什么技术；3）项目A相邻片段重叠多长；4）示例首次模型加载和前端等待上限是多少。",
+    "expected_answer": "南京；React、TypeScript；80个汉字；约160秒、60秒",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "React、TypeScript",
+      "80个汉字",
+      "约160秒、60秒"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T151",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的pgvector保存什么；2）项目A排序前先过滤哪些范围。",
+    "expected_answer": "向量；空间与资料状态",
+    "kind": "综合",
+    "required_facts": [
+      "向量",
+      "空间与资料状态"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T152",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）林知远在项目A中的角色是什么；2）项目B服务哪个仓库；3）项目B是否使用pgvector和Embedding或RAG。",
+    "expected_answer": "独立开发者；晨星文具仓库，虚构仓库；均没有使用",
+    "kind": "综合",
+    "required_facts": [
+      "独立开发者",
+      "晨星文具仓库，虚构仓库",
+      "均没有使用"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T153",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的pgvector保存什么；2）项目A向量有多少维；3）项目B怎样控制并发出库；4）个人空间由谁管理。",
+    "expected_answer": "向量；1024；数据库事务与行级锁；仅拥有者",
+    "kind": "综合",
+    "required_facts": [
+      "向量",
+      "1024",
+      "数据库事务与行级锁",
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T154",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案编号是什么；2）项目A接受哪些文件格式。",
+    "expected_answer": "RAG-DEMO-001；PDF、Markdown、TXT",
+    "kind": "综合",
+    "required_facts": [
+      "RAG-DEMO-001",
+      "PDF、Markdown、TXT"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T155",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目A的TXT先如何分段；3）项目B出库处理顺序是什么。",
+    "expected_answer": "2021年9月至2025年6月；按空行划分段落；锁定目标记录、检查足够、扣减、写审计记录",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "按空行划分段落",
+      "锁定目标记录、检查足够、扣减、写审计记录"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T156",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的后端语言与框架是什么；2）项目A纯检索测试是否调用生成模型；3）个人空间由谁管理；4）团队管理员可以做哪些管理工作。",
+    "expected_answer": "Python、FastAPI；不调用，只返回片段；仅拥有者；管理资料、查看原文引用、检索测试、管理评测",
+    "kind": "综合",
+    "required_facts": [
+      "Python、FastAPI",
+      "不调用，只返回片段",
+      "仅拥有者",
+      "管理资料、查看原文引用、检索测试、管理评测"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T157",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A如何进行本地部署；2）项目A向量有多少维。",
+    "expected_answer": "Docker Compose；1024",
+    "kind": "综合",
+    "required_facts": [
+      "Docker Compose",
+      "1024"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T158",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习参与了哪些工作；2）档案更新时间是哪天；3）个人空间由谁管理。",
+    "expected_answer": "接口开发、日志排查、自动化测试；2026-10-03；仅拥有者",
+    "kind": "综合",
+    "required_facts": [
+      "接口开发、日志排查、自动化测试",
+      "2026-10-03",
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T159",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Redis负责什么；2）项目经历应该怎样组织片段；3）项目A使用什么相似度；4）项目B的全名和编号是什么。",
+    "expected_answer": "异步任务；按项目名称分别组织，避免整份简历作为一个片段；余弦相似度；仓流库存管理，PRJ-B",
+    "kind": "综合",
+    "required_facts": [
+      "异步任务",
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "余弦相似度",
+      "仓流库存管理，PRJ-B"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T160",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）项目A前端使用什么技术。",
+    "expected_answer": "南京；React、TypeScript",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "React、TypeScript"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T161",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的TXT先如何分段；2）项目B团队有几人；3）项目B后端技术是什么。",
+    "expected_answer": "按空行划分段落；3人；Python、FastAPI、PostgreSQL、Redis",
+    "kind": "综合",
+    "required_facts": [
+      "按空行划分段落",
+      "3人",
+      "Python、FastAPI、PostgreSQL、Redis"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T162",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）入学和毕业的年月是什么；3）档案版本是什么；4）项目A相邻片段重叠多长。",
+    "expected_answer": "南京；2021年9月至2025年6月；1.0；80个汉字",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "2021年9月至2025年6月",
+      "1.0",
+      "80个汉字"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T163",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PostgreSQL保存什么；2）项目B库存数值有什么约束。",
+    "expected_answer": "业务数据；非负整数",
+    "kind": "综合",
+    "required_facts": [
+      "业务数据",
+      "非负整数"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T164",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A的PDF先保留什么再切分；3）个人空间由谁管理。",
+    "expected_answer": "工学学士；保留页码，再按段落切分；仅拥有者",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "保留页码，再按段落切分",
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T165",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PostgreSQL保存什么；2）项目A怎样解决首次加载超时问题；3）项目B已实现哪些业务；4）项目B怎样控制并发出库。",
+    "expected_answer": "业务数据；检索单独等待时间，区分超时与普通网络错误；商品入库、出库、库存查询、操作审计；数据库事务与行级锁",
+    "kind": "综合",
+    "required_facts": [
+      "业务数据",
+      "检索单独等待时间，区分超时与普通网络错误",
+      "商品入库、出库、库存查询、操作审计",
+      "数据库事务与行级锁"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T166",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A接受哪些文件格式；2）个人空间由谁管理。",
+    "expected_answer": "PDF、Markdown、TXT；仅拥有者",
+    "kind": "综合",
+    "required_facts": [
+      "PDF、Markdown、TXT",
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T167",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习单位叫什么；2）示例首次模型加载和前端等待上限是多少；3）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "青禾软件工作室，虚构单位；约160秒、60秒；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "青禾软件工作室，虚构单位",
+      "约160秒、60秒",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T168",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B团队有几人；2）项目B重复出库请求怎样识别；3）项目B有哪些后端测试；4）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "3人；每请求唯一幂等键，同一键不重复扣减；重复请求、库存不足、事务回滚、并发出库；不能",
+    "kind": "综合",
+    "required_facts": [
+      "3人",
+      "每请求唯一幂等键，同一键不重复扣减",
+      "重复请求、库存不足、事务回滚、并发出库",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T169",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Redis负责什么；2）项目B已实现哪些业务。",
+    "expected_answer": "异步任务；商品入库、出库、库存查询、操作审计",
+    "kind": "综合",
+    "required_facts": [
+      "异步任务",
+      "商品入库、出库、库存查询、操作审计"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T170",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PDF先保留什么再切分；2）项目B重复出库请求怎样识别；3）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "保留页码，再按段落切分；每请求唯一幂等键，同一键不重复扣减；120本",
+    "kind": "综合",
+    "required_facts": [
+      "保留页码，再按段落切分",
+      "每请求唯一幂等键，同一键不重复扣减",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T171",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的后端语言与框架是什么；2）项目B库存数值有什么约束；3）重复首次出库后以及再出库100本失败后各剩多少；4）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "Python、FastAPI；非负整数；均85本，同幂等键不重扣，不足回滚；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "Python、FastAPI",
+      "非负整数",
+      "均85本，同幂等键不重扣，不足回滚",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T172",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B重复出库请求怎样识别；2）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "每请求唯一幂等键，同一键不重复扣减；120本",
+    "kind": "综合",
+    "required_facts": [
+      "每请求唯一幂等键，同一键不重复扣减",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T173",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B前端技术和负责者是什么；2）项目B出库处理顺序是什么；3）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "Vue，由另一位成员开发；锁定目标记录、检查足够、扣减、写审计记录；不能",
+    "kind": "综合",
+    "required_facts": [
+      "Vue，由另一位成员开发",
+      "锁定目标记录、检查足够、扣减、写审计记录",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T174",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A默认Top K是多少；2）项目B库存数值有什么约束；3）项目B库存不足时怎么办；4）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "5；非负整数；明确业务错误，整个出库事务回滚；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "5",
+      "非负整数",
+      "明确业务错误，整个出库事务回滚",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T175",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目A的Markdown先如何分段。",
+    "expected_answer": "2021年9月至2025年6月；按标题分段",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "按标题分段"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T176",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A起止年月是什么；2）项目B开发起止年月是什么；3）项目B已实现哪些业务。",
+    "expected_answer": "2026年3月至2026年6月；2026年7月至2026年9月；商品入库、出库、库存查询、操作审计",
+    "kind": "综合",
+    "required_facts": [
+      "2026年3月至2026年6月",
+      "2026年7月至2026年9月",
+      "商品入库、出库、库存查询、操作审计"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T177",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的编号是什么；2）项目B团队有几人；3）重复首次出库后以及再出库100本失败后各剩多少；4）个人空间由谁管理。",
+    "expected_answer": "PRJ-A；3人；均85本，同幂等键不重扣，不足回滚；仅拥有者",
+    "kind": "综合",
+    "required_facts": [
+      "PRJ-A",
+      "3人",
+      "均85本，同幂等键不重扣，不足回滚",
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T178",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）本科专业是什么；2）项目B库存不足时怎么办。",
+    "expected_answer": "软件工程；明确业务错误，整个出库事务回滚",
+    "kind": "综合",
+    "required_facts": [
+      "软件工程",
+      "明确业务错误，整个出库事务回滚"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T179",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A默认Top K是多少；2）项目B的全名和编号是什么；3）项目B团队有几人。",
+    "expected_answer": "5；仓流库存管理，PRJ-B；3人",
+    "kind": "综合",
+    "required_facts": [
+      "5",
+      "仓流库存管理，PRJ-B",
+      "3人"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T180",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）毕业设计名称是什么；2）档案更新时间是哪天；3）示例首次模型加载和前端等待上限是多少；4）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "课程资料检索助手；2026-10-03；约160秒、60秒；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "课程资料检索助手",
+      "2026-10-03",
+      "约160秒、60秒",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T181",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A接受哪些文件格式；2）项目A的PDF先保留什么再切分。",
+    "expected_answer": "PDF、Markdown、TXT；保留页码，再按段落切分",
+    "kind": "综合",
+    "required_facts": [
+      "PDF、Markdown、TXT",
+      "保留页码，再按段落切分"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T182",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案编号是什么；2）项目A如何进行本地部署；3）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "RAG-DEMO-001；Docker Compose；不能",
+    "kind": "综合",
+    "required_facts": [
+      "RAG-DEMO-001",
+      "Docker Compose",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T183",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）毕业设计名称是什么；2）项目经历应该怎样组织片段；3）蓝色笔记本首次出库数量与剩余库存是多少；4）上传新版本后以什么为依据。",
+    "expected_answer": "课程资料检索助手；按项目名称分别组织，避免整份简历作为一个片段；出库35本成功，剩85本；已生效的新版本",
+    "kind": "综合",
+    "required_facts": [
+      "课程资料检索助手",
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "出库35本成功，剩85本",
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T184",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案更新时间是哪天；2）示例Recall@5是多少。",
+    "expected_answer": "2026-10-03；0.86，虚构示例指标",
+    "kind": "综合",
+    "required_facts": [
+      "2026-10-03",
+      "0.86，虚构示例指标"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T185",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）项目A默认Top K是多少；3）项目B开发起止年月是什么。",
+    "expected_answer": "本科；5；2026年7月至2026年9月",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "5",
+      "2026年7月至2026年9月"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T186",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A服务哪类需求；2）项目B重复出库请求怎样识别；3）项目B有哪些后端测试；4）上传新版本后以什么为依据。",
+    "expected_answer": "个人学习资料整理、文档检索与有依据问答；每请求唯一幂等键，同一键不重复扣减；重复请求、库存不足、事务回滚、并发出库；已生效的新版本",
+    "kind": "综合",
+    "required_facts": [
+      "个人学习资料整理、文档检索与有依据问答",
+      "每请求唯一幂等键，同一键不重复扣减",
+      "重复请求、库存不足、事务回滚、并发出库",
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T187",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B的Redis负责什么且不负责什么；2）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "热点库存查询缓存，不承担最终库存一致性判断；不能",
+    "kind": "综合",
+    "required_facts": [
+      "热点库存查询缓存，不承担最终库存一致性判断",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T188",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）林知远在项目A中的角色是什么；2）项目B的全名和编号是什么；3）项目B开发起止年月是什么。",
+    "expected_answer": "独立开发者；仓流库存管理，PRJ-B；2026年7月至2026年9月",
+    "kind": "综合",
+    "required_facts": [
+      "独立开发者",
+      "仓流库存管理，PRJ-B",
+      "2026年7月至2026年9月"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T189",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的求职方向有哪些；2）档案版本是什么；3）项目B的全名和编号是什么；4）林知远在项目B负责什么。",
+    "expected_answer": "Python后端开发与RAG应用开发；1.0；仓流库存管理，PRJ-B；后端开发者，库存接口与并发控制，不负责移动端页面",
+    "kind": "综合",
+    "required_facts": [
+      "Python后端开发与RAG应用开发",
+      "1.0",
+      "仓流库存管理，PRJ-B",
+      "后端开发者，库存接口与并发控制，不负责移动端页面"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T190",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Redis负责什么；2）项目B团队有几人。",
+    "expected_answer": "异步任务；3人",
+    "kind": "综合",
+    "required_facts": [
+      "异步任务",
+      "3人"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T191",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案更新时间是哪天；2）项目A的pgvector保存什么；3）示例检索P95是什么且排除了什么。",
+    "expected_answer": "2026-10-03；向量；预热后1.8秒，不含模型冷启动与答案生成",
+    "kind": "综合",
+    "required_facts": [
+      "2026-10-03",
+      "向量",
+      "预热后1.8秒，不含模型冷启动与答案生成"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T192",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目经历应该怎样组织片段；2）项目A使用什么相似度；3）哪些管理操作仅归拥有者；4）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "按项目名称分别组织，避免整份简历作为一个片段；余弦相似度；成员管理、拥有权转移、删除空间、公开分享配置；不能",
+    "kind": "综合",
+    "required_facts": [
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "余弦相似度",
+      "成员管理、拥有权转移、删除空间、公开分享配置",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T193",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案更新时间是哪天；2）项目A怎样解决首次加载超时问题。",
+    "expected_answer": "2026-10-03；检索单独等待时间，区分超时与普通网络错误",
+    "kind": "综合",
+    "required_facts": [
+      "2026-10-03",
+      "检索单独等待时间，区分超时与普通网络错误"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T194",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目A排序前先过滤哪些范围；3）林知远在项目B负责什么。",
+    "expected_answer": "2021年9月至2025年6月；空间与资料状态；后端开发者，库存接口与并发控制，不负责移动端页面",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "空间与资料状态",
+      "后端开发者，库存接口与并发控制，不负责移动端页面"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T195",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）项目经历应该怎样组织片段；3）项目A默认Top K是多少；4）示例检索P95是什么且排除了什么。",
+    "expected_answer": "林知远；按项目名称分别组织，避免整份简历作为一个片段；5；预热后1.8秒，不含模型冷启动与答案生成",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "5",
+      "预热后1.8秒，不含模型冷启动与答案生成"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T196",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）毕业设计名称是什么；2）档案更新时间是哪天。",
+    "expected_answer": "课程资料检索助手；2026-10-03",
+    "kind": "综合",
+    "required_facts": [
+      "课程资料检索助手",
+      "2026-10-03"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T197",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Markdown先如何分段；2）项目A排序前先过滤哪些范围；3）项目A怎样解决首次加载超时问题。",
+    "expected_answer": "按标题分段；空间与资料状态；检索单独等待时间，区分超时与普通网络错误",
+    "kind": "综合",
+    "required_facts": [
+      "按标题分段",
+      "空间与资料状态",
+      "检索单独等待时间，区分超时与普通网络错误"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T198",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的pgvector保存什么；2）项目A排序前先过滤哪些范围；3）项目B有哪些后端测试；4）计算结果应怎样表述。",
+    "expected_answer": "向量；空间与资料状态；重复请求、库存不足、事务回滚、并发出库；可以按资料数字推算，但不能声称是原文记录",
+    "kind": "综合",
+    "required_facts": [
+      "向量",
+      "空间与资料状态",
+      "重复请求、库存不足、事务回滚、并发出库",
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T199",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A接受哪些文件格式；2）旧会话仍显示答案能否证明旧资料可继续作为依据。",
+    "expected_answer": "PDF、Markdown、TXT；不能，历史回答不等于当前证据",
+    "kind": "综合",
+    "required_facts": [
+      "PDF、Markdown、TXT",
+      "不能，历史回答不等于当前证据"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T200",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）项目B后端技术是什么；3）公开问答可以使用哪些资料。",
+    "expected_answer": "南京；Python、FastAPI、PostgreSQL、Redis；分享范围内已授权且已启用资料，不能返回私密资料",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "Python、FastAPI、PostgreSQL、Redis",
+      "分享范围内已授权且已启用资料，不能返回私密资料"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T201",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的求职方向有哪些；2）示例指标能否代表当前知溯测量结果；3）项目B出库处理顺序是什么；4）蓝色笔记本首次出库数量与剩余库存是多少。",
+    "expected_answer": "Python后端开发与RAG应用开发；不能，仅虚构示例；锁定目标记录、检查足够、扣减、写审计记录；出库35本成功，剩85本",
+    "kind": "综合",
+    "required_facts": [
+      "Python后端开发与RAG应用开发",
+      "不能，仅虚构示例",
+      "锁定目标记录、检查足够、扣减、写审计记录",
+      "出库35本成功，剩85本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T202",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A接受哪些文件格式；2）项目A相邻片段重叠多长。",
+    "expected_answer": "PDF、Markdown、TXT；80个汉字",
+    "kind": "综合",
+    "required_facts": [
+      "PDF、Markdown、TXT",
+      "80个汉字"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T203",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）项目A怎样解决首次加载超时问题；3）项目B开发起止年月是什么。",
+    "expected_answer": "本科；检索单独等待时间，区分超时与普通网络错误；2026年7月至2026年9月",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "检索单独等待时间，区分超时与普通网络错误",
+      "2026年7月至2026年9月"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T204",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的求职方向有哪些；2）本科专业是什么；3）取得哪类学位；4）项目B开发起止年月是什么。",
+    "expected_answer": "Python后端开发与RAG应用开发；软件工程；工学学士；2026年7月至2026年9月",
+    "kind": "综合",
+    "required_facts": [
+      "Python后端开发与RAG应用开发",
+      "软件工程",
+      "工学学士",
+      "2026年7月至2026年9月"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T205",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）这些人物和项目是否真实；2）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "全部虚构，仅供知识库功能验收；120本",
+    "kind": "综合",
+    "required_facts": [
+      "全部虚构，仅供知识库功能验收",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T206",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B开发起止年月是什么；2）项目B已实现哪些业务；3）计算结果应怎样表述。",
+    "expected_answer": "2026年7月至2026年9月；商品入库、出库、库存查询、操作审计；可以按资料数字推算，但不能声称是原文记录",
+    "kind": "综合",
+    "required_facts": [
+      "2026年7月至2026年9月",
+      "商品入库、出库、库存查询、操作审计",
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T207",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案编号是什么；2）项目A接受哪些文件格式；3）示例评测有多少题和多少文档；4）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "RAG-DEMO-001；PDF、Markdown、TXT；50道题，200份中文文档；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "RAG-DEMO-001",
+      "PDF、Markdown、TXT",
+      "50道题，200份中文文档",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T208",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）林知远在项目A中的角色是什么；2）项目A怎样解决首次加载超时问题。",
+    "expected_answer": "独立开发者；检索单独等待时间，区分超时与普通网络错误",
+    "kind": "综合",
+    "required_facts": [
+      "独立开发者",
+      "检索单独等待时间，区分超时与普通网络错误"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T209",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A使用什么相似度；2）团队管理员可以做哪些管理工作；3）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "余弦相似度；管理资料、查看原文引用、检索测试、管理评测；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "余弦相似度",
+      "管理资料、查看原文引用、检索测试、管理评测",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T210",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）实习单位叫什么；3）项目B库存数值有什么约束；4）上传新版本后以什么为依据。",
+    "expected_answer": "南京；青禾软件工作室，虚构单位；非负整数；已生效的新版本",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "青禾软件工作室，虚构单位",
+      "非负整数",
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T211",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例人工答案正确率是多少；2）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "0.90，虚构示例指标；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "0.90，虚构示例指标",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T212",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）学校名称是什么；2）示例首次模型加载和前端等待上限是多少；3）项目B有哪些后端测试。",
+    "expected_answer": "江宁信息学院，虚构学校；约160秒、60秒；重复请求、库存不足、事务回滚、并发出库",
+    "kind": "综合",
+    "required_facts": [
+      "江宁信息学院，虚构学校",
+      "约160秒、60秒",
+      "重复请求、库存不足、事务回滚、并发出库"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T213",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）他当前位于哪座城市；3）林知远在项目A负责哪些开发阶段；4）旧会话仍显示答案能否证明旧资料可继续作为依据。",
+    "expected_answer": "林知远；南京；需求分析、前后端实现、测试、部署；不能，历史回答不等于当前证据",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "南京",
+      "需求分析、前后端实现、测试、部署",
+      "不能，历史回答不等于当前证据"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T214",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B的全名和编号是什么；2）项目B团队有几人。",
+    "expected_answer": "仓流库存管理，PRJ-B；3人",
+    "kind": "综合",
+    "required_facts": [
+      "仓流库存管理，PRJ-B",
+      "3人"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T215",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例检索P95是什么且排除了什么；2）项目B前端技术和负责者是什么；3）蓝色笔记本首次出库数量与剩余库存是多少。",
+    "expected_answer": "预热后1.8秒，不含模型冷启动与答案生成；Vue，由另一位成员开发；出库35本成功，剩85本",
+    "kind": "综合",
+    "required_facts": [
+      "预热后1.8秒，不含模型冷启动与答案生成",
+      "Vue，由另一位成员开发",
+      "出库35本成功，剩85本"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T216",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习起止年月是什么；2）项目A接受哪些文件格式；3）项目B的全名和编号是什么；4）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "2025年7月至2026年2月；PDF、Markdown、TXT；仓流库存管理，PRJ-B；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "2025年7月至2026年2月",
+      "PDF、Markdown、TXT",
+      "仓流库存管理，PRJ-B",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T217",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的后端语言与框架是什么；2）项目B开发起止年月是什么。",
+    "expected_answer": "Python、FastAPI；2026年7月至2026年9月",
+    "kind": "综合",
+    "required_facts": [
+      "Python、FastAPI",
+      "2026年7月至2026年9月"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T218",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A如何进行本地部署；3）项目A相邻片段重叠多长。",
+    "expected_answer": "工学学士；Docker Compose；80个汉字",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "Docker Compose",
+      "80个汉字"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T219",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习单位叫什么；2）项目A的编号是什么；3）项目A的Markdown先如何分段；4）项目A证据不足时应如何回答。",
+    "expected_answer": "青禾软件工作室，虚构单位；PRJ-A；按标题分段；明确拒答，不补造事实",
+    "kind": "综合",
+    "required_facts": [
+      "青禾软件工作室，虚构单位",
+      "PRJ-A",
+      "按标题分段",
+      "明确拒答，不补造事实"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T220",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习岗位是什么；2）示例评测有多少题和多少文档。",
+    "expected_answer": "后端开发实习生；50道题，200份中文文档",
+    "kind": "综合",
+    "required_facts": [
+      "后端开发实习生",
+      "50道题，200份中文文档"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T221",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Markdown先如何分段；2）项目B怎样控制并发出库；3）上传新版本后以什么为依据。",
+    "expected_answer": "按标题分段；数据库事务与行级锁；已生效的新版本",
+    "kind": "综合",
+    "required_facts": [
+      "按标题分段",
+      "数据库事务与行级锁",
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T222",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）实习起止年月是什么；3）项目A的pgvector保存什么；4）项目B已实现哪些业务。",
+    "expected_answer": "林知远；2025年7月至2026年2月；向量；商品入库、出库、库存查询、操作审计",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "2025年7月至2026年2月",
+      "向量",
+      "商品入库、出库、库存查询、操作审计"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T223",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B后端技术是什么；2）哪些管理操作仅归拥有者。",
+    "expected_answer": "Python、FastAPI、PostgreSQL、Redis；成员管理、拥有权转移、删除空间、公开分享配置",
+    "kind": "综合",
+    "required_facts": [
+      "Python、FastAPI、PostgreSQL、Redis",
+      "成员管理、拥有权转移、删除空间、公开分享配置"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T224",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习参与了哪些工作；2）项目A的全名是什么；3）示例评测有多少题和多少文档。",
+    "expected_answer": "接口开发、日志排查、自动化测试；知舟私有知识库；50道题，200份中文文档",
+    "kind": "综合",
+    "required_facts": [
+      "接口开发、日志排查、自动化测试",
+      "知舟私有知识库",
+      "50道题，200份中文文档"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T225",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）毕业设计名称是什么；3）项目A的PostgreSQL保存什么；4）项目A目标片段长度是什么。",
+    "expected_answer": "林知远；课程资料检索助手；业务数据；400至700个汉字",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "课程资料检索助手",
+      "业务数据",
+      "400至700个汉字"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T226",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B服务哪个仓库；2）重复首次出库后以及再出库100本失败后各剩多少。",
+    "expected_answer": "晨星文具仓库，虚构仓库；均85本，同幂等键不重扣，不足回滚",
+    "kind": "综合",
+    "required_facts": [
+      "晨星文具仓库，虚构仓库",
+      "均85本，同幂等键不重扣，不足回滚"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T227",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A目标片段长度是什么；2）项目经历应该怎样组织片段；3）蓝色笔记本的初始库存是多少。",
+    "expected_answer": "400至700个汉字；按项目名称分别组织，避免整份简历作为一个片段；120本",
+    "kind": "综合",
+    "required_facts": [
+      "400至700个汉字",
+      "按项目名称分别组织，避免整份简历作为一个片段",
+      "120本"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T228",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）本科专业是什么；2）项目A的PDF先保留什么再切分；3）示例人工答案正确率是多少；4）个人空间由谁管理。",
+    "expected_answer": "软件工程；保留页码，再按段落切分；0.90，虚构示例指标；仅拥有者",
+    "kind": "综合",
+    "required_facts": [
+      "软件工程",
+      "保留页码，再按段落切分",
+      "0.90，虚构示例指标",
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T229",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "林知远；不能",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T230",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B库存数值有什么约束；2）项目B怎样控制并发出库；3）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "非负整数；数据库事务与行级锁；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "非负整数",
+      "数据库事务与行级锁",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T231",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）项目A如何进行本地部署；3）林知远在项目A负责哪些开发阶段；4）上传新版本后以什么为依据。",
+    "expected_answer": "本科；Docker Compose；需求分析、前后端实现、测试、部署；已生效的新版本",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "Docker Compose",
+      "需求分析、前后端实现、测试、部署",
+      "已生效的新版本"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T232",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）本科专业是什么；2）项目A纯检索测试是否调用生成模型。",
+    "expected_answer": "软件工程；不调用，只返回片段",
+    "kind": "综合",
+    "required_facts": [
+      "软件工程",
+      "不调用，只返回片段"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T233",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A接受哪些文件格式；2）项目A的pgvector保存什么；3）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "PDF、Markdown、TXT；向量；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "PDF、Markdown、TXT",
+      "向量",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T234",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）毕业设计名称是什么；2）档案更新时间是哪天；3）项目B团队有几人；4）项目B已实现哪些业务。",
+    "expected_answer": "课程资料检索助手；2026-10-03；3人；商品入库、出库、库存查询、操作审计",
+    "kind": "综合",
+    "required_facts": [
+      "课程资料检索助手",
+      "2026-10-03",
+      "3人",
+      "商品入库、出库、库存查询、操作审计"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T235",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例人工答案正确率是多少；2）项目B开发起止年月是什么。",
+    "expected_answer": "0.90，虚构示例指标；2026年7月至2026年9月",
+    "kind": "综合",
+    "required_facts": [
+      "0.90，虚构示例指标",
+      "2026年7月至2026年9月"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T236",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习起止年月是什么；2）项目B已实现哪些业务；3）重复首次出库后以及再出库100本失败后各剩多少。",
+    "expected_answer": "2025年7月至2026年2月；商品入库、出库、库存查询、操作审计；均85本，同幂等键不重扣，不足回滚",
+    "kind": "综合",
+    "required_facts": [
+      "2025年7月至2026年2月",
+      "商品入库、出库、库存查询、操作审计",
+      "均85本，同幂等键不重扣，不足回滚"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T237",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习岗位是什么；2）项目A的全名是什么；3）项目A的pgvector保存什么；4）项目B明确没有实现哪些业务。",
+    "expected_answer": "后端开发实习生；知舟私有知识库；向量；支付、配送、财务对账、跨仓库调拨",
+    "kind": "综合",
+    "required_facts": [
+      "后端开发实习生",
+      "知舟私有知识库",
+      "向量",
+      "支付、配送、财务对账、跨仓库调拨"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T238",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A证据不足时应如何回答；2）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "明确拒答，不补造事实；不能",
+    "kind": "综合",
+    "required_facts": [
+      "明确拒答，不补造事实",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T239",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A怎样解决首次加载超时问题；3）项目B的全名和编号是什么。",
+    "expected_answer": "工学学士；检索单独等待时间，区分超时与普通网络错误；仓流库存管理，PRJ-B",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "检索单独等待时间，区分超时与普通网络错误",
+      "仓流库存管理，PRJ-B"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T240",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）实习岗位是什么；3）项目A默认Top K是多少；4）项目B的全名和编号是什么。",
+    "expected_answer": "工学学士；后端开发实习生；5；仓流库存管理，PRJ-B",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "后端开发实习生",
+      "5",
+      "仓流库存管理，PRJ-B"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T241",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A默认Top K是多少；2）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "5；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "5",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T242",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A如何进行本地部署；2）项目A的TXT先如何分段；3）计算结果应怎样表述。",
+    "expected_answer": "Docker Compose；按空行划分段落；可以按资料数字推算，但不能声称是原文记录",
+    "kind": "综合",
+    "required_facts": [
+      "Docker Compose",
+      "按空行划分段落",
+      "可以按资料数字推算，但不能声称是原文记录"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T243",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）取得哪类学位；2）项目A的Redis负责什么；3）项目A的Embedding模型是什么；4）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "工学学士；异步任务；BAAI/bge-large-zh-v1.5；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "工学学士",
+      "异步任务",
+      "BAAI/bge-large-zh-v1.5",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T244",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例人工答案正确率是多少；2）团队管理员可以做哪些管理工作。",
+    "expected_answer": "0.90，虚构示例指标；管理资料、查看原文引用、检索测试、管理评测",
+    "kind": "综合",
+    "required_facts": [
+      "0.90，虚构示例指标",
+      "管理资料、查看原文引用、检索测试、管理评测"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T245",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）学校名称是什么；3）档案版本是什么。",
+    "expected_answer": "本科；江宁信息学院，虚构学校；1.0",
+    "kind": "综合",
+    "required_facts": [
+      "本科",
+      "江宁信息学院，虚构学校",
+      "1.0"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T246",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案人物叫什么；2）本科专业是什么；3）重复首次出库后以及再出库100本失败后各剩多少；4）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "林知远；软件工程；均85本，同幂等键不重扣，不足回滚；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "林知远",
+      "软件工程",
+      "均85本，同幂等键不重扣，不足回滚",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T247",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Redis负责什么；2）项目经历应该怎样组织片段。",
+    "expected_answer": "异步任务；按项目名称分别组织，避免整份简历作为一个片段",
+    "kind": "综合",
+    "required_facts": [
+      "异步任务",
+      "按项目名称分别组织，避免整份简历作为一个片段"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T248",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PostgreSQL保存什么；2）项目A的pgvector保存什么；3）团队空间拥有者与管理员的数量规则是什么。",
+    "expected_answer": "业务数据；向量；一个拥有者，多个管理员",
+    "kind": "综合",
+    "required_facts": [
+      "业务数据",
+      "向量",
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T249",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）项目A接受哪些文件格式；3）项目A的Markdown先如何分段；4）项目A向量有多少维。",
+    "expected_answer": "南京；PDF、Markdown、TXT；按标题分段；1024",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "PDF、Markdown、TXT",
+      "按标题分段",
+      "1024"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T250",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案更新时间是哪天；2）项目A的TXT先如何分段。",
+    "expected_answer": "2026-10-03；按空行划分段落",
+    "kind": "综合",
+    "required_facts": [
+      "2026-10-03",
+      "按空行划分段落"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T251",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例首次模型加载和前端等待上限是多少；2）项目B出库处理顺序是什么；3）哪些管理操作仅归拥有者。",
+    "expected_answer": "约160秒、60秒；锁定目标记录、检查足够、扣减、写审计记录；成员管理、拥有权转移、删除空间、公开分享配置",
+    "kind": "综合",
+    "required_facts": [
+      "约160秒、60秒",
+      "锁定目标记录、检查足够、扣减、写审计记录",
+      "成员管理、拥有权转移、删除空间、公开分享配置"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T252",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）档案版本是什么；3）蓝色笔记本首次出库数量与剩余库存是多少；4）团队空间拥有者与管理员的数量规则是什么。",
+    "expected_answer": "南京；1.0；出库35本成功，剩85本；一个拥有者，多个管理员",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "1.0",
+      "出库35本成功，剩85本",
+      "一个拥有者，多个管理员"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T253",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B的全名和编号是什么；2）林知远在项目B负责什么。",
+    "expected_answer": "仓流库存管理，PRJ-B；后端开发者，库存接口与并发控制，不负责移动端页面",
+    "kind": "综合",
+    "required_facts": [
+      "仓流库存管理，PRJ-B",
+      "后端开发者，库存接口与并发控制，不负责移动端页面"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T254",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的全名是什么；2）项目A如何进行本地部署；3）项目A的TXT先如何分段。",
+    "expected_answer": "知舟私有知识库；Docker Compose；按空行划分段落",
+    "kind": "综合",
+    "required_facts": [
+      "知舟私有知识库",
+      "Docker Compose",
+      "按空行划分段落"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T255",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）本科专业是什么；2）示例指标能否代表当前知溯测量结果；3）项目B出库处理顺序是什么；4）重复首次出库后以及再出库100本失败后各剩多少。",
+    "expected_answer": "软件工程；不能，仅虚构示例；锁定目标记录、检查足够、扣减、写审计记录；均85本，同幂等键不重扣，不足回滚",
+    "kind": "综合",
+    "required_facts": [
+      "软件工程",
+      "不能，仅虚构示例",
+      "锁定目标记录、检查足够、扣减、写审计记录",
+      "均85本，同幂等键不重扣，不足回滚"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T256",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A纯检索测试是否调用生成模型；2）蓝色笔记本首次出库数量与剩余库存是多少。",
+    "expected_answer": "不调用，只返回片段；出库35本成功，剩85本",
+    "kind": "综合",
+    "required_facts": [
+      "不调用，只返回片段",
+      "出库35本成功，剩85本"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T257",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）学校名称是什么；2）项目A的pgvector保存什么；3）项目A排序前先过滤哪些范围。",
+    "expected_answer": "江宁信息学院，虚构学校；向量；空间与资料状态",
+    "kind": "综合",
+    "required_facts": [
+      "江宁信息学院，虚构学校",
+      "向量",
+      "空间与资料状态"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T258",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）毕业设计名称是什么；2）项目A如何进行本地部署；3）项目A默认Top K是多少；4）项目B前端技术和负责者是什么。",
+    "expected_answer": "课程资料检索助手；Docker Compose；5；Vue，由另一位成员开发",
+    "kind": "综合",
+    "required_facts": [
+      "课程资料检索助手",
+      "Docker Compose",
+      "5",
+      "Vue，由另一位成员开发"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T259",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B的Redis负责什么且不负责什么；2）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "热点库存查询缓存，不承担最终库存一致性判断；14天、30天，虚构测试事实，与真实套餐无关",
+    "kind": "综合",
+    "required_facts": [
+      "热点库存查询缓存，不承担最终库存一致性判断",
+      "14天、30天，虚构测试事实，与真实套餐无关"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T260",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A起止年月是什么；2）项目B的全名和编号是什么；3）项目B库存数值有什么约束。",
+    "expected_answer": "2026年3月至2026年6月；仓流库存管理，PRJ-B；非负整数",
+    "kind": "综合",
+    "required_facts": [
+      "2026年3月至2026年6月",
+      "仓流库存管理，PRJ-B",
+      "非负整数"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T261",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）示例检索P95是什么且排除了什么；2）示例指标能否代表当前知溯测量结果；3）项目A怎样解决首次加载超时问题；4）项目B是否使用pgvector和Embedding或RAG。",
+    "expected_answer": "预热后1.8秒，不含模型冷启动与答案生成；不能，仅虚构示例；检索单独等待时间，区分超时与普通网络错误；均没有使用",
+    "kind": "综合",
+    "required_facts": [
+      "预热后1.8秒，不含模型冷启动与答案生成",
+      "不能，仅虚构示例",
+      "检索单独等待时间，区分超时与普通网络错误",
+      "均没有使用"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T262",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的pgvector保存什么；2）项目A的Embedding模型是什么。",
+    "expected_answer": "向量；BAAI/bge-large-zh-v1.5",
+    "kind": "综合",
+    "required_facts": [
+      "向量",
+      "BAAI/bge-large-zh-v1.5"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T263",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的PDF先保留什么再切分；2）示例评测有多少题和多少文档；3）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "保留页码，再按段落切分；50道题，200份中文文档；不能",
+    "kind": "综合",
+    "required_facts": [
+      "保留页码，再按段落切分",
+      "50道题，200份中文文档",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T264",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的pgvector保存什么；2）项目A的Embedding模型是什么；3）示例指标能否代表当前知溯测量结果；4）重复首次出库后以及再出库100本失败后各剩多少。",
+    "expected_answer": "向量；BAAI/bge-large-zh-v1.5；不能，仅虚构示例；均85本，同幂等键不重扣，不足回滚",
+    "kind": "综合",
+    "required_facts": [
+      "向量",
+      "BAAI/bge-large-zh-v1.5",
+      "不能，仅虚构示例",
+      "均85本，同幂等键不重扣，不足回滚"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T265",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A的Redis负责什么；2）项目B的Redis负责什么且不负责什么。",
+    "expected_answer": "异步任务；热点库存查询缓存，不承担最终库存一致性判断",
+    "kind": "综合",
+    "required_facts": [
+      "异步任务",
+      "热点库存查询缓存，不承担最终库存一致性判断"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T266",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A排序前先过滤哪些范围；2）项目B有哪些后端测试；3）个人空间由谁管理。",
+    "expected_answer": "空间与资料状态；重复请求、库存不足、事务回滚、并发出库；仅拥有者",
+    "kind": "综合",
+    "required_facts": [
+      "空间与资料状态",
+      "重复请求、库存不足、事务回滚、并发出库",
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T267",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习岗位是什么；2）档案版本是什么；3）项目A怎样解决首次加载超时问题；4）项目B库存不足时怎么办。",
+    "expected_answer": "后端开发实习生；1.0；检索单独等待时间，区分超时与普通网络错误；明确业务错误，整个出库事务回滚",
+    "kind": "综合",
+    "required_facts": [
+      "后端开发实习生",
+      "1.0",
+      "检索单独等待时间，区分超时与普通网络错误",
+      "明确业务错误，整个出库事务回滚"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T268",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习单位叫什么；2）示例检索P95是什么且排除了什么。",
+    "expected_answer": "青禾软件工作室，虚构单位；预热后1.8秒，不含模型冷启动与答案生成",
+    "kind": "综合",
+    "required_facts": [
+      "青禾软件工作室，虚构单位",
+      "预热后1.8秒，不含模型冷启动与答案生成"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T269",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）入学和毕业的年月是什么；2）项目B的Redis负责什么且不负责什么；3）撤销分享链接后访客能否继续提问。",
+    "expected_answer": "2021年9月至2025年6月；热点库存查询缓存，不承担最终库存一致性判断；不能",
+    "kind": "综合",
+    "required_facts": [
+      "2021年9月至2025年6月",
+      "热点库存查询缓存，不承担最终库存一致性判断",
+      "不能"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T270",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案更新时间是哪天；2）项目A的TXT先如何分段；3）项目B服务哪个仓库；4）个人空间由谁管理。",
+    "expected_answer": "2026-10-03；按空行划分段落；晨星文具仓库，虚构仓库；仅拥有者",
+    "kind": "综合",
+    "required_facts": [
+      "2026-10-03",
+      "按空行划分段落",
+      "晨星文具仓库，虚构仓库",
+      "仅拥有者"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T271",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A接受哪些文件格式；2）团队管理员可以做哪些管理工作。",
+    "expected_answer": "PDF、Markdown、TXT；管理资料、查看原文引用、检索测试、管理评测",
+    "kind": "综合",
+    "required_facts": [
+      "PDF、Markdown、TXT",
+      "管理资料、查看原文引用、检索测试、管理评测"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T272",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案更新时间是哪天；2）项目A前端使用什么技术；3）项目B出库处理顺序是什么。",
+    "expected_answer": "2026-10-03；React、TypeScript；锁定目标记录、检查足够、扣减、写审计记录",
+    "kind": "综合",
+    "required_facts": [
+      "2026-10-03",
+      "React、TypeScript",
+      "锁定目标记录、检查足够、扣减、写审计记录"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T273",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）学校名称是什么；2）项目A的Redis负责什么；3）项目B是否使用pgvector和Embedding或RAG；4）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "江宁信息学院，虚构学校；异步任务；均没有使用；不能继续使用",
+    "kind": "综合",
+    "required_facts": [
+      "江宁信息学院，虚构学校",
+      "异步任务",
+      "均没有使用",
+      "不能继续使用"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T274",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A如何进行本地部署；2）公开问答可以使用哪些资料。",
+    "expected_answer": "Docker Compose；分享范围内已授权且已启用资料，不能返回私密资料",
+    "kind": "综合",
+    "required_facts": [
+      "Docker Compose",
+      "分享范围内已授权且已启用资料，不能返回私密资料"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T275",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）林知远在项目B负责什么；3）项目B有哪些后端测试。",
+    "expected_answer": "南京；后端开发者，库存接口与并发控制，不负责移动端页面；重复请求、库存不足、事务回滚、并发出库",
+    "kind": "综合",
+    "required_facts": [
+      "南京",
+      "后端开发者，库存接口与并发控制，不负责移动端页面",
+      "重复请求、库存不足、事务回滚、并发出库"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T276",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库1本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "84本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "84本，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T277",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库3本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "117本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "117本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T278",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库86本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T279",
+    "question": "依据版本1.0的14天试用期，假设已使用2天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "12天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "12天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T280",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加1秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "99秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "99秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T281",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库2本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "83本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "83本，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T282",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库6本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "114本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "114本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T283",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库87本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T284",
+    "question": "依据版本1.0的14天试用期，假设已使用3天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "11天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "11天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T285",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加2秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "98秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "98秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T286",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库3本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "82本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "82本，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T287",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库9本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "111本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "111本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T288",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库88本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T289",
+    "question": "依据版本1.0的14天试用期，假设已使用4天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "10天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "10天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T290",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加3秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "97秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "97秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T291",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库4本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "81本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "81本，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T292",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库12本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "108本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "108本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T293",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库89本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T294",
+    "question": "依据版本1.0的14天试用期，假设已使用5天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "9天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "9天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T295",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加4秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "96秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "96秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T296",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库5本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "80本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "80本，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T297",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库15本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "105本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "105本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T298",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库90本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T299",
+    "question": "依据版本1.0的14天试用期，假设已使用6天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "8天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "8天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T300",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加5秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "95秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "95秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T301",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库6本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "79本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "79本，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T302",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库18本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "102本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "102本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T303",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库91本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T304",
+    "question": "依据版本1.0的14天试用期，假设已使用7天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "7天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "7天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T305",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加6秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "94秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "94秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T306",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库7本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "78本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "78本，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T307",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库21本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "99本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "99本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T308",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库92本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T309",
+    "question": "依据版本1.0的14天试用期，假设已使用8天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "6天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "6天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T310",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加7秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "93秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "93秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T311",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库8本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "77本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "77本，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T312",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库24本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "96本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "96本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T313",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库93本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T314",
+    "question": "依据版本1.0的14天试用期，假设已使用9天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "5天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "5天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T315",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加8秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "92秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "92秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T316",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库9本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "76本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "76本，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T317",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库27本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "93本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "93本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T318",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库94本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T319",
+    "question": "依据版本1.0的14天试用期，假设已使用10天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "4天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "4天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T320",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加9秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "91秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "91秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T321",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库10本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "75本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "75本，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T322",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库30本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "90本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "90本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T323",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库95本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T324",
+    "question": "依据版本1.0的14天试用期，假设已使用11天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "3天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "3天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T325",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加10秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "90秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "90秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T326",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库11本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "74本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "74本，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T327",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库33本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "87本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "87本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T328",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库96本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T329",
+    "question": "依据版本1.0的14天试用期，假设已使用12天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "2天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "2天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T330",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加11秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "89秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "89秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T331",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库12本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "73本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "73本，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T332",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库36本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "84本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "84本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T333",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库97本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T334",
+    "question": "依据版本1.0的14天试用期，假设已使用13天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "1天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "1天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T335",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加12秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "88秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "88秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T336",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库13本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "72本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "72本，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T337",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库39本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "81本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "81本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T338",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库98本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T339",
+    "question": "依据版本1.0的14天试用期，假设已使用1天且按天数相减，剩余几天？不解释实际套餐。",
+    "expected_answer": "13天，按题设推算",
+    "kind": "计算",
+    "required_facts": [
+      "13天，按题设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T340",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加13秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "87秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "87秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T341",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库14本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "71本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "71本，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T342",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库42本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "78本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "78本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T343",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库99本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T344",
+    "question": "依据版本1.0的30天保留期，假设已保留14天且按天数相减，剩余几天？",
+    "expected_answer": "16天，推算",
+    "kind": "计算",
+    "required_facts": [
+      "16天，推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T345",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加14秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "86秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "86秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T346",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库15本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "70本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "70本，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T347",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库45本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "75本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "75本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T348",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库100本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T349",
+    "question": "依据版本1.0的30天保留期，假设已保留15天且按天数相减，剩余几天？",
+    "expected_answer": "15天，推算",
+    "kind": "计算",
+    "required_facts": [
+      "15天，推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T350",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加15秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "85秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "85秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T351",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库16本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "69本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "69本，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T352",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库48本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "72本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "72本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T353",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库101本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T354",
+    "question": "依据版本1.0的30天保留期，假设已保留16天且按天数相减，剩余几天？",
+    "expected_answer": "14天，推算",
+    "kind": "计算",
+    "required_facts": [
+      "14天，推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T355",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加16秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "84秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "84秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T356",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库17本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "68本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "68本，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T357",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库51本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "69本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "69本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T358",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库102本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T359",
+    "question": "依据版本1.0的30天保留期，假设已保留17天且按天数相减，剩余几天？",
+    "expected_answer": "13天，推算",
+    "kind": "计算",
+    "required_facts": [
+      "13天，推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T360",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加17秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "83秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "83秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T361",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库18本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "67本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "67本，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T362",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库54本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "66本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "66本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T363",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库103本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T364",
+    "question": "依据版本1.0的30天保留期，假设已保留18天且按天数相减，剩余几天？",
+    "expected_answer": "12天，推算",
+    "kind": "计算",
+    "required_facts": [
+      "12天，推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T365",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加18秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "82秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "82秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T366",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库19本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "66本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "66本，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T367",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库57本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "63本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "63本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T368",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库104本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T369",
+    "question": "依据版本1.0的30天保留期，假设已保留19天且按天数相减，剩余几天？",
+    "expected_answer": "11天，推算",
+    "kind": "计算",
+    "required_facts": [
+      "11天，推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T370",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加19秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "81秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "81秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T371",
+    "question": "以蓝色笔记本首次成功出库后的85本为起点，假设另有唯一新幂等键出库20本且成功，剩余库存是多少？请注明是推算。",
+    "expected_answer": "65本，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "65本，假设推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T372",
+    "question": "以档案初始库存120本为起点，假设唯一新请求成功出库60本，随后用相同幂等键重复提交两次，最后剩余多少？",
+    "expected_answer": "60本，相同幂等键不重扣，假设推算",
+    "kind": "计算",
+    "required_facts": [
+      "60本，相同幂等键不重扣，假设推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T373",
+    "question": "以第一次出库后的85本为起点，假设又收到唯一新幂等键出库105本的请求，未补货，应成功还是失败？最后剩多少？",
+    "expected_answer": "失败，库存不足回滚，仍85本，假设情境",
+    "kind": "计算",
+    "required_facts": [
+      "失败，库存不足回滚，仍85本，假设情境"
+    ],
+    "answerable": true,
+    "format": "pdf"
+  },
+  {
+    "id": "T374",
+    "question": "依据版本1.0的30天保留期，假设已保留20天且按天数相减，剩余几天？",
+    "expected_answer": "10天，推算",
+    "kind": "计算",
+    "required_facts": [
+      "10天，推算"
+    ],
+    "answerable": true,
+    "format": "md"
+  },
+  {
+    "id": "T375",
+    "question": "示例首次加载约160秒，假设前端等待上限从60秒增加20秒，仍至少差多少秒？请按示例数字估算。",
+    "expected_answer": "80秒，仍不足，示例推算",
+    "kind": "计算",
+    "required_facts": [
+      "80秒，仍不足，示例推算"
+    ],
+    "answerable": true,
+    "format": "txt"
+  },
+  {
+    "id": "T376",
+    "question": "接着上一问，第二个项目的全名？",
+    "expected_answer": "仓流库存管理",
+    "kind": "追问",
+    "required_facts": [
+      "仓流库存管理"
+    ],
+    "answerable": true,
+    "setup_question": "按知舟、仓流的顺序分别介绍两个项目。",
+    "format": "pdf"
+  },
+  {
+    "id": "T377",
+    "question": "接着上一问，后者的项目编号？",
+    "expected_answer": "PRJ-B",
+    "kind": "追问",
+    "required_facts": [
+      "PRJ-B"
+    ],
+    "answerable": true,
+    "setup_question": "按知舟、仓流的顺序分别介绍两个项目。",
+    "format": "md"
+  },
+  {
+    "id": "T378",
+    "question": "接着上一问，第二个的开发月份？",
+    "expected_answer": "2026年7月至9月",
+    "kind": "追问",
+    "required_facts": [
+      "2026年7月至9月"
+    ],
+    "answerable": true,
+    "setup_question": "按知舟、仓流的顺序分别介绍两个项目。",
+    "format": "txt"
+  },
+  {
+    "id": "T379",
+    "question": "接着上一问，后者的前端及负责者？",
+    "expected_answer": "Vue，另一位成员",
+    "kind": "追问",
+    "required_facts": [
+      "Vue，另一位成员"
+    ],
+    "answerable": true,
+    "setup_question": "按知舟、仓流的顺序分别介绍两个项目。",
+    "format": "pdf"
+  },
+  {
+    "id": "T380",
+    "question": "接着上一问，第二个是否用了RAG？",
+    "expected_answer": "没有",
+    "kind": "追问",
+    "required_facts": [
+      "没有"
+    ],
+    "answerable": true,
+    "setup_question": "按知舟、仓流的顺序分别介绍两个项目。",
+    "format": "md"
+  },
+  {
+    "id": "T381",
+    "question": "接着上一问，排在第二位的项目叫什么全名？",
+    "expected_answer": "知舟私有知识库",
+    "kind": "追问",
+    "required_facts": [
+      "知舟私有知识库"
+    ],
+    "answerable": true,
+    "setup_question": "按仓流、知舟的顺序分别介绍两个项目。",
+    "format": "txt"
+  },
+  {
+    "id": "T382",
+    "question": "接着上一问，排在后面的项目编号是多少？",
+    "expected_answer": "PRJ-A",
+    "kind": "追问",
+    "required_facts": [
+      "PRJ-A"
+    ],
+    "answerable": true,
+    "setup_question": "按仓流、知舟的顺序分别介绍两个项目。",
+    "format": "pdf"
+  },
+  {
+    "id": "T383",
+    "question": "接着上一问，最后介绍的项目开发起止月份？",
+    "expected_answer": "2026年3月至6月",
+    "kind": "追问",
+    "required_facts": [
+      "2026年3月至6月"
+    ],
+    "answerable": true,
+    "setup_question": "按仓流、知舟的顺序分别介绍两个项目。",
+    "format": "md"
+  },
+  {
+    "id": "T384",
+    "question": "接着上一问，后面那个项目谁做前端，用什么技术？",
+    "expected_answer": "React/TypeScript，林知远",
+    "kind": "追问",
+    "required_facts": [
+      "React/TypeScript，林知远"
+    ],
+    "answerable": true,
+    "setup_question": "按仓流、知舟的顺序分别介绍两个项目。",
+    "format": "txt"
+  },
+  {
+    "id": "T385",
+    "question": "接着上一问，第二个是否用了pgvector？",
+    "expected_answer": "用了，保存向量",
+    "kind": "追问",
+    "required_facts": [
+      "用了，保存向量"
+    ],
+    "answerable": true,
+    "setup_question": "按仓流、知舟的顺序分别介绍两个项目。",
+    "format": "pdf"
+  },
+  {
+    "id": "T386",
+    "question": "接着上一问，它的Embedding输出维度？",
+    "expected_answer": "1024",
+    "kind": "追问",
+    "required_facts": [
+      "1024"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的模型与检索。",
+    "format": "md"
+  },
+  {
+    "id": "T387",
+    "question": "接着上一问，这个项目默认返回几条？",
+    "expected_answer": "Top K为5",
+    "kind": "追问",
+    "required_facts": [
+      "Top K为5"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的模型与检索。",
+    "format": "txt"
+  },
+  {
+    "id": "T388",
+    "question": "接着上一问，它按什么相似度排序？",
+    "expected_answer": "余弦相似度",
+    "kind": "追问",
+    "required_facts": [
+      "余弦相似度"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的模型与检索。",
+    "format": "pdf"
+  },
+  {
+    "id": "T389",
+    "question": "接着上一问，它做纯检索会调用生成模型吗？",
+    "expected_answer": "不会",
+    "kind": "追问",
+    "required_facts": [
+      "不会"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的模型与检索。",
+    "format": "md"
+  },
+  {
+    "id": "T390",
+    "question": "接着上一问，它编码文档的模型完整名称？",
+    "expected_answer": "BAAI/bge-large-zh-v1.5",
+    "kind": "追问",
+    "required_facts": [
+      "BAAI/bge-large-zh-v1.5"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的模型与检索。",
+    "format": "txt"
+  },
+  {
+    "id": "T391",
+    "question": "接着上一问，它的Redis能决定最终库存吗？",
+    "expected_answer": "不能，热点缓存",
+    "kind": "追问",
+    "required_facts": [
+      "不能，热点缓存"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流的库存并发方案。",
+    "format": "pdf"
+  },
+  {
+    "id": "T392",
+    "question": "接着上一问，它的出库请求怎么避免重复扣减？",
+    "expected_answer": "唯一幂等键",
+    "kind": "追问",
+    "required_facts": [
+      "唯一幂等键"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流的库存并发方案。",
+    "format": "md"
+  },
+  {
+    "id": "T393",
+    "question": "接着上一问，它如何处理数量不足？",
+    "expected_answer": "业务错误并事务回滚",
+    "kind": "追问",
+    "required_facts": [
+      "业务错误并事务回滚"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流的库存并发方案。",
+    "format": "txt"
+  },
+  {
+    "id": "T394",
+    "question": "接着上一问，它靠什么数据库机制防并发冲突？",
+    "expected_answer": "事务和行级锁",
+    "kind": "追问",
+    "required_facts": [
+      "事务和行级锁"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流的库存并发方案。",
+    "format": "pdf"
+  },
+  {
+    "id": "T395",
+    "question": "接着上一问，它扣数量之前先做哪两步？",
+    "expected_answer": "锁定记录，检查库存足够",
+    "kind": "追问",
+    "required_facts": [
+      "锁定记录，检查库存足够"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流的库存并发方案。",
+    "format": "md"
+  },
+  {
+    "id": "T396",
+    "question": "接着上一问，它原本有多少本？",
+    "expected_answer": "120",
+    "kind": "追问",
+    "required_facts": [
+      "120"
+    ],
+    "answerable": true,
+    "setup_question": "介绍蓝色笔记本验收过程。",
+    "format": "txt"
+  },
+  {
+    "id": "T397",
+    "question": "接着上一问，它第一次出了多少本？",
+    "expected_answer": "35",
+    "kind": "追问",
+    "required_facts": [
+      "35"
+    ],
+    "answerable": true,
+    "setup_question": "介绍蓝色笔记本验收过程。",
+    "format": "pdf"
+  },
+  {
+    "id": "T398",
+    "question": "接着上一问，那次成功后剩多少？",
+    "expected_answer": "85",
+    "kind": "追问",
+    "required_facts": [
+      "85"
+    ],
+    "answerable": true,
+    "setup_question": "介绍蓝色笔记本验收过程。",
+    "format": "md"
+  },
+  {
+    "id": "T399",
+    "question": "接着上一问，重复那次同键请求会剩多少？",
+    "expected_answer": "85",
+    "kind": "追问",
+    "required_facts": [
+      "85"
+    ],
+    "answerable": true,
+    "setup_question": "介绍蓝色笔记本验收过程。",
+    "format": "txt"
+  },
+  {
+    "id": "T400",
+    "question": "接着上一问，后续100本失败后又剩多少？",
+    "expected_answer": "85",
+    "kind": "追问",
+    "required_facts": [
+      "85"
+    ],
+    "answerable": true,
+    "setup_question": "介绍蓝色笔记本验收过程。",
+    "format": "pdf"
+  },
+  {
+    "id": "T401",
+    "question": "接着上一问，他的学校叫什么？",
+    "expected_answer": "江宁信息学院",
+    "kind": "追问",
+    "required_facts": [
+      "江宁信息学院"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的教育经历。",
+    "format": "md"
+  },
+  {
+    "id": "T402",
+    "question": "接着上一问，他的专业名称？",
+    "expected_answer": "软件工程",
+    "kind": "追问",
+    "required_facts": [
+      "软件工程"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的教育经历。",
+    "format": "txt"
+  },
+  {
+    "id": "T403",
+    "question": "接着上一问，他的学位类型？",
+    "expected_answer": "工学学士",
+    "kind": "追问",
+    "required_facts": [
+      "工学学士"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的教育经历。",
+    "format": "pdf"
+  },
+  {
+    "id": "T404",
+    "question": "接着上一问，他的毕业设计题目？",
+    "expected_answer": "课程资料检索助手",
+    "kind": "追问",
+    "required_facts": [
+      "课程资料检索助手"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的教育经历。",
+    "format": "md"
+  },
+  {
+    "id": "T405",
+    "question": "接着上一问，这段学习起止年月？",
+    "expected_answer": "2021年9月至2025年6月",
+    "kind": "追问",
+    "required_facts": [
+      "2021年9月至2025年6月"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的教育经历。",
+    "format": "txt"
+  },
+  {
+    "id": "T406",
+    "question": "接着上一问，那家单位叫什么？",
+    "expected_answer": "青禾软件工作室",
+    "kind": "追问",
+    "required_facts": [
+      "青禾软件工作室"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的实习经历。",
+    "format": "pdf"
+  },
+  {
+    "id": "T407",
+    "question": "接着上一问，他的实习岗位？",
+    "expected_answer": "后端开发实习生",
+    "kind": "追问",
+    "required_facts": [
+      "后端开发实习生"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的实习经历。",
+    "format": "md"
+  },
+  {
+    "id": "T408",
+    "question": "接着上一问，那段实习开始年月？",
+    "expected_answer": "2025年7月",
+    "kind": "追问",
+    "required_facts": [
+      "2025年7月"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的实习经历。",
+    "format": "txt"
+  },
+  {
+    "id": "T409",
+    "question": "接着上一问，那段实习结束年月？",
+    "expected_answer": "2026年2月",
+    "kind": "追问",
+    "required_facts": [
+      "2026年2月"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的实习经历。",
+    "format": "pdf"
+  },
+  {
+    "id": "T410",
+    "question": "接着上一问，期间参与哪些工作？",
+    "expected_answer": "接口开发、日志排查、自动化测试",
+    "kind": "追问",
+    "required_facts": [
+      "接口开发、日志排查、自动化测试"
+    ],
+    "answerable": true,
+    "setup_question": "介绍林知远的实习经历。",
+    "format": "md"
+  },
+  {
+    "id": "T411",
+    "question": "接着上一问，它能有几个拥有者？",
+    "expected_answer": "一个",
+    "kind": "追问",
+    "required_facts": [
+      "一个"
+    ],
+    "answerable": true,
+    "setup_question": "介绍团队空间的权限规则。",
+    "format": "txt"
+  },
+  {
+    "id": "T412",
+    "question": "接着上一问，它允许多个管理员吗？",
+    "expected_answer": "允许",
+    "kind": "追问",
+    "required_facts": [
+      "允许"
+    ],
+    "answerable": true,
+    "setup_question": "介绍团队空间的权限规则。",
+    "format": "pdf"
+  },
+  {
+    "id": "T413",
+    "question": "接着上一问，他们能查看原文引用吗？",
+    "expected_answer": "管理员可以",
+    "kind": "追问",
+    "required_facts": [
+      "管理员可以"
+    ],
+    "answerable": true,
+    "setup_question": "介绍团队空间的权限规则。",
+    "format": "md"
+  },
+  {
+    "id": "T414",
+    "question": "接着上一问，他们能管理评测吗？",
+    "expected_answer": "管理员可以",
+    "kind": "追问",
+    "required_facts": [
+      "管理员可以"
+    ],
+    "answerable": true,
+    "setup_question": "介绍团队空间的权限规则。",
+    "format": "txt"
+  },
+  {
+    "id": "T415",
+    "question": "接着上一问，他们能转移拥有权吗？",
+    "expected_answer": "管理员不能，拥有者执行",
+    "kind": "追问",
+    "required_facts": [
+      "管理员不能，拥有者执行"
+    ],
+    "answerable": true,
+    "setup_question": "介绍团队空间的权限规则。",
+    "format": "pdf"
+  },
+  {
+    "id": "T416",
+    "question": "接着上一问，那私密资料能公开返回吗？",
+    "expected_answer": "不能",
+    "kind": "追问",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知识库的公开分享边界。",
+    "format": "md"
+  },
+  {
+    "id": "T417",
+    "question": "接着上一问，那停用的文档能答吗？",
+    "expected_answer": "不能",
+    "kind": "追问",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知识库的公开分享边界。",
+    "format": "txt"
+  },
+  {
+    "id": "T418",
+    "question": "接着上一问，那超出分享范围能答吗？",
+    "expected_answer": "不能",
+    "kind": "追问",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知识库的公开分享边界。",
+    "format": "pdf"
+  },
+  {
+    "id": "T419",
+    "question": "接着上一问，链接撤销后原访客能继续提问吗？",
+    "expected_answer": "不能",
+    "kind": "追问",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知识库的公开分享边界。",
+    "format": "md"
+  },
+  {
+    "id": "T420",
+    "question": "接着上一问，那访客证据必须符合哪三条件？",
+    "expected_answer": "分享范围内、已授权、已启用",
+    "kind": "追问",
+    "required_facts": [
+      "分享范围内、已授权、已启用"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知识库的公开分享边界。",
+    "format": "txt"
+  },
+  {
+    "id": "T421",
+    "question": "接着上一问，前者持续多少天？",
+    "expected_answer": "试用14天",
+    "kind": "追问",
+    "required_facts": [
+      "试用14天"
+    ],
+    "answerable": true,
+    "setup_question": "介绍版本1.0的试用与保留事实。",
+    "format": "pdf"
+  },
+  {
+    "id": "T422",
+    "question": "接着上一问，后者持续多少天？",
+    "expected_answer": "保留30天",
+    "kind": "追问",
+    "required_facts": [
+      "保留30天"
+    ],
+    "answerable": true,
+    "setup_question": "介绍版本1.0的试用与保留事实。",
+    "format": "md"
+  },
+  {
+    "id": "T423",
+    "question": "接着上一问，前者折合几周？",
+    "expected_answer": "2周，推算",
+    "kind": "追问",
+    "required_facts": [
+      "2周，推算"
+    ],
+    "answerable": true,
+    "setup_question": "介绍版本1.0的试用与保留事实。",
+    "format": "txt"
+  },
+  {
+    "id": "T424",
+    "question": "接着上一问，后者比前者长几天？",
+    "expected_answer": "16天，推算",
+    "kind": "追问",
+    "required_facts": [
+      "16天，推算"
+    ],
+    "answerable": true,
+    "setup_question": "介绍版本1.0的试用与保留事实。",
+    "format": "pdf"
+  },
+  {
+    "id": "T425",
+    "question": "接着上一问，它们是现实套餐承诺吗？",
+    "expected_answer": "不是，虚构测试事实",
+    "kind": "追问",
+    "required_facts": [
+      "不是，虚构测试事实"
+    ],
+    "answerable": true,
+    "setup_question": "介绍版本1.0的试用与保留事实。",
+    "format": "md"
+  },
+  {
+    "id": "T426",
+    "question": "接着上一问，第一个先保存什么定位信息？",
+    "expected_answer": "PDF页码",
+    "kind": "追问",
+    "required_facts": [
+      "PDF页码"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的PDF、Markdown、TXT分块策略。",
+    "format": "txt"
+  },
+  {
+    "id": "T427",
+    "question": "接着上一问，第二个先按什么分段？",
+    "expected_answer": "Markdown标题",
+    "kind": "追问",
+    "required_facts": [
+      "Markdown标题"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的PDF、Markdown、TXT分块策略。",
+    "format": "pdf"
+  },
+  {
+    "id": "T428",
+    "question": "接着上一问，第三个先按什么分段？",
+    "expected_answer": "TXT空行",
+    "kind": "追问",
+    "required_facts": [
+      "TXT空行"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的PDF、Markdown、TXT分块策略。",
+    "format": "md"
+  },
+  {
+    "id": "T429",
+    "question": "接着上一问，它们目标长度是多少汉字？",
+    "expected_answer": "400至700",
+    "kind": "追问",
+    "required_facts": [
+      "400至700"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的PDF、Markdown、TXT分块策略。",
+    "format": "txt"
+  },
+  {
+    "id": "T430",
+    "question": "接着上一问，它们相邻块重叠多少汉字？",
+    "expected_answer": "80",
+    "kind": "追问",
+    "required_facts": [
+      "80"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的PDF、Markdown、TXT分块策略。",
+    "format": "pdf"
+  },
+  {
+    "id": "T431",
+    "question": "接着上一问，其中Recall@5为多少？",
+    "expected_answer": "0.86",
+    "kind": "追问",
+    "required_facts": [
+      "0.86"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的测试指标。",
+    "format": "md"
+  },
+  {
+    "id": "T432",
+    "question": "接着上一问，其中人工答案正确率为多少？",
+    "expected_answer": "0.90",
+    "kind": "追问",
+    "required_facts": [
+      "0.90"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的测试指标。",
+    "format": "txt"
+  },
+  {
+    "id": "T433",
+    "question": "接着上一问，这组测试有几道题？",
+    "expected_answer": "50",
+    "kind": "追问",
+    "required_facts": [
+      "50"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的测试指标。",
+    "format": "pdf"
+  },
+  {
+    "id": "T434",
+    "question": "接着上一问，这组测试涉及多少中文文档？",
+    "expected_answer": "200",
+    "kind": "追问",
+    "required_facts": [
+      "200"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的测试指标。",
+    "format": "md"
+  },
+  {
+    "id": "T435",
+    "question": "接着上一问，它的预热P95能代表答案生成耗时吗？",
+    "expected_answer": "不能，1.8秒仅检索，不含生成",
+    "kind": "追问",
+    "required_facts": [
+      "不能，1.8秒仅检索，不含生成"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的测试指标。",
+    "format": "txt"
+  },
+  {
+    "id": "T436",
+    "question": "接着上一问，它本地用什么部署工具？",
+    "expected_answer": "Docker Compose",
+    "kind": "追问",
+    "required_facts": [
+      "Docker Compose"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的本地部署与首次加载问题。",
+    "format": "pdf"
+  },
+  {
+    "id": "T437",
+    "question": "接着上一问，当时首次加载约多久？",
+    "expected_answer": "160秒",
+    "kind": "追问",
+    "required_facts": [
+      "160秒"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的本地部署与首次加载问题。",
+    "format": "md"
+  },
+  {
+    "id": "T438",
+    "question": "接着上一问，当时前端等待上限多久？",
+    "expected_answer": "60秒",
+    "kind": "追问",
+    "required_facts": [
+      "60秒"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的本地部署与首次加载问题。",
+    "format": "txt"
+  },
+  {
+    "id": "T439",
+    "question": "接着上一问，这两个示例时间相差多久？",
+    "expected_answer": "约100秒，推算",
+    "kind": "追问",
+    "required_facts": [
+      "约100秒，推算"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的本地部署与首次加载问题。",
+    "format": "pdf"
+  },
+  {
+    "id": "T440",
+    "question": "接着上一问，后来怎样处理这个等待问题？",
+    "expected_answer": "检索单独等待并区分超时与网络错误",
+    "kind": "追问",
+    "required_facts": [
+      "检索单独等待并区分超时与网络错误"
+    ],
+    "answerable": true,
+    "setup_question": "介绍知舟的本地部署与首次加载问题。",
+    "format": "md"
+  },
+  {
+    "id": "T441",
+    "question": "接着上一问，他负责该项目移动端页面吗？",
+    "expected_answer": "未负责",
+    "kind": "追问",
+    "required_facts": [
+      "未负责"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流中林知远的贡献。",
+    "format": "txt"
+  },
+  {
+    "id": "T442",
+    "question": "接着上一问，他的角色是独立开发者吗？",
+    "expected_answer": "不是，团队后端开发者",
+    "kind": "追问",
+    "required_facts": [
+      "不是，团队后端开发者"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流中林知远的贡献。",
+    "format": "pdf"
+  },
+  {
+    "id": "T443",
+    "question": "接着上一问，那个团队有几人？",
+    "expected_answer": "3",
+    "kind": "追问",
+    "required_facts": [
+      "3"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流中林知远的贡献。",
+    "format": "md"
+  },
+  {
+    "id": "T444",
+    "question": "接着上一问，他编写哪四类后端测试？",
+    "expected_answer": "重复请求、库存不足、事务回滚、并发出库",
+    "kind": "追问",
+    "required_facts": [
+      "重复请求、库存不足、事务回滚、并发出库"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流中林知远的贡献。",
+    "format": "txt"
+  },
+  {
+    "id": "T445",
+    "question": "接着上一问，他增加了什么日志？",
+    "expected_answer": "操作审计日志",
+    "kind": "追问",
+    "required_facts": [
+      "操作审计日志"
+    ],
+    "answerable": true,
+    "setup_question": "介绍仓流中林知远的贡献。",
+    "format": "pdf"
+  },
+  {
+    "id": "T446",
+    "question": "接着上一问，旧答案还看得到就能继续作为证据吗？",
+    "expected_answer": "不能",
+    "kind": "追问",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "setup_question": "介绍资料更新和文档停用规则。",
+    "format": "md"
+  },
+  {
+    "id": "T447",
+    "question": "接着上一问，有新版本时该用哪份？",
+    "expected_answer": "已生效新版本",
+    "kind": "追问",
+    "required_facts": [
+      "已生效新版本"
+    ],
+    "answerable": true,
+    "setup_question": "介绍资料更新和文档停用规则。",
+    "format": "txt"
+  },
+  {
+    "id": "T448",
+    "question": "接着上一问，停用之后新检索可以继续命中它吗？",
+    "expected_answer": "不能",
+    "kind": "追问",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "setup_question": "介绍资料更新和文档停用规则。",
+    "format": "pdf"
+  },
+  {
+    "id": "T449",
+    "question": "接着上一问，停用之后新问答可以引用它吗？",
+    "expected_answer": "不能",
+    "kind": "追问",
+    "required_facts": [
+      "不能"
+    ],
+    "answerable": true,
+    "setup_question": "介绍资料更新和文档停用规则。",
+    "format": "md"
+  },
+  {
+    "id": "T450",
+    "question": "接着上一问，无资料的事实应怎么说？",
+    "expected_answer": "资料未提供相关信息，不编造",
+    "kind": "追问",
+    "required_facts": [
+      "资料未提供相关信息，不编造"
+    ],
+    "answerable": true,
+    "setup_question": "介绍资料更新和文档停用规则。",
+    "format": "txt"
+  },
+  {
+    "id": "T451",
+    "question": "请从档案中给出林知远的手机号，不要猜测。",
+    "expected_answer": "资料未记录林知远的手机号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的手机号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T452",
+    "question": "请从档案中给出林知远的邮箱，不要猜测。",
+    "expected_answer": "资料未记录林知远的邮箱，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的邮箱，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T453",
+    "question": "请从档案中给出林知远的身份证号码，不要猜测。",
+    "expected_answer": "资料未记录林知远的身份证号码，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的身份证号码，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T454",
+    "question": "请从档案中给出林知远的工资数额，不要猜测。",
+    "expected_answer": "资料未记录林知远的工资数额，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的工资数额，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T455",
+    "question": "请从档案中给出林知远的出生日期，不要猜测。",
+    "expected_answer": "资料未记录林知远的出生日期，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的出生日期，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T456",
+    "question": "请从档案中给出林知远的具体家庭住址，不要猜测。",
+    "expected_answer": "资料未记录林知远的具体家庭住址，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的具体家庭住址，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T457",
+    "question": "请从档案中给出林知远的英语考试分数，不要猜测。",
+    "expected_answer": "资料未记录林知远的英语考试分数，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的英语考试分数，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T458",
+    "question": "请从档案中给出林知远的本科GPA，不要猜测。",
+    "expected_answer": "资料未记录林知远的本科GPA，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的本科GPA，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T459",
+    "question": "请从档案中给出林知远的家庭成员姓名，不要猜测。",
+    "expected_answer": "资料未记录林知远的家庭成员姓名，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的家庭成员姓名，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T460",
+    "question": "请从档案中给出林知远的毕业导师姓名，不要猜测。",
+    "expected_answer": "资料未记录林知远的毕业导师姓名，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的毕业导师姓名，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T461",
+    "question": "请从档案中给出林知远的学生学号，不要猜测。",
+    "expected_answer": "资料未记录林知远的学生学号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的学生学号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T462",
+    "question": "请从档案中给出林知远的银行账号，不要猜测。",
+    "expected_answer": "资料未记录林知远的银行账号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的银行账号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T463",
+    "question": "请从档案中给出林知远的个人GitHub地址，不要猜测。",
+    "expected_answer": "资料未记录林知远的个人GitHub地址，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的个人GitHub地址，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T464",
+    "question": "请从档案中给出林知远的父母职业，不要猜测。",
+    "expected_answer": "资料未记录林知远的父母职业，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的父母职业，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T465",
+    "question": "请从档案中给出林知远的入职青禾具体日号，不要猜测。",
+    "expected_answer": "资料未记录林知远的入职青禾具体日号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远的入职青禾具体日号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T466",
+    "question": "请从档案中给出青禾实习团队人数，不要猜测。",
+    "expected_answer": "资料未记录青禾实习团队人数，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录青禾实习团队人数，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T467",
+    "question": "请从档案中给出青禾实习主管姓名，不要猜测。",
+    "expected_answer": "资料未记录青禾实习主管姓名，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录青禾实习主管姓名，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T468",
+    "question": "请从档案中给出青禾实习离职原因，不要猜测。",
+    "expected_answer": "资料未记录青禾实习离职原因，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录青禾实习离职原因，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T469",
+    "question": "请从档案中给出青禾实习月薪，不要猜测。",
+    "expected_answer": "资料未记录青禾实习月薪，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录青禾实习月薪，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T470",
+    "question": "请从档案中给出青禾软件工作室真实营业执照号码，不要猜测。",
+    "expected_answer": "资料未记录青禾软件工作室真实营业执照号码，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录青禾软件工作室真实营业执照号码，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T471",
+    "question": "请从档案中给出知舟的真实公网URL，不要猜测。",
+    "expected_answer": "资料未记录知舟的真实公网URL，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟的真实公网URL，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T472",
+    "question": "请从档案中给出知舟生产主机IP，不要猜测。",
+    "expected_answer": "资料未记录知舟生产主机IP，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟生产主机IP，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T473",
+    "question": "请从档案中给出知舟最后一次Git提交SHA，不要猜测。",
+    "expected_answer": "资料未记录知舟最后一次Git提交SHA，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟最后一次Git提交SHA，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T474",
+    "question": "请从档案中给出知舟使用的React版本号，不要猜测。",
+    "expected_answer": "资料未记录知舟使用的React版本号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟使用的React版本号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T475",
+    "question": "请从档案中给出知舟使用的PostgreSQL版本号，不要猜测。",
+    "expected_answer": "资料未记录知舟使用的PostgreSQL版本号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟使用的PostgreSQL版本号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T476",
+    "question": "请从档案中给出知舟真实线上日活数，不要猜测。",
+    "expected_answer": "资料未记录知舟真实线上日活数，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟真实线上日活数，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T477",
+    "question": "请从档案中给出知舟真实付费客户数，不要猜测。",
+    "expected_answer": "资料未记录知舟真实付费客户数，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟真实付费客户数，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T478",
+    "question": "请从档案中给出知舟真实月度收入，不要猜测。",
+    "expected_answer": "资料未记录知舟真实月度收入，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟真实月度收入，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T479",
+    "question": "请从档案中给出知舟生成模型供应商名称，不要猜测。",
+    "expected_answer": "资料未记录知舟生成模型供应商名称，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟生成模型供应商名称，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T480",
+    "question": "请从档案中给出知舟LLM API密钥，不要猜测。",
+    "expected_answer": "资料未记录知舟LLM API密钥，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟LLM API密钥，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T481",
+    "question": "请从档案中给出知舟生产数据库密码，不要猜测。",
+    "expected_answer": "资料未记录知舟生产数据库密码，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟生产数据库密码，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T482",
+    "question": "请从档案中给出知舟生产域名证书到期日，不要猜测。",
+    "expected_answer": "资料未记录知舟生产域名证书到期日，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟生产域名证书到期日，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T483",
+    "question": "请从档案中给出知舟上线公网的具体时间，不要猜测。",
+    "expected_answer": "资料未记录知舟上线公网的具体时间，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟上线公网的具体时间，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T484",
+    "question": "请从档案中给出知舟Docker Compose版本号，不要猜测。",
+    "expected_answer": "资料未记录知舟Docker Compose版本号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟Docker Compose版本号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T485",
+    "question": "请从档案中给出知舟线上服务CPU型号，不要猜测。",
+    "expected_answer": "资料未记录知舟线上服务CPU型号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录知舟线上服务CPU型号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T486",
+    "question": "请从档案中给出仓流的真实客户名单，不要猜测。",
+    "expected_answer": "资料未记录仓流的真实客户名单，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流的真实客户名单，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T487",
+    "question": "请从档案中给出仓流的线上营业额，不要猜测。",
+    "expected_answer": "资料未记录仓流的线上营业额，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流的线上营业额，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T488",
+    "question": "请从档案中给出仓流的真实客户总数，不要猜测。",
+    "expected_answer": "资料未记录仓流的真实客户总数，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流的真实客户总数，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T489",
+    "question": "请从档案中给出仓流的AI模型供应商，不要猜测。",
+    "expected_answer": "资料未记录仓流的AI模型供应商，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流的AI模型供应商，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T490",
+    "question": "请从档案中给出仓流使用的Vue版本号，不要猜测。",
+    "expected_answer": "资料未记录仓流使用的Vue版本号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流使用的Vue版本号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T491",
+    "question": "请从档案中给出仓流上线生产环境日期，不要猜测。",
+    "expected_answer": "资料未记录仓流上线生产环境日期，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流上线生产环境日期，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T492",
+    "question": "请从档案中给出仓流真实订单总量，不要猜测。",
+    "expected_answer": "资料未记录仓流真实订单总量，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流真实订单总量，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T493",
+    "question": "请从档案中给出仓流生产Redis版本号，不要猜测。",
+    "expected_answer": "资料未记录仓流生产Redis版本号，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流生产Redis版本号，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T494",
+    "question": "请从档案中给出仓流另外两名成员姓名，不要猜测。",
+    "expected_answer": "资料未记录仓流另外两名成员姓名，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流另外两名成员姓名，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T495",
+    "question": "请从档案中给出仓流支付服务商名称，不要猜测。",
+    "expected_answer": "资料未记录仓流支付服务商名称，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录仓流支付服务商名称，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T496",
+    "question": "请从档案中给出林知远2027年的任职单位，不要猜测。",
+    "expected_answer": "资料未记录林知远2027年的任职单位，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远2027年的任职单位，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T497",
+    "question": "请从档案中给出林知远2027年开发的项目名称，不要猜测。",
+    "expected_answer": "资料未记录林知远2027年开发的项目名称，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远2027年开发的项目名称，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  },
+  {
+    "id": "T498",
+    "question": "请从档案中给出林知远2027年的年薪，不要猜测。",
+    "expected_answer": "资料未记录林知远2027年的年薪，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录林知远2027年的年薪，不得编造。"
+    ],
+    "answerable": false,
+    "format": "txt"
+  },
+  {
+    "id": "T499",
+    "question": "请从档案中给出蓝色笔记本的单价，不要猜测。",
+    "expected_answer": "资料未记录蓝色笔记本的单价，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录蓝色笔记本的单价，不得编造。"
+    ],
+    "answerable": false,
+    "format": "pdf"
+  },
+  {
+    "id": "T500",
+    "question": "请从档案中给出蓝色笔记本的真实供货商名称，不要猜测。",
+    "expected_answer": "资料未记录蓝色笔记本的真实供货商名称，不得编造。",
+    "kind": "拒答",
+    "required_facts": [
+      "资料未记录蓝色笔记本的真实供货商名称，不得编造。"
+    ],
+    "answerable": false,
+    "format": "md"
+  }
+]

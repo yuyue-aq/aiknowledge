@@ -25,7 +25,7 @@ class DeepSeekChatClient:
         *,
         api_key: str | None,
         base_url: str = "https://api.deepseek.com",
-        model: str = "deepseek-v4-flash",
+        model: str = "deepseek-flash",
         timeout_seconds: float = 60.0,
         temperature: float = 0.2,
         max_tokens: int = 1200,
@@ -70,7 +70,9 @@ class DeepSeekChatClient:
             "type": "enabled" if self._thinking_enabled else "disabled"
         }
 
-        client = self._http_client or httpx.AsyncClient(timeout=self._timeout_seconds)
+        transport_wait = min(10.0,self._timeout_seconds)
+        client = self._http_client or httpx.AsyncClient(timeout=httpx.Timeout(
+            self._timeout_seconds,connect=transport_wait,write=transport_wait,pool=transport_wait))
         if self._http_client is None:
             self._http_client = client
 

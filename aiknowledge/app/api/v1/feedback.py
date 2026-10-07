@@ -78,6 +78,8 @@ class FeedbackRequest(BaseModel):
 
 
 class FeedbackResponse(BaseModel):
+    question: str | None = None
+    original_answer: str | None = None
     id: UUID
     message_id: UUID
     rating: FeedbackRating
@@ -108,6 +110,8 @@ class FeedbackResponse(BaseModel):
             reviewed_at=feedback.reviewed_at,
             data_usage_scope=feedback.data_usage_scope,
             pii_status=feedback.pii_status,
+            question=feedback.question,
+            original_answer=feedback.original_answer,
         )
 
 

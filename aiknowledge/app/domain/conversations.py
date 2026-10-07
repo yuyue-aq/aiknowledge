@@ -6,6 +6,7 @@ from enum import StrEnum
 from uuid import UUID
 
 from app.domain.rag import AnswerStatus
+from app.domain.evaluation import EvidenceRef
 
 
 class ConversationKind(StrEnum):
@@ -93,6 +94,7 @@ class CitationSnapshot:
     page_number: int | None
     ordinal: int
     score: float
+    source_available: bool = True
 
 
 @dataclass(frozen=True, slots=True)
@@ -127,6 +129,14 @@ class RetrievedChunk:
     page_number: int | None
     ordinal: int
     score: float
+    document_version_id: UUID | None = None
+    source_block_id: str | None = None
+    char_start: int | None = None
+    char_end: int | None = None
+    content_hash: str | None = None
+    token_count: int | None = None
+    heading_path: tuple[str, ...] = ()
+    context_priority: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,6 +144,7 @@ class ConversationAnswer:
     user: ConversationMessage
     assistant: ConversationMessage
     citations: tuple[CitationSnapshot, ...]
+    scope_snapshot: tuple[int, int] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -184,6 +195,8 @@ class Feedback:
     reviewed_at: datetime | None = None
     data_usage_scope: str = "INTERNAL_ONLY"
     pii_status: str = "UNKNOWN"
+    question: str | None = None
+    original_answer: str | None = None
 
 
 class EvalCaseNotFoundError(LookupError):
@@ -220,6 +233,9 @@ class EvalCase:
     scope: EvalScope
     category_ids: tuple[UUID, ...]
     created_at: datetime
+    answerable: bool | None = None
+    expected_behavior: str | None = None
+    evidence_refs: tuple[EvidenceRef, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -244,6 +260,13 @@ class EvalRun:
     started_at: datetime | None = None
     completed_at: datetime | None = None
     failure_message: str | None = None
+    progress_total: int = 0
+    progress_completed: int = 0
+    heartbeat_at: datetime | None = None
+    lease_owner: str | None = None
+    lease_expires_at: datetime | None = None
+    task_id: str | None = None
+    failure_code: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -256,6 +279,9 @@ class EvalResult:
     citation_count: int
     reviewer_score: float | None = None
     reviewer_note: str | None = None
+    execution_snapshot: dict[str, object] | None = None
+    retrieval_metrics: dict[str, object] | None = None
+    failure_code: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -271,3 +297,30 @@ class EvaluationRunComparison:
 
     baseline: EvaluationRunDetail
     candidate: EvaluationRunDetail
+
+    @staticmethod
+    def _case_key(case: EvalCase):
+        return (case.question, case.expected_answer, case.scope, tuple(sorted(case.category_ids)),
+            tuple(sorted(case.expected_document_ids)), case.answerable, case.expected_behavior, case.evidence_refs)
+
+    @property
+    def same_test_set(self) -> bool:
+        left, right = self.baseline.cases_by_id, self.candidate.cases_by_id
+        return bool(left) and left.keys() == right.keys() and all(self._case_key(case) == self._case_key(right[key]) for key, case in left.items())
+
+    @property
+    def question_changes(self) -> list[dict[str, object]]:
+        left = {item.eval_case_id: item for item in self.baseline.results}
+        right = {item.eval_case_id: item for item in self.candidate.results}
+        result = []
+        for key in sorted(self.baseline.cases_by_id.keys() | self.candidate.cases_by_id.keys(), key=str):
+            before, after = self.baseline.cases_by_id.get(key), self.candidate.cases_by_id.get(key)
+            old_result, new_result = left.get(key), right.get(key)
+            result.append({'eval_case_id': str(key), 'baseline_question': before.question if before else None,
+                'candidate_question': after.question if after else None,
+                'comparable': bool(before and after and self._case_key(before) == self._case_key(after)),
+                'baseline_status': old_result.answer_status.value if old_result else None,
+                'candidate_status': new_result.answer_status.value if new_result else None,
+                'baseline_score': old_result.reviewer_score if old_result else None,
+                'candidate_score': new_result.reviewer_score if new_result else None})
+        return result

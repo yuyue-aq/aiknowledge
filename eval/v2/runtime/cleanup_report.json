@@ -1,0 +1,8 @@
+{
+  "mode": "real_api_beat_minio_cleanup",
+  "status": "PASSED",
+  "document_id": "8fb1aa3e-54e2-4866-977d-3e9795e80a17",
+  "version_source_count": 3,
+  "missing_objects": 3,
+  "completion_marker": true
+}

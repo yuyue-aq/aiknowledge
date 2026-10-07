@@ -9,11 +9,42 @@ from alembic.script import ScriptDirectory
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_v2_upgrade_is_compatible_and_tracks_all_access_and_knowledge_mutations():
+    from io import StringIO
+    from alembic import command
+    output = StringIO()
+    config = Config(str(PROJECT_ROOT / 'alembic.ini'), output_buffer=output)
+    command.upgrade(config, '20260929_0016:head', sql=True)
+    sql = output.getvalue()
+    assert 'CREATE TABLE retrieval_runs' in sql
+    assert 'ADD COLUMN char_start INTEGER' in sql
+    assert 'char_start INTEGER NOT NULL' not in sql
+    assert 'knowledge_revision BIGINT DEFAULT' in sql
+    for table in ('documents', 'categories', 'share_links', 'share_link_categories', 'space_memberships', 'knowledge_spaces'):
+        assert f'ON {table} ' in sql
+    assert 'knowledge_revision = knowledge_revision + 1' in sql
+    assert 'access_revision = access_revision + 1' in sql
+    assert 'DELETE FROM' not in sql
+
+
+def test_async_evaluation_migration_has_safe_progress_defaults_and_nullable_lease():
+    from io import StringIO
+    from alembic import command
+    output = StringIO()
+    config = Config(str(PROJECT_ROOT / 'alembic.ini'), output_buffer=output)
+    command.upgrade(config, '20261001_0018:head', sql=True)
+    sql = output.getvalue()
+    assert 'ADD COLUMN progress_total INTEGER DEFAULT' in sql
+    assert 'ADD COLUMN progress_completed INTEGER DEFAULT' in sql
+    assert 'ADD COLUMN lease_owner VARCHAR(80)' in sql
+    assert 'lease_owner VARCHAR(80) NOT NULL' not in sql
+
+
 def test_alembic_has_one_linear_schema_head_and_preserves_initial_revision() -> None:
     config = Config(str(PROJECT_ROOT / "alembic.ini"))
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_current_head() == "20260929_0016"
+    assert script.get_current_head() == "20261002_0022"
     revision = script.get_revision("20260911_0001")
     assert revision is not None
     assert revision.down_revision is None

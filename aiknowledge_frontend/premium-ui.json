@@ -12,7 +12,7 @@
   ],
   "ownership": {
     "Table Selection": "not-applicable",
-    "Select/Listbox": "authored",
+    "Select/Listbox": "native",
     "Date": "native",
     "Form": "authored",
     "Scrollbar": "css",

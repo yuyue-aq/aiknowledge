@@ -29,6 +29,7 @@ class SqlAlchemyMembershipRepository:
             visibility=record.visibility,
             guest_feedback_enabled=record.guest_feedback_enabled,
             plan=record.plan,
+            kind=record.kind,
             created_at=record.created_at,
             updated_at=record.updated_at,
             deleted_at=record.deleted_at,

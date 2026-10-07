@@ -1,0 +1,14 @@
+{
+  "synthetic_sources_only": true,
+  "holdout_used": false,
+  "results": [
+    {
+      "question": "管理员怎样回看答案根据哪份资料产生？",
+      "expected_status": "ANSWERED",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "answer": "现有证据未说明“管理员”回看答案依据资料的具体做法。证据仅提到拥有者回答会展示原文片段、文档名称与位置，访客回答不展示来源原文；未说明管理员角色的权限或操作方式。",
+      "citations": []
+    }
+  ],
+  "status": "FAILED"
+}

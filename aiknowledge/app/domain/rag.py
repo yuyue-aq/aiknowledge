@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.domain.conversations import RetrievedChunk
 
 
 class AnswerStatus(StrEnum):
@@ -27,6 +30,8 @@ class SourceChunk:
     id: str
     title: str
     content: str
+    heading_path: tuple[str, ...] = ()
+    context_priority: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -65,3 +70,5 @@ class RagAnswer:
     citations: list[Citation] = field(default_factory=list)
     model: str | None = None
     usage: Usage = field(default_factory=Usage)
+    execution_snapshot: dict[str, object] | None = None
+    retrieval_chunks: tuple[RetrievedChunk, ...] = field(default_factory=tuple, repr=False)

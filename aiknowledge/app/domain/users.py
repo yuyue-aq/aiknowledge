@@ -13,6 +13,7 @@ class UserStatus(StrEnum):
 
 class SpaceRole(StrEnum):
     OWNER = "OWNER"
+    ADMIN = "ADMIN"
     EDITOR = "EDITOR"
     MEMBER = "MEMBER"
 

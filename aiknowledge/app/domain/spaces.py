@@ -11,6 +11,11 @@ class SpaceVisibility(StrEnum):
     PUBLIC = "PUBLIC"
 
 
+class SpaceKind(StrEnum):
+    PERSONAL = "PERSONAL"
+    TEAM = "TEAM"
+
+
 class SpacePlan(StrEnum):
     FREE = "FREE"
     PRO = "PRO"
@@ -60,6 +65,7 @@ class KnowledgeSpace:
     deleted_at: datetime | None = None
     owner_user_id: UUID | None = None
     plan: SpacePlan = SpacePlan.FREE
+    kind: SpaceKind = SpaceKind.PERSONAL
 
     @property
     def is_active(self) -> bool:

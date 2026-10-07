@@ -1,0 +1,89 @@
+# Isolated, local-only V2 acceptance. Existing V1 volumes/ports are untouched.
+# Reuse the installed dependency image; mount current sources explicitly.
+# A key is passed only when explicitly set in the invoking environment.
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg17-bookworm
+    environment:
+      POSTGRES_USER: v2test
+      POSTGRES_PASSWORD: v2-isolated-local-only
+      POSTGRES_DB: v2_acceptance
+    volumes: [v2_postgres:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U v2test -d v2_acceptance"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7.4.11-alpine3.21
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  minio:
+    image: quay.io/minio/minio:latest
+    command: [server, /data]
+    environment:
+      MINIO_ROOT_USER: v2test
+      MINIO_ROOT_PASSWORD: v2-isolated-local-only
+    volumes: [v2_minio:/data]
+  api:
+    image: aiknowledge-api:latest
+    command: [sh, -c, "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    environment: &runtime_environment
+      AIKNOWLEDGE_DATABASE_URL: postgresql+asyncpg://v2test:v2-isolated-local-only@postgres:5432/v2_acceptance
+      AIKNOWLEDGE_REDIS_URL: redis://redis:6379/0
+      AIKNOWLEDGE_MINIO_ENDPOINT: minio:9000
+      AIKNOWLEDGE_MINIO_ACCESS_KEY: v2test
+      AIKNOWLEDGE_MINIO_SECRET_KEY: v2-isolated-local-only
+      AIKNOWLEDGE_MINIO_BUCKET: v2-acceptance
+      AIKNOWLEDGE_AUTH_REQUIRED: "true"
+      AIKNOWLEDGE_AUTH_ACCESS_TOKEN_TTL_SECONDS: "86400"
+      AIKNOWLEDGE_BGE_MODEL_NAME: /models/bge-large-zh-v1.5
+      AIKNOWLEDGE_BGE_USE_FP16: "false"
+      AIKNOWLEDGE_BGE_BATCH_SIZE: "8"
+      AIKNOWLEDGE_BGE_TIMEOUT_SECONDS: "600"
+      AIKNOWLEDGE_BGE_MAX_RETRIES: "1"
+      AIKNOWLEDGE_DEEPSEEK_API_KEY: ${AIKNOWLEDGE_DEEPSEEK_API_KEY:-}
+      AIKNOWLEDGE_DEEPSEEK_MODEL: deepseek-flash
+      AIKNOWLEDGE_DEEPSEEK_THINKING_ENABLED: "false"
+      AIKNOWLEDGE_DEEPSEEK_MAX_RETRIES: "0"
+      AIKNOWLEDGE_CORS_ALLOWED_ORIGINS: http://localhost:10121,http://127.0.0.1:10121
+      OMP_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+      TOKENIZERS_PARALLELISM: "false"
+    volumes: &runtime_sources
+      - ../../aiknowledge/app:/app/app:ro
+      - ../../aiknowledge/migrations:/app/migrations:ro
+      - ../../aiknowledge/alembic.ini:/app/alembic.ini:ro
+      - ../../models/embedding/bge-large-zh-v1.5:/models/bge-large-zh-v1.5:ro
+      - ./runtime:/runtime:ro
+    ports: ["127.0.0.1:18000:8000"]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      minio: {condition: service_started}
+  worker:
+    image: aiknowledge-api:latest
+    command: [celery, -A, "app.workers.celery_app:celery_app", worker, --loglevel=INFO, --concurrency=1]
+    environment: *runtime_environment
+    volumes: *runtime_sources
+    depends_on:
+      api: {condition: service_healthy}
+  beat:
+    image: aiknowledge-api:latest
+    command: [celery, -A, "app.workers.celery_app:celery_app", beat, --loglevel=INFO, --schedule=/tmp/v2-celerybeat]
+    environment: *runtime_environment
+    volumes: *runtime_sources
+    depends_on:
+      api: {condition: service_healthy}
+volumes:
+  v2_postgres:
+  v2_minio:
