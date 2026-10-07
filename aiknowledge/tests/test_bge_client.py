@@ -18,6 +18,39 @@ class CharacterTokenizer:
 
 
 @pytest.mark.asyncio
+async def test_concurrent_encoding_waits_and_preserves_request_vectors():
+    entered, release = Event(), Event()
+
+    class QueuedModel(FakeFlagModel):
+        def encode_queries(self, texts):
+            self.query_calls.append(texts)
+            if texts == ['第一请求']:
+                entered.set()
+                release.wait(timeout=5)
+            return [[1., 0., 0.]] if texts == ['第一请求'] else [[0., 1., 0.]]
+
+    model = QueuedModel()
+    client = BgeEmbeddingClient(model_name='test', expected_dimension=3, timeout_seconds=2, model_factory=lambda **_: model)
+    first = asyncio.create_task(client.embed_queries(['第一请求']))
+    second = None
+    try:
+        assert await asyncio.to_thread(entered.wait, 1)
+        second = asyncio.create_task(client.embed_queries(['第二请求']))
+        await asyncio.sleep(.03)
+        assert not second.done()
+        assert len(model.query_calls) == 1
+        release.set()
+        assert await first == [[1., 0., 0.]]
+        assert await second == [[0., 1., 0.]]
+        assert model.query_calls == [['第一请求'], ['第二请求']]
+    finally:
+        release.set()
+        await first
+        if second is not None:
+            await asyncio.gather(second, return_exceptions=True)
+
+
+@pytest.mark.asyncio
 async def test_timed_out_local_encoding_is_not_retried_or_overlapped():
     entered, release = Event(), Event()
 

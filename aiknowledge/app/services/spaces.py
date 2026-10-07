@@ -365,18 +365,23 @@ class SpaceService:
     async def resolve_public_scope_by_link_id(
         self, share_link_id: UUID
     ) -> PublicRetrievalScope:
-        """Resolve a signed visitor session against live link and category state."""
+        """Resolve a verified signed visitor session against live state.
+
+        Internal session callers must verify the cookie signature first. The
+        password was checked before that cookie was issued; raw-token access
+        continues to require a password on every entry.
+        """
 
         link = await self._repository.get_share_link(share_link_id)
-        return await self._resolve_public_link(link)
+        return await self._resolve_public_link(link, password_verified=True)
 
     async def _resolve_public_link(
-        self, link: ShareLink | None, *, password: str | None = None
+        self, link: ShareLink | None, *, password: str | None = None, password_verified: bool = False
     ) -> PublicRetrievalScope:
         now = self._now()
         if link is None or not link.is_active(at=now):
             raise PublicAccessDeniedError("分享链接无效、已撤销或已过期。")
-        if link.password_hash is not None and not self._passwords.verify(link.password_hash, password or ""):
+        if not password_verified and link.password_hash is not None and not self._passwords.verify(link.password_hash, password or ""):
             raise PublicAccessDeniedError("分享链接密码错误。")
         space = await self._repository.get_space(link.space_id)
         if (

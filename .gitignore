@@ -28,3 +28,18 @@ test-results/
 runtime-logs/
 *.log
 .pytest_cache/
+
+# Local evaluation runs and disposable build contexts; release evidence lives
+# in eval/v2/releases instead of these machine-specific directories.
+/output/
+/tmp/
+/eval/v2/runtime/*-restored.jpg
+/eval/v2/runtime/omission-*.json
+/eval/v2/runtime/request-proxy-check.json
+/eval/v2/runtime/retrieval-timeout-check.json
+/eval/v2/runtime/space-list-check.json
+/eval/v2/runtime/public-password-session-check.json
+
+# Explicit source-controlled evidence, overriding generic global build ignores.
+!/eval/v2/releases/
+!/eval/v2/releases/**

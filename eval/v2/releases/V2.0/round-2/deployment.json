@@ -1,0 +1,7 @@
+{
+  "backend_tests_passed": 372,
+  "api_image": "sha256:a87e6f517c4208f1d33312994a843736e6a67d9dadb34d7acd6ccd77136c49ac",
+  "prompt_version": "rag-prompt-v2-scoped-subquery-context",
+  "change": "serialize normal local embedding requests with a bounded wait; retain timeout thread guard",
+  "bge_source_sha256": "324462DEDA74DF19F8FF35684F473A5723B714558276600D9875AED2DB1FA15B"
+}

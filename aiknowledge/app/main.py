@@ -126,7 +126,7 @@ def create_app(
         yield
         await database.dispose()
 
-    app = FastAPI(title="AiKnowledge API", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="AiKnowledge API", version="2.0.0", lifespan=lifespan)
     allowed_origins = [
         origin.strip().rstrip("/")
         for origin in settings.cors_allowed_origins.split(",")
@@ -245,7 +245,7 @@ def create_app(
                 "embedding_model": settings.bge_model_name,
                 "embedding_dimension": settings.bge_embedding_dimension,
                 "chat_model": settings.deepseek_model,
-                "reranker": "noop",
+                "reranker": "lexical-dense-v1",
             },
             retrieval_config_snapshot={
                 "top_k": settings.retrieval_top_k,
@@ -287,7 +287,7 @@ def create_app(
                 "embedding_model": settings.bge_model_name,
                 "embedding_dimension": settings.bge_embedding_dimension,
                 "chat_model": settings.deepseek_model,
-                "reranker": "noop",
+                "reranker": "lexical-dense-v1",
             },
             retrieval_config_snapshot={
                 "top_k": settings.retrieval_top_k,

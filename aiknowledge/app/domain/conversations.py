@@ -135,6 +135,8 @@ class RetrievedChunk:
     char_end: int | None = None
     content_hash: str | None = None
     token_count: int | None = None
+    heading_path: tuple[str, ...] = ()
+    context_priority: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

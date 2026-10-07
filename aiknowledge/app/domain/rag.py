@@ -30,6 +30,8 @@ class SourceChunk:
     id: str
     title: str
     content: str
+    heading_path: tuple[str, ...] = ()
+    context_priority: int | None = None
 
 
 @dataclass(frozen=True, slots=True)

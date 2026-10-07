@@ -4,6 +4,7 @@ from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
 from difflib import SequenceMatcher
 from time import perf_counter
+from dataclasses import replace
 from typing import Protocol
 from uuid import UUID, uuid4
 
@@ -20,11 +21,12 @@ from app.domain.conversations import (
     RagRun,
     RetrievedChunk,
 )
-from app.domain.rag import AnswerStatus, RagAnswer, RankedSourceChunk, SourceChunk
+from app.domain.rag import AnswerStatus, RagAnswer, RankedSourceChunk, SourceChunk, Usage
 from app.domain.spaces import PublicRetrievalScope
 from app.services.usage import UsageService
 from app.services.retrieval import RetrievalService
 from app.services.rag import PROMPT_VERSION
+from app.services.query_planning import complex_question
 
 
 class ConversationQuestionError(ValueError):
@@ -104,6 +106,16 @@ _FOLLOW_UP_MARKERS = (
     "再说",
     "详细",
     "该",
+    "第一个",
+    "第二个",
+    "第三个",
+    "前者",
+    "后者",
+    "上一个",
+    "后一个",
+    "排在",
+    "最后介绍",
+    "上一问",
 )
 _MAX_QUESTION_LENGTH = 2_000
 _SIMILARITY_DEDUP_THRESHOLD = 0.92
@@ -434,7 +446,9 @@ class ConversationService:
                 message_id=assistant_message.id,
                 prompt_version=self._prompt_version,
                 rewritten_question=rewritten_question,
-                model_snapshot=dict(self._rag_snapshot),
+                model_snapshot={**self._rag_snapshot,'execution_timings_ms':(answer.execution_snapshot or {}).get('timings_ms',{}),
+                    'context_chunk_ids':(answer.execution_snapshot or {}).get('context_chunk_ids',[]),
+                    'retrieval_queries':(answer.execution_snapshot or {}).get('retrieval_queries',[])},
                 retrieval_config_snapshot={
                     "candidate_limit": self._retrieval_candidate_limit,
                     **self._retrieval_config_snapshot,
@@ -473,6 +487,7 @@ class ConversationService:
         public_request: bool,
         scope_check: Callable | None = None,
     ) -> tuple[RagAnswer, tuple[RetrievedChunk, ...]]:
+        phase_started = perf_counter()
         if public_request and self._is_public_recovery_request(question):
             return (
                 RagAnswer(
@@ -483,11 +498,34 @@ class ConversationService:
             )
         if scope_check is not None:
             await scope_check(())
+        planning_usage = Usage()
+        planned_queries = ()
+        planning_ms = 0.
         try:
             async def fetch(vector, limit):
                 return await retrieve(vector)
             result = await self._retrieval.search(question=question, fetch=fetch, top_k=self._retrieval_candidate_limit)
             candidates = result.items
+            retrieval_timings=dict(result.timings_ms)
+            planner=getattr(self._rag_service,'plan_retrieval',None)
+            if callable(planner) and complex_question(question):
+                if scope_check is not None:await scope_check(tuple(candidates))
+                planning_started=perf_counter()
+                plan=await planner(question,candidates)
+                planning_ms=(perf_counter()-planning_started)*1000
+                planning_usage=plan.usage
+                planned_queries=plan.queries[:4]
+                merged={x.id:x for x in candidates}
+                leaders=[]
+                for subquery in planned_queries:
+                    extra=await self._retrieval.search(question=subquery,fetch=fetch,top_k=self._retrieval_candidate_limit)
+                    for key in ('embedding','search','total'):retrieval_timings[key]+=extra.timings_ms[key]
+                    for index,item in enumerate(extra.items):
+                        if index<2 and item.id not in leaders:leaders.append(item.id)
+                        if item.id not in merged or item.score>merged[item.id].score:merged[item.id]=item
+                ordered=list(dict.fromkeys([*leaders,*merged]))[:50]
+                priorities={cid:index for index,cid in enumerate(leaders)}
+                candidates=tuple(replace(merged[cid],context_priority=priorities.get(cid)) for cid in ordered)
         except (RuntimeError, ValueError):
             return (
                 RagAnswer(
@@ -506,11 +544,14 @@ class ConversationService:
                     id=str(candidate.id),
                     title=candidate.document_name,
                     content=candidate.content,
+                    heading_path=candidate.heading_path,
+                    context_priority=candidate.context_priority,
                 ),
                 score=candidate.score,
             )
             for candidate in immutable_candidates
         ]
+        generation_started = perf_counter()
         try:
             answer = await self._rag_service.answer_ranked(question, ranked)
         except (RuntimeError, ValueError):
@@ -519,6 +560,9 @@ class ConversationService:
                 answer="模型服务暂时不可用，请稍后重试。",
                 execution_snapshot={'failure_code': 'GENERATION_UNAVAILABLE'},
             )
+        generation_ms = (perf_counter()-generation_started)*1000
+        answer.usage=Usage(answer.usage.prompt_tokens+planning_usage.prompt_tokens,
+            answer.usage.completion_tokens+planning_usage.completion_tokens,answer.usage.total_tokens+planning_usage.total_tokens)
         if scope_check is not None:
             await scope_check(immutable_candidates)
         answer = self._ensure_citations_are_retrieved(answer, immutable_candidates)
@@ -526,7 +570,10 @@ class ConversationService:
             **(answer.execution_snapshot or {}),
             'schema_version': 2,
             'question': question,
-            'timings_ms': result.timings_ms,
+            'retrieval_queries':list(planned_queries),
+            'timings_ms': {**retrieval_timings,'retrieval_total':retrieval_timings['total'],
+                'query_planning':round(planning_ms,3),
+                'generation':round(generation_ms,3),'total':round((perf_counter()-phase_started)*1000,3)},
             'retrieved_chunks': [{
                 'chunk_id': str(item.id), 'document_id': str(item.document_id),
                 'document_version_id': str(item.document_version_id) if item.document_version_id else None,

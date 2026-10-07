@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-07",
+  "backend_tests": 381,
+  "frontend_tests": 28,
+  "python_compile": "PASSED",
+  "uv_lock_check_offline": "PASSED",
+  "typescript": "PASSED",
+  "eslint": "PASSED",
+  "stylelint": "PASSED",
+  "h5_build": "PASSED",
+  "compose_config": "PASSED",
+  "dataset_complete": 490,
+  "dataset_total": 500,
+  "dataset_scoring": "model-assisted and assistant review; not independent human scoring",
+  "known_noncomplete": 10,
+  "build_warnings": [
+    "Dart Sass legacy JS API deprecation"
+  ],
+  "scope": "Local release checks; cloud production deployment not performed"
+}

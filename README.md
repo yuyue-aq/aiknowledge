@@ -1,6 +1,6 @@
-# 知溯 AiKnowledge V2 MVP
+# 知溯 AiKnowledge V2.0
 
-> 2026-10-02：V2 核心前后端已实现并通过单元回归，真实运行时验收尚未完成。见 [交付说明](./V2MVP交付说明.md)、[验收记录](./V2MVP开发验收记录.md) 与 [27 场景映射](./eval/v2/ui/验收映射.md)。最新迁移为 `20261001_0021`，已在隔离空库与历史合成数据测试库执行，未修改现有 V1 数据。真实运行时进展见 [续验收](./eval/v2/runtime/README.md)。
+> 2026-10-07：V2.0 正式版本。H5 + Python 后端、个人/团队权限、检索调试及评测流程已交付；381项后端回归通过，固定虚构资料500题完整通过490题（98%，模型辅助评分与助手复核）。见 [V2.0发布记录](./V2.0发布记录.md)、[500题评测归档](./eval/v2/releases/V2.0/README.md)。最新迁移为 `20261002_0022`。云端部署、陌生资料盲测与独立人工评分不包含在该成绩中；原MVP文档保留为历史记录。
 
 这是一个以 DeepSeek Flash + `BAAI/bge-large-zh-v1.5` 为核心的可信知识工作台 MVP：资料进入私有对象存储，后台解析并生成 1024 维向量，所有者问答保留引用快照，公开访客只能检索分享链接当前开放分类。
 
@@ -32,7 +32,7 @@
    # 编辑 aiknowledge\.env，至少设置 AIKNOWLEDGE_DEEPSEEK_API_KEY
    ```
 
-   仓库已有 `models\embedding\bge-large-zh-v1.5`；若重新部署，需要把同名模型目录挂载到 Compose 的 `/models/bge-large-zh-v1.5`。
+   本地模型目录为 `models\embedding\bge-large-zh-v1.5`，权重不纳入Git。新环境需先准备完整模型目录，Compose将其挂载到 `/models/bge-large-zh-v1.5`。
 
 beat 每 60 秒补投异常评测任务与重试对象清理；必须与 worker 一同启动。
 
@@ -59,7 +59,18 @@ beat 每 60 秒补投异常评测任务与重试对象清理；必须与 worker 
    docker compose --env-file aiknowledge\.env down
    ```
 
-   前端 H5 已在 Nginx 容器内构建并托管，不需要再运行 IDE 中的 `npm run dev:h5` 或本机 Uvicorn。Compose 默认将前端 API 地址编译为 `http://localhost:8000/api/v1`；如果修改了 API 端口，请同步修改 `.env` 中的 `TARO_APP_API_BASE` 和 Compose 端口映射后重新执行 `up -d --build`。跨域地址必须同时加入 `AIKNOWLEDGE_CORS_ALLOWED_ORIGINS`。
+   前端 H5 已在 Nginx 容器内构建并托管，不需要再运行 IDE 中的 `npm run dev:h5` 或本机 Uvicorn。同机8000地址在H5中映射为同源 `/api/v1`，由Nginx代理到API容器。使用独立API地址时同步检查 `TARO_APP_API_BASE`、代理及允许来源配置。
+
+### Windows模型缓存（推荐）
+
+API镜像构建后可使用Docker命名卷减少Windows挂载的模型加载开销，已有缓存会校验而不覆盖不同模型：
+
+```powershell
+& .\tools\prepare-model-cache.ps1
+docker compose -f compose.yaml -f compose.model-cache.yaml --env-file aiknowledge\.env up -d --build
+```
+
+缓存卷为 `aiknowledge_bge_models_v1`，API和worker只读使用。首次准备须有原始模型目录；不使用缓存时运行基本Compose即可。
 
 ## 备份与恢复
 

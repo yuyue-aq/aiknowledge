@@ -336,6 +336,7 @@ type ApiOptions = {
   headers?: Record<string, string>
   skipAuthRefresh?: boolean
   signal?: AbortSignal
+  timeoutMs?: number
 }
 
 export type AuthUser = {
@@ -432,6 +433,7 @@ async function refreshAccessToken(): Promise<boolean> {
     try {
       const response = await Taro.request<AuthResponse>({
         url: urlFor('/auth/refresh'),
+        cache: 'reload',
         method: 'POST',
         data: { refresh_token: current.tokens.refresh_token },
         header: { 'content-type': 'application/json' }
@@ -471,6 +473,8 @@ export async function requestJson<T>(path: string, options: ApiOptions = {}): Pr
   try {
     const task = Taro.request<T>({
       url: urlFor(path),
+      cache: 'reload',
+      timeout: options.timeoutMs ?? 60000,
       method: options.method ?? 'GET',
       data: options.data,
       header: {
@@ -494,6 +498,10 @@ export async function requestJson<T>(path: string, options: ApiOptions = {}): Pr
   } catch (error) {
     if (options.signal?.aborted) throw new ApiRequestError('请求已取消。', 0, 'REQUEST_ABORTED')
     if (error instanceof ApiRequestError) throw error
+    const failure = error as { name?: string; errMsg?: string; message?: string } | null
+    if (failure?.name === 'AbortError' || /timeout|timed.out/i.test(failure?.errMsg ?? failure?.message ?? '')) {
+      throw new ApiRequestError('请求等待超时，首次加载向量模型可能较慢，请稍后重试。', 0, 'REQUEST_TIMEOUT')
+    }
     throw new ApiRequestError('网络连接失败，请确认后端服务已启动。', 0)
   }
 }
@@ -1112,7 +1120,7 @@ export function getEvalEvidence(runId: string, resultId: string, signal?: AbortS
 }
 
 export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal): Promise<RetrievalRun> {
-  return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK }, signal })
+  return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK }, signal, timeoutMs: 660000 })
 }
 
 export async function getRetrievalRun(runId: string, signal?: AbortSignal): Promise<RetrievalRun> {

@@ -1,0 +1,16 @@
+# Optional local performance overlay. Seed the model volume first:
+# tools/prepare-model-cache.ps1
+# Start: docker compose -f compose.yaml -f compose.model-cache.yaml
+#        --env-file aiknowledge/.env up -d --no-build
+services:
+  api:
+    volumes:
+      - bge_model_cache:/models/bge-large-zh-v1.5:ro
+  worker:
+    volumes:
+      - bge_model_cache:/models/bge-large-zh-v1.5:ro
+
+volumes:
+  bge_model_cache:
+    external: true
+    name: aiknowledge_bge_models_v1

@@ -1,0 +1,6 @@
+{
+  "input_tokens": 223672,
+  "output_tokens": 15951,
+  "calls": 76,
+  "model": "deepseek-flash"
+}

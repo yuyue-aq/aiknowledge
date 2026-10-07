@@ -327,6 +327,17 @@ async def test_public_link_password_and_question_limit_are_enforced() -> None:
         await service.resolve_public_scope(created.token, password="wrong")
     scope = await service.resolve_public_scope(created.token, password="pass-1234")
     assert scope.visitor_question_limit == 3
+    # A signed session follows successful password verification; subsequent
+    # requests must still validate live link/category state, not ask again.
+    session_scope = await service.resolve_public_scope_by_link_id(created.link.id)
+    assert session_scope == scope
+    repository.categories[category.id] = replace(category, is_open=False)
+    with pytest.raises(PublicAccessDeniedError, match="开放分类"):
+        await service.resolve_public_scope_by_link_id(created.link.id)
+    repository.categories[category.id] = category
+    repository.links[created.link.id] = replace(created.link, status="REVOKED")
+    with pytest.raises(PublicAccessDeniedError, match="已撤销"):
+        await service.resolve_public_scope_by_link_id(created.link.id)
     assert repository.categories[category.id].display_name == "对外展示"
 
 

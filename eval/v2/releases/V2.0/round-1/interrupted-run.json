@@ -1,0 +1,10 @@
+{
+  "status": "INTERRUPTED_TO_FIX_SERVICE_FAILURE",
+  "completed": 114,
+  "planned": 500,
+  "response_statuses": {
+    "ANSWERED": 15,
+    "FAILED": 99
+  },
+  "reason": "Concurrent calls rejected while local embedding task was active; records retained. No complete 500-case pass rate asserted. Queue fix followed by full round-2 rerun."
+}

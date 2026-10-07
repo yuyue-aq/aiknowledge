@@ -7,6 +7,8 @@ from uuid import UUID
 
 from sqlalchemy import Select, exists, func, literal, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
+from app.services.section_context import page_heading
 
 from app.domain.conversations import (
     CitationSnapshot,
@@ -228,6 +230,16 @@ class SqlAlchemyConversationRepository:
 
     @staticmethod
     def _base_retrieval_statement(embedding: list[float] | None) -> Select:
+        page_start = aliased(ChunkRecord, name='page_start')
+        # Read only the same live document/version/page/category. In public
+        # retrieval this cannot cross the category authorization boundary.
+        page_prefix = select(page_start.content).where(
+            page_start.document_id == ChunkRecord.document_id,
+            page_start.document_version_id == ChunkRecord.document_version_id,
+            page_start.page_number == ChunkRecord.page_number,
+            page_start.category_id.is_not_distinct_from(ChunkRecord.category_id),
+            page_start.is_active.is_(True), ChunkRecord.page_number.is_not(None),
+        ).order_by(page_start.ordinal).limit(1).correlate(ChunkRecord).scalar_subquery()
         distance = (ChunkRecord.embedding.cosine_distance(embedding) if embedding is not None else literal(1.)).label('distance')
         return (
             select(
@@ -243,6 +255,8 @@ class SqlAlchemyConversationRepository:
                 ChunkRecord.char_end,
                 ChunkRecord.content_hash,
                 ChunkRecord.token_count,
+                ChunkRecord.heading_path,
+                page_prefix.label('page_prefix'),
                 distance,
             )
             .join(DocumentRecord, ChunkRecord.document_id == DocumentRecord.id)
@@ -318,6 +332,7 @@ class SqlAlchemyConversationRepository:
                 char_end=getattr(row, 'char_end', None),
                 content_hash=getattr(row, 'content_hash', None),
                 token_count=getattr(row, 'token_count', None),
+                heading_path=tuple(getattr(row, 'heading_path', None) or page_heading(getattr(row, 'page_prefix', None))),
             )
             for row in rows
         ]

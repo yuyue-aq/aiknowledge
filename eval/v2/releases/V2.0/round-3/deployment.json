@@ -1,0 +1,15 @@
+{
+  "prompt_version": "rag-prompt-v2-multitask-assumptions",
+  "sources": {
+    "conversation": "54BAA491BA2266898C61D2968ED53B07B72943893CC44B4A894439B2C4075B6E",
+    "rag": "76350FC28C0FC74677ACB51A9EB4DF755BA13713CDCC358169592C33029E2027",
+    "queries": "F0E7A7722649ABE4AD4D895E78BA3152F509C394DFD24D10D19D8592AE8A7155"
+  },
+  "backend_tests_passed": 381,
+  "changes": [
+    "numbered task detection",
+    "ordered follow-up variants",
+    "explicit hypothetical calculation rules"
+  ],
+  "api_image": "sha256:e6ca19ca2f3f125d0b30d7bf4f1622a79832050f7dec306e4ff04298a676fab1"
+}

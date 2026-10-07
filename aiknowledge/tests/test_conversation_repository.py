@@ -62,6 +62,23 @@ class FakeSession:
 
 
 @pytest.mark.asyncio
+async def test_public_page_heading_fallback_stays_in_same_authorized_version_and_category():
+    session=FakeSession()
+    session.query_rows=[SimpleNamespace(id=uuid4(),document_id=uuid4(),document_name='档案.pdf',
+        content='指标为0.86。',page_number=2,ordinal=3,distance=.1,heading_path=[],
+        page_prefix='02 项目经历：项目甲\n项目时间与角色\n开发者介绍')]
+    scope=PublicRetrievalScope(share_link_id=uuid4(),space_id=uuid4(),category_ids=(uuid4(),))
+    result=await SqlAlchemyConversationRepository(session).retrieve_public(scope=scope,embedding=[1.]*1024,limit=4)
+    assert result[0].heading_path == ('02 项目经历：项目甲',)
+    assert result[0].content == '指标为0.86。'
+    sql=str(session.executed[0].compile(dialect=postgresql.dialect()))
+    assert 'page_start.document_version_id = chunks.document_version_id' in sql
+    assert 'page_start.category_id IS NOT DISTINCT FROM chunks.category_id' in sql
+    assert 'page_start.is_active IS true' in sql
+    assert 'categories.is_open IS true' in sql
+
+
+@pytest.mark.asyncio
 async def test_history_citations_mark_unavailable_sources_using_current_version_and_time():
     session = FakeSession()
     record = CitationRecord(id=uuid4(), message_id=uuid4(), chunk_id=None, document_name='已删除.txt',

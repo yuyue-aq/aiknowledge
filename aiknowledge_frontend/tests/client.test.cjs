@@ -235,3 +235,31 @@ test('document evidence browsing uses the authenticated scoped detail endpoint w
   assert.ok(calls[0].url.endsWith('/owner/spaces/space-id/documents/doc-id'))
   assert.equal(calls.length, 1)
 })
+
+test('API requests bypass previously cached SPA responses', async () => {
+  const optionsSeen = []
+  const { client } = loadClient(async (options) => {
+    optionsSeen.push(options)
+    return { statusCode: 200, data: { items: [] } }
+  })
+  await client.listSpaces()
+  assert.equal(optionsSeen[0].cache, 'reload')
+})
+
+test('retrieval allows cold model initialization and reports a timeout explicitly', async () => {
+  let seen
+  const { client } = loadClient(async options => {
+    seen = options
+    throw { errMsg: 'request:fail timeout' }
+  })
+  await assert.rejects(client.searchKnowledge('space', '检索问题', 5), { code: 'REQUEST_TIMEOUT' })
+  assert.equal(seen.timeout, 660000)
+})
+
+test('H5 fetch timeout is distinct from an explicit user cancellation', async () => {
+  const { client } = loadClient(async () => { throw { name: 'AbortError', message: 'The user aborted a request.' } })
+  await assert.rejects(client.searchKnowledge('space', '检索问题'), { code: 'REQUEST_TIMEOUT' })
+  const controller = new AbortController()
+  controller.abort()
+  await assert.rejects(client.searchKnowledge('space', '检索问题', 5, controller.signal), { code: 'REQUEST_ABORTED' })
+})

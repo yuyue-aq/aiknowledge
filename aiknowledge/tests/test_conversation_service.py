@@ -263,6 +263,10 @@ async def test_owner_question_only_retrieves_current_space_and_persists_verifiab
     assert run.retrieved_chunk_ids == (repository.candidate.id,)
     assert run.selected_chunk_ids == (repository.candidate.id,)
     assert run.model_snapshot["chat_model"] == "deepseek-v4-flash"
+    phases=run.model_snapshot['execution_timings_ms']
+    assert phases['embedding'] >= 0
+    assert phases['generation'] >= 0
+    assert phases['total'] >= phases['generation']
     assert run.retrieval_config_snapshot == {"candidate_limit": 12, "top_k": 4}
     assert run.total_latency_ms >= 0
 
@@ -414,6 +418,53 @@ async def test_follow_up_rewrites_against_only_recent_user_question() -> None:
     assert repository.rag_runs[-1].rewritten_question == rag.calls[-1][0]
     # Assistant content is never fed back as retrieval evidence or rewrite input.
     assert "访客只能访问开放分类" not in rag.calls[-1][0]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize('follow',[
+    '第二个的前端是什么？','后者是什么角色？',
+    '排在第二位的项目叫什么？','排在后面的项目编号是多少？',
+    '最后介绍的项目开发月份？','接着上一问，前端用了什么技术？',
+])
+async def test_ordered_followups_keep_previous_user_entity_order(follow):
+    service,repository,_,rag=build_service()
+    conversation=await service.create_owner_conversation(space_id=repository.space_id)
+    await service.ask_owner(conversation_id=conversation.id,question='按项目甲、项目乙顺序介绍。')
+    await service.ask_owner(conversation_id=conversation.id,question=follow)
+    assert '上一轮问题：按项目甲、项目乙顺序介绍。' in rag.calls[-1][0]
+
+
+@pytest.mark.asyncio
+async def test_subqueries_reuse_original_scoped_retriever_and_account_for_planning():
+    from app.services.query_planning import QueryPlan
+    from app.domain.rag import Usage
+    service,repository,_,rag=build_service()
+    async def plan(question,chunks):return QueryPlan(('系统甲职责','系统乙职责'),Usage(5,1,6))
+    rag.plan_retrieval=plan
+    conversation=await service.create_owner_conversation(space_id=repository.space_id)
+    await service.ask_owner(conversation_id=conversation.id,question='分别说明两个系统的职责。')
+    assert len(repository.owner_queries)==3
+    assert all(x[0]==repository.space_id for x in repository.owner_queries)
+    assert repository.rag_runs[-1].input_tokens==5
+
+
+@pytest.mark.asyncio
+async def test_revoked_scope_never_reaches_query_planning():
+    service,repository,embedding,rag=build_service()
+    repository.revision=0
+    async def snapshot(**kwargs):return (0,repository.revision)
+    async def visible(**kwargs):return True
+    repository.generation_scope_snapshot=snapshot
+    repository.validate_generation_chunks=visible
+    original=embedding.embed_queries
+    async def encode(texts):
+        repository.revision+=1
+        return await original(texts)
+    async def plan(*args):raise AssertionError('revoked data must not reach LLM planner')
+    embedding.embed_queries=encode;rag.plan_retrieval=plan
+    conversation=await service.create_owner_conversation(space_id=repository.space_id)
+    with pytest.raises(ConversationAccessDeniedError):
+        await service.ask_owner(conversation_id=conversation.id,question='分别介绍两个系统')
 
 
 @pytest.mark.asyncio

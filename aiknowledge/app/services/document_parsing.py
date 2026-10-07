@@ -13,6 +13,7 @@ from docx import Document
 from markdown_it import MarkdownIt
 from pypdf import PdfReader
 from pypdf.errors import PdfReadError
+from app.services.section_context import page_heading
 
 from app.domain.documents import (
     DocumentBlock,
@@ -104,7 +105,7 @@ class DocumentParser:
                     blocks.append(
                         DocumentBlock(
                             text=text,
-                            heading_path=(),
+                            heading_path=page_heading(text),
                             ordinal=len(blocks) + 1,
                             page_number=page_number,
                         )

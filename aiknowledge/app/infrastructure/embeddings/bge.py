@@ -58,6 +58,7 @@ class BgeEmbeddingClient:
         self._custom_factory = model_factory is not None
         self._model: object | None = None
         self._initialization_lock = asyncio.Lock()
+        self._encoding_lock = asyncio.Lock()
         self._encoding_task: asyncio.Task | None = None
 
     async def embed_queries(self, texts: Sequence[str]) -> list[list[float]]:
@@ -116,6 +117,18 @@ class BgeEmbeddingClient:
         return vectors
 
     async def _encode_batch_with_retry(
+        self, encoder: Callable[[Sequence[str]], Any], batch: Sequence[str]
+    ) -> Any:
+        try:
+            await asyncio.wait_for(self._encoding_lock.acquire(), timeout=self._timeout_seconds)
+        except asyncio.TimeoutError as exc:
+            raise EmbeddingBackendUnavailable('本地向量模型排队超时，请稍后重试。') from exc
+        try:
+            return await self._encode_exclusive_with_retry(encoder, batch)
+        finally:
+            self._encoding_lock.release()
+
+    async def _encode_exclusive_with_retry(
         self, encoder: Callable[[Sequence[str]], Any], batch: Sequence[str]
     ) -> Any:
         for attempt in range(self._max_retries + 1):
