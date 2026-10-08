@@ -1,0 +1,18 @@
+{
+  "status": "PASSED",
+  "stage_a_pushed": "12d54f4e636fe06713d8b5e433441f9290619941",
+  "stage_b_local": "f26776ae4c4d9fb0276ec642fbb0999fd60601bb",
+  "backend_tests": 415,
+  "frontend_tests": 30,
+  "api_lifecycle_checks": 14,
+  "extended_checks": 11,
+  "browser_checks": 13,
+  "retrieval_questions": 15,
+  "retrieval_requests": 45,
+  "controlled_scope_change_status": "FAILED",
+  "controlled_scope_change_code": "EVAL_EXECUTION_FAILED",
+  "large_500_rerun": false,
+  "default_strategy": "dense",
+  "formal_main_unchanged": true,
+  "user_materials_modified": false
+}
