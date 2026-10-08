@@ -1,0 +1,16 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "Three actual branch rankings and source scores",
+    "Branch source click reveals live source",
+    "Unknown identifier leaves keyword branch empty without fake matches",
+    "Mode change cancels all stale comparison lanes",
+    "390px stacked lanes and reachable source action",
+    "Real owner generation receives explicit hybrid handoff",
+    "Dense baseline can be restored",
+    "Evaluation exposes explicit hybrid and dense strategy choices"
+  ],
+  "browser": "real headless Edge",
+  "mocked_success": false,
+  "controlled_delay": true
+}

@@ -22,6 +22,7 @@ class RetrievalResult:
     top_k: int
     items: tuple[RetrievedChunk, ...]
     timings_ms: dict[str, float]
+    branches: dict[str, tuple[RetrievedChunk, ...]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True, slots=True)

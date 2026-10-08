@@ -37,11 +37,11 @@ class Bm25Retriever:
                 'tf_scaling':'classic-k1-plus-one','max_corpus_chunks':self.max_corpus_chunks,
                 'max_corpus_characters':self.max_corpus_characters,'statistics_scope':'authorized-live-chunks'}
 
-    def rank(self, question, corpus, top_k):
+    def rank(self, question, corpus, top_k, *, maximum_k=20):
         if not isinstance(question,str) or not question.strip() or len(question.strip())>2000:
             raise RetrievalError('RETRIEVAL_INPUT_INVALID','请输入1—2000字的问题。',422)
-        if isinstance(top_k,bool) or not isinstance(top_k,int) or not 1<=top_k<=20:
-            raise RetrievalError('RETRIEVAL_INPUT_INVALID','Top K必须为1—20的整数。',422)
+        if isinstance(top_k,bool) or not isinstance(top_k,int) or not 1<=top_k<=maximum_k:
+            raise RetrievalError('RETRIEVAL_INPUT_INVALID',f'Top K必须为1—{maximum_k}的整数。',422)
         if len(corpus)>self.max_corpus_chunks or sum(len(x.content) for x in corpus)>self.max_corpus_characters:
             raise RetrievalError('BM25_CORPUS_LIMIT','当前可用片段超过关键词检索上限，请缩小测试空间后重试。',422)
         unique={x.id:x for x in corpus}

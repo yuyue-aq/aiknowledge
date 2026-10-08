@@ -64,11 +64,25 @@ class Repository:
 
 
 def service(repo, encoder):
-    return OwnerRetrievalService(repository=repo, retrieval=RetrievalService(encoder, expected_dimension=3), model_name='test-bge')
+    return OwnerRetrievalService(repository=repo, retrieval=RetrievalService(encoder, expected_dimension=3, maximum_k=50), model_name='test-bge')
 
 
+@pytest.mark.asyncio
+async def test_hybrid_reads_independent_corpus_and_saves_both_branch_ranks():
+    repo,encoder=Repository(),Encoder()
+    run,result=await service(repo,encoder).search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='hybrid')
+    assert encoder.calls==1 and result.items[0].score_kind=='rrf'
+    assert result.items[0].dense_rank==1 and result.items[0].bm25_rank==1
+    assert run.strategy=='hybrid' and run.config_snapshot['rank_constant']==60
+    assert set(run.config_snapshot['branches'])=={'dense','bm25'}
 
 
+@pytest.mark.asyncio
+async def test_hybrid_scope_mutation_cannot_save_either_branch():
+    repo,encoder=Repository(),Encoder();repo.changed=True
+    with pytest.raises(RetrievalError) as error:
+        await service(repo,encoder).search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='hybrid')
+    assert error.value.code=='RETRIEVAL_SCOPE_CHANGED' and not repo.runs
 
 
 @pytest.mark.asyncio

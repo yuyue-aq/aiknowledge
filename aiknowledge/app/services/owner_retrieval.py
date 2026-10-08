@@ -8,6 +8,7 @@ from app.domain.conversations import RetrievedChunk
 from app.domain.retrieval import RetrievalError, RetrievalResult, RetrievalRun, RetrievalScope
 from app.services.retrieval import RetrievalService
 from app.services.bm25 import Bm25Retriever
+from app.services.hybrid_retrieval import HybridRetriever, branch_snapshot
 
 
 class OwnerRetrievalRepository(Protocol):
@@ -31,7 +32,7 @@ class OwnerRetrievalService:
         return scope
 
     async def search(self, *, space_id: UUID, user_id: UUID, question: str, top_k: int = 4, strategy: str = 'dense') -> tuple[RetrievalRun, RetrievalResult]:
-        if strategy not in ('dense','bm25'):raise RetrievalError('RETRIEVAL_INPUT_INVALID','不支持的检索方式。',422)
+        if strategy not in ('dense','bm25','hybrid'):raise RetrievalError('RETRIEVAL_INPUT_INVALID','不支持的检索方式。',422)
         if not isinstance(question,str) or not question.strip() or len(question.strip())>2000:
             raise RetrievalError('RETRIEVAL_INPUT_INVALID','请输入1—2000字的问题。',422)
         if isinstance(top_k,bool) or not isinstance(top_k,int) or not 1<=top_k<=20:
@@ -41,7 +42,12 @@ class OwnerRetrievalService:
         async def fetch(vector, limit):
             return await self._repository.retrieve(scope=scope, embedding=vector, limit=limit)
 
-        if strategy=='bm25':
+        hybrid=HybridRetriever(self._retrieval,self._bm25)
+        if strategy=='hybrid':
+            async def corpus(limit):
+                return await self._repository.keyword_corpus(scope=scope,limit=limit)
+            result=await hybrid.search(question=question,fetch=fetch,corpus=corpus,top_k=top_k)
+        elif strategy=='bm25':
             started=perf_counter()
             try:corpus=await self._repository.keyword_corpus(scope=scope,limit=self._bm25.max_corpus_chunks+1)
             except Exception as exc:raise RetrievalError('RETRIEVAL_UNAVAILABLE','关键词检索暂时不可用，请稍后重试。') from exc
@@ -52,12 +58,14 @@ class OwnerRetrievalService:
                 'ranking':round((ranked-fetched)*1000,3),'total':round((ranked-started)*1000,3)})
         else:result = await self._retrieval.search(question=question, fetch=fetch, top_k=top_k)
         current_scope = await self._scope(space_id, user_id)
-        current = await self._repository.get_current_chunks(scope=current_scope, chunk_ids=tuple(x.id for x in result.items))
-        if not scope.same_access(current_scope) or {x.id for x in current} != {x.id for x in result.items}:
+        candidate_ids=tuple(dict.fromkeys(x.id for items in [result.items,*result.branches.values()] for x in items))
+        current = await self._repository.get_current_chunks(scope=current_scope, chunk_ids=candidate_ids)
+        if not scope.same_access(current_scope) or {x.id for x in current} != set(candidate_ids):
             raise RetrievalError('RETRIEVAL_SCOPE_CHANGED', '资料范围已变化，请重新检索。', 409)
         run = RetrievalRun(uuid4(), scope, result.question, top_k, tuple(x.id for x in result.items),
                            tuple(x.score for x in result.items), result.timings_ms,
                            'bm25-zh-bigram-v1' if strategy=='bm25' else self._model, datetime.now(UTC),strategy,
+                           {**hybrid.config,'branches':branch_snapshot(result)} if strategy=='hybrid' else
                            self._bm25.config if strategy=='bm25' else {'score_kind':'cosine'})
         await self._repository.add_run(run)
         return run, result
@@ -67,9 +75,12 @@ class OwnerRetrievalService:
         if run is None or run.scope.user_id != user_id:
             raise RetrievalError('RETRIEVAL_NOT_FOUND', '空间或检索记录不存在。', 404)
         scope = await self._scope(run.scope.space_id, user_id)
-        current = await self._repository.get_current_chunks(scope=scope, chunk_ids=run.chunk_ids)
-        by_id = {x.id: x for x in current}
-        return run, tuple(by_id[x] for x in run.chunk_ids if x in by_id)
+        ids=tuple(dict.fromkeys([*run.chunk_ids,*[UUID(item['chunk_id']) for items in run.config_snapshot.get('branches',{}).values() for item in items]]))
+        current = await self._repository.get_current_chunks(scope=scope, chunk_ids=ids)
+        latest=await self._scope(run.scope.space_id,user_id)
+        if not scope.same_access(latest):
+            raise RetrievalError('RETRIEVAL_SCOPE_CHANGED','资料范围已变化，请重新检索。',409)
+        return run, tuple(current)
 
     async def read_saved_evidence(self, *, space_id: UUID, user_id: UUID, chunk_ids: tuple[UUID, ...]):
         scope = await self._scope(space_id, user_id)

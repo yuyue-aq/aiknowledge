@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -35,6 +37,7 @@ class Settings(BaseSettings):
     bge_timeout_seconds: float = Field(default=600.0, gt=0)
     bge_max_retries: int = Field(default=1, ge=0, le=3)
 
+    retrieval_strategy: Literal['dense','hybrid'] = 'dense'
     retrieval_top_k: int = Field(default=4, ge=1, le=20)
     retrieval_candidate_limit: int = Field(default=12, ge=1, le=50)
     # No global production threshold is hard-coded. It must be calibrated with

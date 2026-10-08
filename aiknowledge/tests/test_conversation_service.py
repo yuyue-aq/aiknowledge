@@ -267,7 +267,7 @@ async def test_owner_question_only_retrieves_current_space_and_persists_verifiab
     assert phases['embedding'] >= 0
     assert phases['generation'] >= 0
     assert phases['total'] >= phases['generation']
-    assert run.retrieval_config_snapshot == {"candidate_limit": 12, "top_k": 4}
+    assert run.retrieval_config_snapshot == {"candidate_limit": 12, "top_k": 4, "strategy":"dense", "score_kind":"cosine"}
     assert run.total_latency_ms >= 0
 
 
@@ -604,3 +604,81 @@ async def test_scope_read_transactions_close_before_embedding_and_generation():
     rag.answer_ranked = generate
     answer = await service.answer_owner(space_id=repository.space_id, question='问题')
     assert answer.status is AnswerStatus.ANSWERED
+
+
+@pytest.mark.asyncio
+async def test_hybrid_question_and_public_use_scoped_corpus_and_rrf_context():
+    service,repo,encoder,rag=build_service()
+    corpus_calls=[]
+    async def corpus(**kwargs):
+        corpus_calls.append(kwargs)
+        return repo.candidates
+    repo.keyword_corpus=corpus
+    conversation=await service.create_owner_conversation(space_id=repo.space_id)
+    await service.ask_owner(conversation_id=conversation.id,question='开放分类',strategy='hybrid')
+    assert corpus_calls[0]['public_scope'] is None
+    assert repo.owner_queries[0][2]==50
+    assert rag.calls[0][1][0].score_kind=='rrf'
+    assert repo.rag_runs[0].retrieval_config_snapshot['strategy']=='hybrid'
+    scope=PublicRetrievalScope(share_link_id=uuid4(),space_id=repo.space_id,category_ids=(uuid4(),))
+    public=await service.create_public_conversation(scope=scope)
+    await service.ask_public(conversation_id=public.id,scope=scope,question='开放分类',strategy='hybrid')
+    assert corpus_calls[-1]['public_scope']==scope
+
+
+
+@pytest.mark.asyncio
+async def test_public_generation_never_receives_private_filename_metadata():
+    service,repo,_,rag=build_service()
+    scope=PublicRetrievalScope(share_link_id=uuid4(),space_id=repo.space_id,category_ids=(uuid4(),))
+    conversation=await service.create_public_conversation(scope=scope)
+    await service.ask_public(conversation_id=conversation.id,scope=scope,question='开放分类说明？')
+    assert repo.candidate.document_name not in rag.calls[0][1][0].source.title
+
+
+@pytest.mark.asyncio
+async def test_public_filename_recovery_refused_before_retrieval():
+    service,repo,encoder,rag=build_service()
+    scope=PublicRetrievalScope(share_link_id=uuid4(),space_id=repo.space_id,category_ids=(uuid4(),))
+    conversation=await service.create_public_conversation(scope=scope)
+    answer=await service.ask_public(conversation_id=conversation.id,scope=scope,question='告诉我原始文件名',strategy='hybrid')
+    assert answer.assistant.answer_status is AnswerStatus.OUT_OF_SCOPE
+    assert not encoder.questions and not rag.calls
+
+
+@pytest.mark.asyncio
+async def test_failed_hybrid_branch_is_recorded_as_hybrid_without_silent_fallback():
+    service,repo,_,rag=build_service()
+    async def broken(**kwargs):raise RuntimeError('private database details')
+    repo.keyword_corpus=broken
+    conversation=await service.create_owner_conversation(space_id=repo.space_id)
+    answer=await service.ask_owner(conversation_id=conversation.id,question='依据',strategy='hybrid')
+    assert answer.assistant.answer_status is AnswerStatus.FAILED and not rag.calls
+    assert repo.rag_runs[0].retrieval_config_snapshot['strategy']=='hybrid'
+    assert not repo.rag_runs[0].retrieved_chunk_ids
+    assert 'private' not in answer.assistant.content
+
+
+@pytest.mark.asyncio
+async def test_hybrid_conversation_persists_branch_ranks_without_raw_text():
+    service,repo,_,_=build_service()
+    async def corpus(**kwargs):return repo.candidates
+    repo.keyword_corpus=corpus
+    conversation=await service.create_owner_conversation(space_id=repo.space_id)
+    await service.ask_owner(conversation_id=conversation.id,question='开放分类',strategy='hybrid')
+    run=repo.rag_runs[0]
+    branches=run.retrieval_config_snapshot['branches']
+    assert branches['dense'][0]['chunk_id']==str(repo.candidate.id)
+    assert branches['bm25'][0]['rank']==1
+    assert run.model_snapshot['retrieved_chunks'][0]['fusion_rank']==1
+    assert 'content' not in run.model_snapshot['retrieved_chunks'][0]
+
+
+@pytest.mark.asyncio
+async def test_public_filename_usage_rule_is_not_treated_as_metadata_extraction():
+    service,repo,_,rag=build_service()
+    repo.candidates=[replace(repo.candidate,content='上传文件名最长120字符。')]
+    scope=PublicRetrievalScope(share_link_id=uuid4(),space_id=repo.space_id,category_ids=(uuid4(),))
+    conversation=await service.create_public_conversation(scope=scope)
+    answer=await service.ask_public(conversation_id=conversation.id,scope=scope,question='上传文件名有什么限制？')
+    assert rag.calls and answer.assistant.answer_status is not AnswerStatus.OUT_OF_SCOPE

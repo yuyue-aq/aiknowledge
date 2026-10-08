@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Annotated, Protocol
+from typing import Literal, Annotated, Protocol
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Request, Response, status
@@ -662,9 +662,9 @@ async def review_evaluation_result(
 
 
 @router.post('/spaces/{space_id}/eval-runs/async', status_code=202, response_model=EvalRunResponse)
-async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service)):
+async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service), strategy: Literal['dense','hybrid'] | None = None):
     try:
-        run = await service.enqueue_run(space_id=space_id, owner_user_id=user.id)
+        run = await service.enqueue_run(space_id=space_id, owner_user_id=user.id, **({'strategy':strategy} if strategy else {}))
     except Exception as error:
         _translate_evaluation_error(error)
         raise
@@ -672,9 +672,9 @@ async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_c
 
 
 @router.post('/eval-versions/{version_id}/runs/async', status_code=202, response_model=EvalRunResponse)
-async def enqueue_version(version_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service)):
+async def enqueue_version(version_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service), strategy: Literal['dense','hybrid'] | None = None):
     try:
-        run = await service.enqueue_run(version_id=version_id, owner_user_id=user.id)
+        run = await service.enqueue_run(version_id=version_id, owner_user_id=user.id, **({'strategy':strategy} if strategy else {}))
     except Exception as error:
         _translate_evaluation_error(error)
         raise

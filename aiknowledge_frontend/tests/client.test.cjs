@@ -194,6 +194,15 @@ test('keyword diagnostics transmit BM25 strategy without changing chat requests'
   assert.match(calls[0].url, /retrieval-runs$/)
 })
 
+test('explicit hybrid handoff reaches owner generation and evaluation requests', async () => {
+  const calls=[]
+  const {client}=loadClient(async options=>{calls.push(options);return {statusCode:201,data:{answer:'真实响应',run_id:'run'}}})
+  await client.streamOwnerAnswer('conversation','问题',()=>{},undefined,'hybrid')
+  assert.equal(calls[0].data.strategy,'hybrid')
+  await client.enqueueEvaluation('space','hybrid')
+  assert.ok(calls[1].url.endsWith('/eval-runs/async?strategy=hybrid'))
+})
+
 test('V2 evaluation uses immediate async endpoints and polls the saved run', async () => {
   const calls = []
   const { client } = loadClient(async ({ url }) => {

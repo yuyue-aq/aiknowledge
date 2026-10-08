@@ -720,10 +720,10 @@ export async function getOwnerConversation(conversationId: string): Promise<Conv
   return requestJson<ConversationDetail>(`/owner/conversations/${conversationId}`)
 }
 
-export async function askOwner(conversationId: string, question: string): Promise<OwnerAnswer> {
+export async function askOwner(conversationId: string, question: string, strategy?: 'dense' | 'hybrid'): Promise<OwnerAnswer> {
   return requestJson<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, {
     method: 'POST',
-    data: { question, stream: false }
+    data: { question, stream: false, ...(strategy ? { strategy } : {}) }
   })
 }
 
@@ -732,11 +732,12 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
   question: string,
   onText: (text: string) => void,
   signal?: AbortSignal,
-  skipAuthRefresh = false
+  skipAuthRefresh = false,
+  strategy?: 'dense' | 'hybrid'
 ): Promise<T> {
   signal?.throwIfAborted()
   if (typeof fetch === 'undefined' || typeof ReadableStream === 'undefined') {
-    const data = await requestJson<T>(path, { method: 'POST', data: { question, stream: false } })
+    const data = await requestJson<T>(path, { method: 'POST', data: { question, stream: false, ...(strategy ? { strategy } : {}) } })
     onText(data.answer)
     return data
   }
@@ -747,10 +748,10 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
     headers: { 'content-type': 'application/json', ...(isPublic ? {} : authorizationHeader()) },
     credentials: 'include',
     signal,
-    body: JSON.stringify({ question, stream: true })
+    body: JSON.stringify({ question, stream: true, ...(strategy ? { strategy } : {}) })
   })
   if (response.status === 401 && !isPublic && !skipAuthRefresh) {
-    if (await refreshAccessToken()) return streamAnswer<T>(path, question, onText, signal, true)
+    if (await refreshAccessToken()) return streamAnswer<T>(path, question, onText, signal, true, strategy)
     if (readAuthSession() === current) clearAuthSession()
   }
   if (!response.ok) {
@@ -823,9 +824,10 @@ export async function streamOwnerAnswer(
   conversationId: string,
   question: string,
   onText: (text: string) => void,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  strategy?: 'dense' | 'hybrid'
 ): Promise<OwnerAnswer> {
-  return streamAnswer<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, question, onText, signal)
+  return streamAnswer<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, question, onText, signal, false, strategy)
 }
 
 export async function createPublicSession(token: string, password?: string): Promise<PublicSpace> {
@@ -1072,7 +1074,12 @@ export type EvidenceRef = {
 }
 
 export type RetrievalItem = {
-  score_kind?: 'cosine' | 'bm25'
+  dense_rank?: number | null
+  bm25_rank?: number | null
+  fusion_rank?: number | null
+  dense_score?: number | null
+  bm25_score?: number | null
+  score_kind?: 'cosine' | 'bm25' | 'rrf'
   rank: number
   chunk_id: string
   document_id: string
@@ -1090,8 +1097,9 @@ export type RetrievalItem = {
 }
 
 export type RetrievalRun = {
-  strategy?: 'dense' | 'bm25'
-  score_kind?: 'cosine' | 'bm25'
+  branches?: Record<string, RetrievalItem[]>
+  strategy?: 'dense' | 'bm25' | 'hybrid'
+  score_kind?: 'cosine' | 'bm25' | 'rrf'
   config_snapshot?: Record<string, unknown>
   status: 'COMPLETED'
   run_id: string
@@ -1123,7 +1131,7 @@ export function getEvalEvidence(runId: string, resultId: string, signal?: AbortS
   return requestJson(`/owner/eval-runs/${runId}/results/${resultId}/evidence`, { signal })
 }
 
-export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal, strategy?: 'dense' | 'bm25'): Promise<RetrievalRun> {
+export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal, strategy?: 'dense' | 'bm25' | 'hybrid'): Promise<RetrievalRun> {
   return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK, ...(strategy ? { strategy } : {}) }, signal, timeoutMs: 660000 })
 }
 
@@ -1131,12 +1139,12 @@ export async function getRetrievalRun(runId: string, signal?: AbortSignal): Prom
   return requestJson<RetrievalRun>(`/owner/retrieval-runs/${runId}`, { signal })
 }
 
-export async function enqueueEvaluation(spaceId: string): Promise<EvalRun> {
-  return requestJson<EvalRun>(`/spaces/${spaceId}/eval-runs/async`, { method: 'POST' })
+export async function enqueueEvaluation(spaceId: string, strategy?: 'dense' | 'hybrid'): Promise<EvalRun> {
+  return requestJson<EvalRun>(`/spaces/${spaceId}/eval-runs/async${strategy ? `?strategy=${strategy}` : ''}`, { method: 'POST' })
 }
 
-export async function enqueueEvalVersion(versionId: string): Promise<EvalRun> {
-  return requestJson<EvalRun>(`/eval-versions/${versionId}/runs/async`, { method: 'POST' })
+export async function enqueueEvalVersion(versionId: string, strategy?: 'dense' | 'hybrid'): Promise<EvalRun> {
+  return requestJson<EvalRun>(`/eval-versions/${versionId}/runs/async${strategy ? `?strategy=${strategy}` : ''}`, { method: 'POST' })
 }
 
 export async function getEvalRun(runId: string, signal?: AbortSignal): Promise<EvalDetail> {

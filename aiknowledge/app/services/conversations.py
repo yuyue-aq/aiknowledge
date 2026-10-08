@@ -25,6 +25,7 @@ from app.domain.rag import AnswerStatus, RagAnswer, RankedSourceChunk, SourceChu
 from app.domain.spaces import PublicRetrievalScope
 from app.services.usage import UsageService
 from app.services.retrieval import RetrievalService
+from app.services.hybrid_retrieval import HybridRetriever, branch_snapshot
 from app.services.rag import PROMPT_VERSION
 from app.services.query_planning import complex_question
 
@@ -90,6 +91,9 @@ _PUBLIC_RECOVERY_REQUESTS = (
     "所有段落",
     "列出所有段落",
     "文件列表",
+    "原始文件名",
+    "原文文件名",
+    "列出文件名",
     "导出原文",
 )
 _FOLLOW_UP_MARKERS = (
@@ -175,6 +179,7 @@ class ConversationService:
         prompt_version: str = PROMPT_VERSION,
         question_rewriter: QuestionRewriterPort | None = None,
         history_limit: int = 6,
+        retrieval_strategy: str = 'dense',
         id_factory: Callable[[], UUID] = uuid4,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         usage_service: UsageService | None = None,
@@ -183,11 +188,14 @@ class ConversationService:
             raise ValueError("retrieval_candidate_limit must be positive")
         if history_limit < 0:
             raise ValueError("history_limit must not be negative")
+        if retrieval_strategy not in ('dense','hybrid'):raise ValueError('Invalid retrieval strategy')
+        self._strategy=retrieval_strategy
         self._repository = repository
         self._embedding_client = embedding_client
         dimension = (rag_snapshot or {}).get('embedding_dimension')
         self._retrieval = RetrievalService(embedding_client,
             expected_dimension=int(dimension) if dimension is not None else None, maximum_k=50)
+        self._hybrid=HybridRetriever(self._retrieval)
         self._rag_service = rag_service
         self._retrieval_candidate_limit = retrieval_candidate_limit
         self._rag_snapshot = dict(rag_snapshot or {})
@@ -234,7 +242,7 @@ class ConversationService:
         return conversation
 
     async def ask_owner(
-        self, *, conversation_id: UUID, question: str, owner_user_id: UUID | None = None
+        self, *, conversation_id: UUID, question: str, owner_user_id: UUID | None = None, strategy: str | None = None
     ) -> ConversationAnswer:
         conversation = await self._require_conversation(conversation_id)
         if conversation.kind is not ConversationKind.OWNER:
@@ -247,12 +255,14 @@ class ConversationService:
         return await self._ask(
             conversation=conversation,
             question=question,
-            retrieve=lambda vector: self._repository.retrieve_owner(
+            retrieve=lambda vector, limit: self._repository.retrieve_owner(
                 space_id=conversation.space_id,
                 embedding=vector,
-                limit=self._retrieval_candidate_limit,
+                limit=limit,
             ),
             public_request=False,
+            strategy=strategy,
+            corpus=lambda limit:self._repository.keyword_corpus(space_id=conversation.space_id,public_scope=None,limit=limit),
             scope_check=self._scope_checker(conversation.space_id, owner_user_id=owner_user_id),
         )
 
@@ -313,6 +323,7 @@ class ConversationService:
         conversation_id: UUID,
         scope: PublicRetrievalScope,
         question: str,
+        strategy: str | None = None,
     ) -> ConversationAnswer:
         conversation = await self._require_conversation(conversation_id)
         if (
@@ -328,27 +339,31 @@ class ConversationService:
         return await self._ask(
             conversation=conversation,
             question=question,
-            retrieve=lambda vector: self._repository.retrieve_public(
+            retrieve=lambda vector, limit: self._repository.retrieve_public(
                 scope=scope,
                 embedding=vector,
-                limit=self._retrieval_candidate_limit,
+                limit=limit,
             ),
             public_request=True,
+            strategy=strategy,
+            corpus=lambda limit:self._repository.keyword_corpus(space_id=scope.space_id,public_scope=scope,limit=limit),
             scope_check=self._scope_checker(scope.space_id, public_scope=scope),
         )
 
-    async def answer_owner(self, *, space_id: UUID, question: str) -> RagAnswer:
+    async def answer_owner(self, *, space_id: UUID, question: str, strategy: str | None = None) -> RagAnswer:
         """Internal evaluation entry point; unlike ``ask_owner`` it stores no history."""
 
         await self._require_active_space(space_id)
         answer, _ = await self._generate_answer(
             question=self._normalize_question(question),
-            retrieve=lambda vector: self._repository.retrieve_owner(
+            retrieve=lambda vector, limit: self._repository.retrieve_owner(
                 space_id=space_id,
                 embedding=vector,
-                limit=self._retrieval_candidate_limit,
+                limit=limit,
             ),
             public_request=False,
+            strategy=strategy,
+            corpus=lambda limit:self._repository.keyword_corpus(space_id=space_id,public_scope=None,limit=limit),
             scope_check=self._scope_checker(space_id),
         )
         return answer
@@ -359,6 +374,7 @@ class ConversationService:
         space_id: UUID,
         category_ids: tuple[UUID, ...],
         question: str,
+        strategy: str | None = None,
     ) -> RagAnswer:
         """Internal evaluation entry point using the identical public SQL scope."""
 
@@ -374,12 +390,14 @@ class ConversationService:
         )
         answer, _ = await self._generate_answer(
             question=self._normalize_question(question),
-            retrieve=lambda vector: self._repository.retrieve_public(
+            retrieve=lambda vector, limit: self._repository.retrieve_public(
                 scope=scope,
                 embedding=vector,
-                limit=self._retrieval_candidate_limit,
+                limit=limit,
             ),
             public_request=True,
+            strategy=strategy,
+            corpus=lambda limit:self._repository.keyword_corpus(space_id=space_id,public_scope=scope,limit=limit),
             scope_check=self._scope_checker(space_id, public_scope=scope),
         )
         return answer
@@ -389,7 +407,9 @@ class ConversationService:
         *,
         conversation: Conversation,
         question: str,
-        retrieve: Callable[[list[float]], Awaitable[list[RetrievedChunk]]],
+        retrieve: Callable,
+        corpus: Callable | None = None,
+        strategy: str | None = None,
         public_request: bool,
         scope_check: Callable | None = None,
     ) -> ConversationAnswer:
@@ -417,6 +437,8 @@ class ConversationService:
         answer, candidates = await self._generate_answer(
             question=rewritten_question,
             retrieve=retrieve,
+            corpus=corpus,
+            strategy=strategy,
             public_request=public_request,
             scope_check=scope_check,
         )
@@ -446,12 +468,16 @@ class ConversationService:
                 message_id=assistant_message.id,
                 prompt_version=self._prompt_version,
                 rewritten_question=rewritten_question,
-                model_snapshot={**self._rag_snapshot,'execution_timings_ms':(answer.execution_snapshot or {}).get('timings_ms',{}),
+                model_snapshot={**self._rag_snapshot,
+                    'reranker':'disabled-for-rrf' if (answer.execution_snapshot or {}).get('retrieval_strategy')=='hybrid' else self._rag_snapshot.get('reranker','lexical-dense-v1'),
+                    'execution_timings_ms':(answer.execution_snapshot or {}).get('timings_ms',{}),
                     'context_chunk_ids':(answer.execution_snapshot or {}).get('context_chunk_ids',[]),
+                    'retrieved_chunks':(answer.execution_snapshot or {}).get('retrieved_chunks',[]),
                     'retrieval_queries':(answer.execution_snapshot or {}).get('retrieval_queries',[])},
                 retrieval_config_snapshot={
                     "candidate_limit": self._retrieval_candidate_limit,
                     **self._retrieval_config_snapshot,
+                    **(answer.execution_snapshot or {}).get('retrieval_config',{}),
                 },
                 retrieved_chunk_ids=tuple(candidate.id for candidate in candidates),
                 selected_chunk_ids=tuple(
@@ -483,16 +509,22 @@ class ConversationService:
         self,
         *,
         question: str,
-        retrieve: Callable[[list[float]], Awaitable[list[RetrievedChunk]]],
+        retrieve: Callable,
+        corpus: Callable | None = None,
+        strategy: str | None = None,
         public_request: bool,
         scope_check: Callable | None = None,
     ) -> tuple[RagAnswer, tuple[RetrievedChunk, ...]]:
+        strategy=strategy or self._strategy
+        if strategy not in ('dense','hybrid'):raise ConversationQuestionError('不支持的检索方式。')
+        config=self._hybrid.config if strategy=='hybrid' else {'strategy':'dense','score_kind':'cosine'}
         phase_started = perf_counter()
         if public_request and self._is_public_recovery_request(question):
             return (
                 RagAnswer(
                     status=AnswerStatus.OUT_OF_SCOPE,
                     answer="公开访问仅提供开放分类内的归纳回答，不能输出或恢复原始资料。",
+                    execution_snapshot={'retrieval_strategy':strategy,'retrieval_config':config,'context_chunk_ids':[]},
                 ),
                 (),
             )
@@ -503,12 +535,18 @@ class ConversationService:
         planning_ms = 0.
         try:
             async def fetch(vector, limit):
-                return await retrieve(vector)
-            result = await self._retrieval.search(question=question, fetch=fetch, top_k=self._retrieval_candidate_limit)
+                return await retrieve(vector,limit)
+            if strategy=='hybrid':
+                result=await self._hybrid.search(question=question,fetch=fetch,corpus=corpus,top_k=self._retrieval_candidate_limit)
+                config={**config,'branches':branch_snapshot(result)}
+                if scope_check is not None:
+                    await scope_check(tuple({x.id:x for items in result.branches.values() for x in items}.values()))
+            else:
+                result = await self._retrieval.search(question=question, fetch=fetch, top_k=self._retrieval_candidate_limit)
             candidates = result.items
             retrieval_timings=dict(result.timings_ms)
             planner=getattr(self._rag_service,'plan_retrieval',None)
-            if callable(planner) and complex_question(question):
+            if strategy=='dense' and callable(planner) and complex_question(question):
                 if scope_check is not None:await scope_check(tuple(candidates))
                 planning_started=perf_counter()
                 plan=await planner(question,candidates)
@@ -526,11 +564,13 @@ class ConversationService:
                 ordered=list(dict.fromkeys([*leaders,*merged]))[:50]
                 priorities={cid:index for index,cid in enumerate(leaders)}
                 candidates=tuple(replace(merged[cid],context_priority=priorities.get(cid)) for cid in ordered)
-        except (RuntimeError, ValueError):
+        except (RuntimeError, ValueError) as failure:
             return (
                 RagAnswer(
                     status=AnswerStatus.FAILED,
                     answer="模型服务暂时不可用，请稍后重试。",
+                    execution_snapshot={'retrieval_strategy':strategy,'retrieval_config':config,
+                        'failure_code':getattr(failure,'code','RETRIEVAL_UNAVAILABLE'),'context_chunk_ids':[]},
                 ),
                 (),
             )
@@ -542,12 +582,13 @@ class ConversationService:
             RankedSourceChunk(
                 source=SourceChunk(
                     id=str(candidate.id),
-                    title=candidate.document_name,
+                    title='公开资料' if public_request else candidate.document_name,
                     content=candidate.content,
                     heading_path=candidate.heading_path,
                     context_priority=candidate.context_priority,
                 ),
                 score=candidate.score,
+                score_kind=candidate.score_kind,
             )
             for candidate in immutable_candidates
         ]
@@ -568,7 +609,9 @@ class ConversationService:
         answer = self._ensure_citations_are_retrieved(answer, immutable_candidates)
         answer.execution_snapshot = {
             **(answer.execution_snapshot or {}),
-            'schema_version': 2,
+            'schema_version': 3,
+            'retrieval_strategy':strategy,
+            'retrieval_config':config,
             'question': question,
             'retrieval_queries':list(planned_queries),
             'timings_ms': {**retrieval_timings,'retrieval_total':retrieval_timings['total'],
@@ -577,7 +620,9 @@ class ConversationService:
             'retrieved_chunks': [{
                 'chunk_id': str(item.id), 'document_id': str(item.document_id),
                 'document_version_id': str(item.document_version_id) if item.document_version_id else None,
-                'rank': rank, 'score': item.score, 'content_hash': item.content_hash,
+                'rank': rank, 'score': item.score, 'score_kind':item.score_kind, 'content_hash': item.content_hash,
+                'dense_rank':item.dense_rank,'bm25_rank':item.bm25_rank,'fusion_rank':item.fusion_rank,
+                'dense_score':item.dense_score,'bm25_score':item.bm25_score,
                 'source_block_id': item.source_block_id, 'char_start': item.char_start, 'char_end': item.char_end,
             } for rank, item in enumerate(immutable_candidates, 1)],
         }

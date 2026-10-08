@@ -20,7 +20,7 @@ class RetrievalRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
     question: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=4, ge=1, le=20, strict=True)
-    strategy: Literal['dense','bm25'] = 'dense'
+    strategy: Literal['dense','bm25','hybrid'] = 'dense'
 
 
 class RetrievalItem(BaseModel):
@@ -33,7 +33,12 @@ class RetrievalItem(BaseModel):
     page_number: int | None
     ordinal: int
     score: float
-    score_kind: Literal['cosine','bm25'] = 'cosine'
+    score_kind: Literal['cosine','bm25','rrf'] = 'cosine'
+    dense_rank: int | None = None
+    bm25_rank: int | None = None
+    fusion_rank: int | None = None
+    dense_score: float | None = None
+    bm25_score: float | None = None
     source_block_id: str | None
     char_start: int | None
     char_end: int | None
@@ -54,28 +59,39 @@ class RetrievalResponse(BaseModel):
     timings_ms: dict[str, float]
     items: list[RetrievalItem]
     unavailable_chunk_ids: list[UUID]
-    strategy: Literal['dense','bm25'] = 'dense'
-    score_kind: Literal['cosine','bm25'] = 'cosine'
+    strategy: Literal['dense','bm25','hybrid'] = 'dense'
+    score_kind: Literal['cosine','bm25','rrf'] = 'cosine'
     config_snapshot: dict[str, object] = Field(default_factory=dict)
+    branches: dict[str,list[RetrievalItem]] = Field(default_factory=dict)
 
     @classmethod
     def build(cls, run: RetrievalRun, chunks):
         by_id = {x.id: x for x in chunks}
-        items = []
-        for rank, (chunk_id, score) in enumerate(zip(run.chunk_ids, run.scores), 1):
-            chunk = by_id.get(chunk_id)
-            if chunk is None:
-                continue
-            items.append(RetrievalItem(rank=rank, chunk_id=chunk.id, document_id=chunk.document_id,
-                document_version_id=getattr(chunk, 'document_version_id', None), document_name=chunk.document_name,
-                content=chunk.content, page_number=chunk.page_number, ordinal=chunk.ordinal, score=score,
-                score_kind='bm25' if run.strategy=='bm25' else 'cosine',
-                **{name: getattr(chunk, name, None) for name in ('source_block_id', 'char_start', 'char_end', 'content_hash', 'token_count')}))
-        return cls(run_id=run.id, space_id=run.scope.space_id, question=run.question, top_k=run.top_k,
-            access_revision=run.scope.access_revision, knowledge_revision=run.scope.knowledge_revision,
-            model_name=run.model_name, created_at=run.created_at, timings_ms=run.timings_ms, items=items,
+        saved_branches=run.config_snapshot.get('branches',{})
+        branch_maps={name:{UUID(item['chunk_id']):item for item in values} for name,values in saved_branches.items()}
+        kind={'dense':'cosine','bm25':'bm25','hybrid':'rrf'}[run.strategy]
+        def build_item(chunk_id,score,rank,score_kind):
+            chunk=by_id.get(chunk_id)
+            if chunk is None:return None
+            dense=branch_maps.get('dense',{}).get(chunk_id,{})
+            bm25=branch_maps.get('bm25',{}).get(chunk_id,{})
+            return RetrievalItem(rank=rank,chunk_id=chunk.id,document_id=chunk.document_id,
+                document_version_id=chunk.document_version_id,document_name=chunk.document_name,
+                content=chunk.content,page_number=chunk.page_number,ordinal=chunk.ordinal,score=score,
+                score_kind=score_kind,dense_rank=dense.get('rank'),bm25_rank=bm25.get('rank'),
+                dense_score=dense.get('score'),bm25_score=bm25.get('score'),fusion_rank=rank if score_kind=='rrf' else None,
+                **{name:getattr(chunk,name,None) for name in ('source_block_id','char_start','char_end','content_hash','token_count')})
+        items=[item for rank,(cid,score) in enumerate(zip(run.chunk_ids,run.scores),1)
+            if (item:=build_item(cid,score,rank,kind)) is not None]
+        branches={name:[item for saved in values[:run.top_k]
+            if (item:=build_item(UUID(saved['chunk_id']),saved['score'],saved['rank'],'cosine' if name=='dense' else 'bm25')) is not None]
+            for name,values in saved_branches.items()}
+        return cls(run_id=run.id,space_id=run.scope.space_id,question=run.question,top_k=run.top_k,
+            access_revision=run.scope.access_revision,knowledge_revision=run.scope.knowledge_revision,
+            model_name=run.model_name,created_at=run.created_at,timings_ms=run.timings_ms,items=items,
             unavailable_chunk_ids=[x for x in run.chunk_ids if x not in by_id],strategy=run.strategy,
-            score_kind='bm25' if run.strategy=='bm25' else 'cosine',config_snapshot=run.config_snapshot)
+            score_kind=kind,config_snapshot=run.config_snapshot,branches=branches)
+
 
 
 class DocumentVersionResponse(BaseModel):
@@ -128,7 +144,7 @@ async def get_eval_evidence(run_id: UUID, result_id: UUID, user: Annotated[User,
         item = by_id.get(UUID(saved['chunk_id']))
         if item is None:
             continue
-        items.append(RetrievalItem(rank=saved['rank'], score=saved['score'], chunk_id=item.id,
+        items.append(RetrievalItem(rank=saved['rank'], score=saved['score'], score_kind=saved.get('score_kind','cosine'), chunk_id=item.id,
             document_id=item.document_id, document_version_id=item.document_version_id, document_name=item.document_name,
             content=item.content, page_number=item.page_number, ordinal=item.ordinal,
             **{name: getattr(item, name, None) for name in ('source_block_id', 'char_start', 'char_end', 'content_hash', 'token_count')}))
@@ -156,7 +172,7 @@ async def search(space_id: UUID, payload: RetrievalRequest, user: Annotated[User
         run, result = await service.search(space_id=space_id, user_id=user.id, question=payload.question, top_k=payload.top_k,strategy=payload.strategy)
     except RetrievalError as exc:
         raise AppError(code=exc.code, message=str(exc), status_code=exc.status_code) from exc
-    return RetrievalResponse.build(run, result.items)
+    return RetrievalResponse.build(run, [*result.items,*[item for items in result.branches.values() for item in items]])
 
 
 @router.get('/owner/retrieval-runs/{run_id}', response_model=RetrievalResponse)

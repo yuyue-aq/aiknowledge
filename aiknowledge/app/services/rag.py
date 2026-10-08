@@ -98,7 +98,8 @@ class EvidenceRagService:
         if not ranked_chunks:
             return self._insufficient_evidence()
         if (
-            self._config.minimum_evidence_score is not None
+            ranked_chunks[0].score_kind == 'cosine'
+            and self._config.minimum_evidence_score is not None
             and ranked_chunks[0].score < self._config.minimum_evidence_score
         ):
             return self._insufficient_evidence()
@@ -118,8 +119,11 @@ class EvidenceRagService:
 
         if not question.strip() or not chunks:
             return self._insufficient_evidence()
-        ordered_chunks = sorted(chunks, key=lambda item: item.score, reverse=True)
-        reranked = list(self._reranker.rerank(question, ordered_chunks))
+        fused=all(item.score_kind=='rrf' for item in chunks)
+        if any(item.score_kind=='rrf' for item in chunks) and not fused:
+            raise ValueError('Mixed score kinds cannot share a context ranking')
+        ordered_chunks = list(chunks) if fused else sorted(chunks, key=lambda item: item.score, reverse=True)
+        reranked = ordered_chunks if fused else list(self._reranker.rerank(question, ordered_chunks))
         expanded = self._config.top_k>=4 and complex_question(question)
         limit = max(self._config.top_k,12) if expanded else self._config.top_k
         leaders = sorted((x for x in ordered_chunks if x.source.context_priority is not None),key=lambda x:x.source.context_priority) if expanded else []
@@ -136,7 +140,8 @@ class EvidenceRagService:
         if not ranked_chunks:
             return self._insufficient_evidence()
         if (
-            self._config.minimum_evidence_score is not None
+            ranked_chunks[0].score_kind == 'cosine'
+            and self._config.minimum_evidence_score is not None
             and ranked_chunks[0].score < self._config.minimum_evidence_score
         ):
             return self._insufficient_evidence()

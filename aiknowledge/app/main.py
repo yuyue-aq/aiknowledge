@@ -241,6 +241,7 @@ def create_app(
             embedding_client=app.state.query_embedding_client,
             rag_service=app.state.rag_service,
             retrieval_candidate_limit=settings.retrieval_candidate_limit,
+            retrieval_strategy=settings.retrieval_strategy,
             rag_snapshot={
                 "embedding_model": settings.bge_model_name,
                 "embedding_dimension": settings.bge_embedding_dimension,
@@ -283,6 +284,7 @@ def create_app(
             embedding_client=app.state.query_embedding_client,
             rag_service=app.state.rag_service,
             retrieval_candidate_limit=settings.retrieval_candidate_limit,
+            retrieval_strategy=settings.retrieval_strategy,
             rag_snapshot={
                 "embedding_model": settings.bge_model_name,
                 "embedding_dimension": settings.bge_embedding_dimension,
@@ -306,6 +308,7 @@ def create_app(
                 "chat_model": settings.deepseek_model,
                 "candidate_limit": settings.retrieval_candidate_limit,
                 "context_top_k": settings.retrieval_top_k,
+                "retrieval_strategy": settings.retrieval_strategy,
             },
         )
 
@@ -337,7 +340,7 @@ def create_app(
     app.include_router(model_router, prefix="/api/v1")
     app.state.retrieval_service_factory = retrieval_service_factory or (lambda session: OwnerRetrievalService(
         repository=SqlAlchemyRetrievalRepository(session),
-        retrieval=RetrievalService(app.state.query_embedding_client, expected_dimension=settings.bge_embedding_dimension),
+        retrieval=RetrievalService(app.state.query_embedding_client, expected_dimension=settings.bge_embedding_dimension,maximum_k=50),
         model_name=settings.bge_model_name,
     ))
     app.include_router(retrieval_router, prefix='/api/v1')

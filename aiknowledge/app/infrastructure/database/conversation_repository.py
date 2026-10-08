@@ -225,6 +225,17 @@ class SqlAlchemyConversationRepository:
         result = await self._session.execute(statement.limit(limit))
         return self._map_retrieval_rows(result.all())
 
+    async def keyword_corpus(self,*,space_id: UUID,public_scope: PublicRetrievalScope | None,limit: int):
+        statement=self._base_retrieval_statement(None).where(ChunkRecord.space_id==space_id).order_by(None).order_by(ChunkRecord.id)
+        if public_scope is not None:
+            if public_scope.space_id!=space_id:return []
+            statement=statement.join(CategoryRecord,ChunkRecord.category_id==CategoryRecord.id).where(
+                ChunkRecord.category_id.in_(public_scope.category_ids),CategoryRecord.space_id==space_id,
+                CategoryRecord.is_open.is_(True),CategoryRecord.deleted_at.is_(None),
+                KnowledgeSpaceRecord.visibility==SpaceVisibility.PUBLIC)
+        result=await self._session.execute(statement.limit(limit))
+        return self._map_retrieval_rows(result.all())
+
     async def commit(self) -> None:
         await self._session.commit()
 

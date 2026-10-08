@@ -4,11 +4,11 @@ import { V2Button, V2Heading, V2Notice, V2Panel } from './V2UI'
 import './v2.scss'
 
 export function RetrievalView({ spaceId, initialQuestion = '', onAsk }: {
-  spaceId: string; initialQuestion?: string; onAsk: (question: string) => void
+  spaceId: string; initialQuestion?: string; onAsk: (question: string, strategy?: 'dense' | 'hybrid') => void
 }) {
   const [question, setQuestion] = useState(initialQuestion)
   const [topK, setTopK] = useState(5)
-  const [strategy, setStrategy] = useState<'dense' | 'bm25'>('dense')
+  const [strategy, setStrategy] = useState<'dense' | 'bm25' | 'hybrid'>('dense')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState<RetrievalRun | null>(null)
@@ -46,9 +46,9 @@ export function RetrievalView({ spaceId, initialQuestion = '', onAsk }: {
 
   return <div className='v2-page'>
     <V2Heading title='检索测试' description='先查看相关片段，再判断是否具备回答依据。'
-      actions={<V2Button kind='outline' onClick={() => onAsk(question)}>去可信问答</V2Button>}
+      actions={<V2Button kind='outline' onClick={() => onAsk(question,strategy==='hybrid' ? 'hybrid' : 'dense')}>去可信问答</V2Button>}
     />
-    <div className='v2-row v2-tabs'><V2Button kind='ghost' onClick={() => onAsk(question)}>可信问答</V2Button><V2Button kind='ghost' pressed>检索测试</V2Button></div>
+    <div className='v2-row v2-tabs'><V2Button kind='ghost' onClick={() => onAsk(question,strategy==='hybrid' ? 'hybrid' : 'dense')}>可信问答</V2Button><V2Button kind='ghost' pressed>检索测试</V2Button></div>
     <V2Panel><form noValidate className='v2-query v2-query-strategy' onSubmit={event => { event.preventDefault(); void search() }}>
       <div><label htmlFor='retrieval-question'>问题</label><div className='v2-input-clear'><input data-v2-control ref={field} id='retrieval-question' maxLength={2000} value={question}
         onChange={event => { resetResults(); setQuestion(event.target.value) }}
@@ -58,17 +58,36 @@ export function RetrievalView({ spaceId, initialQuestion = '', onAsk }: {
         onClick={() => { resetResults(); setQuestion(''); field.current?.focus() }}
       >×</button>}</div></div>
       <div><label htmlFor='retrieval-strategy'>检索方式</label><select data-v2-control id='retrieval-strategy' value={strategy}
-        onChange={event => { resetResults(); setStrategy(event.target.value as 'dense' | 'bm25') }}
+        onChange={event => { resetResults(); setStrategy(event.target.value as 'dense' | 'bm25' | 'hybrid') }}
       >
-        <option value='dense'>向量检索</option><option value='bm25'>关键词检索 · BM25</option></select></div>
+        <option value='dense'>向量检索</option><option value='bm25'>关键词检索 · BM25</option><option value='hybrid'>混合检索 · RRF</option></select></div>
       <div><label htmlFor='retrieval-k'>Top K</label><select data-v2-control id='retrieval-k' value={topK} onChange={event => { resetResults(); setTopK(Number(event.target.value)) }}>
         {[3, 5, 10].map(value => <option key={value} value={value}>{value}</option>)}</select></div>
       <V2Button type='submit' icon='search' disabled={busy}>{busy ? '正在检索…' : '开始检索'}</V2Button>
     </form>{error && <p id='retrieval-error' className='v2-field-error' role='alert'>{error}</p>}</V2Panel>
     {strategy === 'bm25' && <V2Notice>查找编号、版本号或原文关键词。当前仅用于检索测试，去问答仍沿用现有问答方式。</V2Notice>}
+    {strategy === 'hybrid' && <V2Notice>对比两路实际召回与融合排名。去问答时使用本次混合检索方式；融合分数不是回答正确概率。</V2Notice>}
     {busy && <V2Panel><p role='status'>正在查找当前空间的相关片段…</p></V2Panel>}
     {result && <>
-      <div className='v2-row v2-between'><strong>相关片段 · {result.items.length} 条</strong><small>{result.strategy === 'bm25' ? '关键词检索' : '向量检索'} · 当前空间 · 耗时 {Math.round(result.timings_ms.total)} ms</small></div>
+      <div className='v2-row v2-between'><strong>相关片段 · {result.items.length} 条</strong><small>{result.strategy === 'hybrid' ? '混合检索' : result.strategy === 'bm25' ? '关键词检索' : '向量检索'} · 当前空间 · 耗时 {Math.round(result.timings_ms.total)} ms</small></div>
+      {result.strategy==='hybrid' && <div className='v2-hybrid-grid'>
+        {([['dense','向量召回','相似度'],['bm25','关键词召回','BM25 分数'],['fusion','RRF 融合','RRF 分数']] as const).map(([key,title,label])=>{
+          const items=key==='fusion' ? result.items : result.branches?.[key] || []
+          return <V2Panel key={key}><h2>{title}</h2><small>{items.length} 条 · 取各路前 {result.top_k} 条展示</small>
+            {!items.length && <p>本路没有可用片段。</p>}
+            {items.map(item=><button data-native-button type='button' key={item.chunk_id} className={`v2-evidence ${selected===item ? 'is-selected' : ''}`}
+              onClick={()=>setSelected(item)} aria-pressed={selected===item}
+            >
+              <div className='v2-row'><span className='v2-rank'>{item.rank}</span><strong>{item.document_name}</strong></div>
+              <p className='v2-hybrid-excerpt'>{item.content}</p><small>{label} {item.score.toFixed(key==='fusion' ? 6 : 3)}</small>
+              {key==='fusion' && <p><small>向量排名 {item.dense_rank ?? '未召回'} · 关键词排名 {item.bm25_rank ?? '未召回'}</small></p>}
+            </button>)}
+          </V2Panel>
+        })}
+      </div>}
+      {result.strategy==='hybrid' && selected && <V2Panel><h2>来源定位</h2><p>{selected.document_name} · 片段 {selected.ordinal}</p><hr />
+        <p className='v2-source-text'>{selected.content}</p><V2Button kind='outline' onClick={()=>onAsk(result.question,'hybrid')}>用此问题去问答</V2Button></V2Panel>}
+      {result.strategy!=='hybrid' && <>
       {result.items.length === 0 ? <V2Panel className='v2-empty'><h2>{result.strategy === 'bm25' ? '没有匹配关键词的片段' : '没有找到可用资料'}</h2><p>可以换用资料中的关键词，或上传相关资料后重试。</p></V2Panel> :
         <div className='v2-two'><div>{result.items.map(item => <button data-native-button key={item.chunk_id} type='button' className={`v2-evidence ${selected?.chunk_id === item.chunk_id ? 'is-selected' : ''}`}
           onClick={() => setSelected(item)} aria-pressed={selected?.chunk_id === item.chunk_id}
@@ -79,8 +98,9 @@ export function RetrievalView({ spaceId, initialQuestion = '', onAsk }: {
         {selected && <V2Panel><h2>片段 {selected.rank} · 来源定位</h2><p>{selected.document_name}</p>
           <small>{selected.page_number ? `第 ${selected.page_number} 页 · ` : ''}片段 {selected.ordinal}</small><hr /><p className='v2-source-text'>{selected.content}</p><hr />
           <V2Notice>{result.strategy === 'bm25' ? 'BM25分数仅用于相同问题与语料范围内排序，不能直接与余弦分数比较。' : '相似度是排序依据，不是回答正确概率。'}</V2Notice>
-          <V2Button kind='outline' onClick={() => onAsk(result.question)}>用此问题去问答</V2Button>
+          <V2Button kind='outline' onClick={() => onAsk(result.question,result.strategy==='hybrid' ? 'hybrid' : 'dense')}>用此问题去问答</V2Button>
         </V2Panel>}</div>}
+      </>}
     </>}
   </div>
 }

@@ -4,7 +4,7 @@ import asyncio
 import json
 from datetime import datetime
 from dataclasses import replace
-from typing import Annotated, Protocol
+from typing import Annotated, Protocol, Literal
 from urllib.parse import urlparse
 from uuid import UUID
 
@@ -205,6 +205,7 @@ class QuestionRequest(BaseModel):
 
     question: str = Field(min_length=1, max_length=2_000)
     stream: bool = False
+    strategy: Literal['dense','hybrid'] | None = None
 
 
 class OwnerCitationResponse(BaseModel):
@@ -508,6 +509,7 @@ async def ask_owner(
         }
         if _current_user is not None:
             kwargs["owner_user_id"] = _current_user.id
+        if payload.strategy is not None:kwargs["strategy"]=payload.strategy
         result = await service.ask_owner(**kwargs)
     except Exception as error:
         _translate_conversation_error(error)
@@ -719,6 +721,7 @@ async def ask_public(
             conversation_id=conversation_id,
             scope=scope,
             question=payload.question,
+            **({'strategy':payload.strategy} if payload.strategy is not None else {}),
         )
     except Exception as error:
         _translate_conversation_error(error)

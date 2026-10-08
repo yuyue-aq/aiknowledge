@@ -24,6 +24,25 @@ from app.api.v1.conversations import OwnerAnswerResponse, _as_sse
 
 
 @pytest.mark.asyncio
+async def test_public_hybrid_strategy_goes_to_generation_not_question_quota():
+    spaces=FakePublicSpaceService()
+    conversations=FakeConversationService(spaces.space.id,spaces.link_id)
+    strategies=[]
+    async def ask(**kwargs):
+        strategies.append(kwargs['strategy'])
+        return conversations._answer(kwargs['conversation_id'],kwargs['question'])
+    conversations.ask_public=ask
+    app=create_app(settings=Settings(auth_required=False),conversation_service_factory=lambda _:conversations,
+        space_service_factory=lambda _:spaces,
+        public_question_limit_service_factory=lambda _:FakePublicQuestionLimitService())
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url='http://test') as client:
+        await client.post('/api/v1/public/session',json={'token':'only-returned-once-token'})
+        response=await client.post(f'/api/v1/public/conversations/{conversations.public_conversation_id}/messages',json={'question':'开放规则？','strategy':'hybrid'})
+    assert response.status_code==200 and strategies==['hybrid']
+    assert set(response.json())=={'message_id','status','answer'}
+
+
+@pytest.mark.asyncio
 async def test_sse_stops_output_when_access_is_revoked_mid_stream():
     from types import SimpleNamespace
     checks = 0

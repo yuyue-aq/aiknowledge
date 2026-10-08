@@ -246,3 +246,18 @@ async def test_conversation_list_query_is_owner_only_and_recent_first() -> None:
     assert "conversations.kind = 'owner'" in sql
     assert "knowledge_spaces.deleted_at is null" in sql
     assert "order by conversations.updated_at desc" in sql
+
+
+@pytest.mark.asyncio
+async def test_public_keyword_corpus_filters_scope_before_bm25_statistics():
+    session=FakeSession();repo=SqlAlchemyConversationRepository(session)
+    sid,cid=uuid4(),uuid4()
+    scope=PublicRetrievalScope(share_link_id=uuid4(),space_id=sid,category_ids=(cid,))
+    await repo.keyword_corpus(space_id=sid,public_scope=scope,limit=5001)
+    sql=str(session.executed[-1].compile(dialect=postgresql.dialect(),compile_kwargs={'literal_binds':True}))
+    for value in [str(sid),str(cid),'is_open IS true','is_enabled IS true','active_version_id','expires_at','deleted_at IS NULL','is_active IS true']:
+        assert value in sql
+    assert 'LIMIT 5001' in sql
+    session.executed.clear()
+    assert await repo.keyword_corpus(space_id=uuid4(),public_scope=scope,limit=5001)==[]
+    assert not session.executed

@@ -381,3 +381,21 @@ async def test_evaluation_case_with_history_cannot_be_deleted() -> None:
 
     assert case.id in repository.cases
     assert detail.results[0].id in repository.results
+
+
+@pytest.mark.asyncio
+async def test_explicit_hybrid_eval_snapshot_is_used_by_worker_not_current_default():
+    service,repo,runner=build_service()
+    received=[]
+    async def answer(**kwargs):
+        received.append(kwargs)
+        return RagAnswer(status=AnswerStatus.INSUFFICIENT_EVIDENCE,answer='无资料')
+    runner.answer_owner=answer
+    await service.create_case(space_id=repo.space_id,question='固定问题',expected_answer=None,
+        expected_document_ids=(),scope=EvalScope.OWNER,category_ids=())
+    queued=await service.enqueue_run(space_id=repo.space_id,strategy='hybrid')
+    assert queued.retrieval_config_snapshot['retrieval_strategy']=='hybrid'
+    detail=await service.execute_pending(queued.id)
+    assert detail.run.status is EvalRunStatus.COMPLETED
+    assert received[0]['strategy']=='hybrid'
+    with pytest.raises(ValueError):await service.enqueue_run(space_id=repo.space_id,strategy='unknown')

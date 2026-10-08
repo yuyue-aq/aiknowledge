@@ -261,8 +261,11 @@ class EvaluationService:
         await self._repository.commit()
         return run
 
-    async def enqueue_run(self, *, space_id: UUID | None = None, version_id: UUID | None = None, owner_user_id: UUID | None = None) -> EvalRun:
+    async def enqueue_run(self, *, space_id: UUID | None = None, version_id: UUID | None = None, owner_user_id: UUID | None = None, strategy: str | None = None) -> EvalRun:
         snapshot = dict(self._run_snapshot)
+        if strategy is not None:
+            if strategy not in ('dense','hybrid'):raise ValueError('不支持的检索方式。')
+            snapshot['retrieval_strategy']=strategy
         if version_id is not None:
             version = await self.get_version(version_id, owner_user_id=owner_user_id)
             space_id, cases = version.space_id, version.cases
@@ -330,7 +333,7 @@ class EvaluationService:
                 await self._repository.commit()
 
         try:
-            if any(run_snapshot.get(key) != value for key, value in self._run_snapshot.items()):
+            if any(run_snapshot.get(key) != value for key, value in self._run_snapshot.items() if key!='retrieval_strategy') or run_snapshot.get('retrieval_strategy','dense') not in ('dense','hybrid'):
                 raise EvaluationConfigurationError('评测配置已变化，请恢复原配置或创建新运行。')
             if len(cases) != run.progress_total:
                 raise EvaluationSnapshotError('题集快照无效，请创建新运行。')
@@ -338,7 +341,7 @@ class EvaluationService:
                 if case.id in completed_ids:
                     continue
                 await verify_manifest()
-                answer = await asyncio.wait_for(self._run_case(case), timeout=900)
+                answer = await asyncio.wait_for(self._run_case(case, strategy=run_snapshot.get('retrieval_strategy')), timeout=900)
                 await verify_manifest()
                 manifest = run_snapshot.get('knowledge_manifest') or {}
                 versions = {UUID(value) for value in manifest.get('document_versions', [])} if manifest else None
@@ -585,15 +588,17 @@ class EvaluationService:
         await self._repository.commit()
         return updated
 
-    async def _run_case(self, case: EvalCase) -> RagAnswer:
+    async def _run_case(self, case: EvalCase, *, strategy: str | None = None) -> RagAnswer:
+        extra={'strategy':strategy} if strategy is not None else {}
         if case.scope is EvalScope.OWNER:
             return await self._runner.answer_owner(
-                space_id=case.space_id, question=case.question
+                space_id=case.space_id, question=case.question, **extra
             )
         return await self._runner.answer_public(
             space_id=case.space_id,
             category_ids=case.category_ids,
             question=case.question,
+            **extra,
         )
 
     async def _validate_labels(self, case: EvalCase):

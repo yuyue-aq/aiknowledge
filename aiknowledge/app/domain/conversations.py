@@ -137,6 +137,12 @@ class RetrievedChunk:
     token_count: int | None = None
     heading_path: tuple[str, ...] = ()
     context_priority: int | None = None
+    score_kind: str = 'cosine'
+    dense_rank: int | None = None
+    bm25_rank: int | None = None
+    fusion_rank: int | None = None
+    dense_score: float | None = None
+    bm25_score: float | None = None
 
 
 @dataclass(frozen=True, slots=True)

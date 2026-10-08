@@ -40,6 +40,7 @@ class RankedSourceChunk:
 
     source: SourceChunk
     score: float
+    score_kind: str = 'cosine'
 
 
 @dataclass(frozen=True, slots=True)

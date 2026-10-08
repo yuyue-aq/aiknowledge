@@ -44,6 +44,19 @@ class ReverseReranker:
 
 
 @pytest.mark.asyncio
+async def test_rrf_context_keeps_fusion_order_without_cosine_threshold_or_lexical_rerank():
+    reranker=ReverseReranker()
+    llm=FakeLlmClient('{"status":"ANSWERED","can_answer":true,"answer":"有依据。","citation_ids":["C1"]}')
+    service=EvidenceRagService(embedding_client=FakeEmbeddingClient(),llm_client=llm,
+        config=RetrievalConfig(top_k=2,minimum_evidence_score=.7),reranker=reranker)
+    chunks=[RankedSourceChunk(SourceChunk('a','a','第一条证据。'),.03,'rrf'),
+        RankedSourceChunk(SourceChunk('b','b','第二条证据。'),.02,'rrf')]
+    answer=await service.answer_ranked('有哪些资料？',chunks)
+    assert answer.execution_snapshot['context_chunk_ids']==['a','b']
+    assert not reranker.calls
+
+
+@pytest.mark.asyncio
 @pytest.mark.parametrize('can_answer,expected', [(False,AnswerStatus.INSUFFICIENT_EVIDENCE),(True,AnswerStatus.ANSWERED)])
 async def test_answerability_controls_status_not_missing_information_wording(can_answer, expected):
     class MetadataAwareLlm(FakeLlmClient):

@@ -35,8 +35,32 @@ class Service:
         return self.run, self.result.items
 
 
+@pytest.mark.asyncio
+async def test_hybrid_api_returns_actual_three_branch_scores_and_saved_provenance():
+    service=Service();item=service.result.items[0]
+    service.run=replace(service.run,strategy='hybrid',scores=(2/61,),config_snapshot={
+        'rank_constant':60,'branches':{'dense':[{'chunk_id':str(item.id),'rank':1,'score':.96}],
+        'bm25':[{'chunk_id':str(item.id),'rank':1,'score':2.3}]}})
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=make_app(service)),base_url='http://test') as client:
+        response=await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs',json={'question':'问题','strategy':'hybrid'})
+    assert response.status_code==201
+    data=response.json()
+    assert data['score_kind']=='rrf' and data['items'][0]['dense_rank']==1
+    assert data['items'][0]['bm25_score']==2.3 and data['items'][0]['fusion_rank']==1
+    assert data['branches']['dense'][0]['score_kind']=='cosine'
+    assert data['branches']['bm25'][0]['score']==2.3
 
 
+@pytest.mark.asyncio
+async def test_hybrid_response_includes_branch_only_sources_not_just_fused_top_k():
+    service=Service();first=service.result.items[0];extra=replace(first,id=uuid4(),content='仅向量命中的证据')
+    service.result=replace(service.result,branches={'dense':(extra,),'bm25':(first,)})
+    service.run=replace(service.run,strategy='hybrid',config_snapshot={'branches':{
+        'dense':[{'chunk_id':str(extra.id),'rank':1,'score':.9}],
+        'bm25':[{'chunk_id':str(first.id),'rank':1,'score':1.2}]}})
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=make_app(service)),base_url='http://test') as client:
+        response=await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs',json={'question':'问题','strategy':'hybrid'})
+    assert response.json()['branches']['dense'][0]['chunk_id']==str(extra.id)
 
 
 def make_app(service, authenticated=True):
@@ -130,7 +154,7 @@ async def test_bm25_api_preserves_non_cosine_score_and_exposes_strategy():
     service.run=replace(service.run,strategy='bm25',scores=(3.2,),config_snapshot={'analyzer':'zh-bigram-identifiers-v1'})
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=make_app(service)),base_url='http://test') as client:
         response=await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs',json={'question':'SCOPE_CHANGED','strategy':'bm25'})
-        invalid=await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs',json={'question':'x','strategy':'hybrid'})
+        invalid=await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs',json={'question':'x','strategy':'unknown'})
     assert response.status_code==201
     assert service.calls[0]['strategy']=='bm25'
     assert response.json()['strategy']=='bm25'

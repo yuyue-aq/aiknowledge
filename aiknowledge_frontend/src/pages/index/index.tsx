@@ -1390,7 +1390,7 @@ function CitationPanel({
                 <Text className='citation-text'>“{citation.quoted_text}”</Text>
                 {citation.source_available === false && <Text className='document-error'>历史依据已失效 · 不可用于新回答</Text>}
                 <Text className='citation-score'>
-                  相似度 {citation.score.toFixed(3)} · 仅用于排序
+                  排序分数 {citation.score.toFixed(6)} · 仅用于排序
                 </Text>
               </View>
               <Icon name='arrow' />
@@ -2339,6 +2339,7 @@ export default function Index() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [activePage, setActivePage] = useState<WorkspacePage>("spaces");
   const [handoffQuestion, setHandoffQuestion] = useState("");
+  const [handoffStrategy,setHandoffStrategy]=useState<'dense' | 'hybrid'>('dense');
   const [evalDraft, setEvalDraft] = useState<{ question: string; answer: string } | null>(null);
   const [feedbackDraft, setFeedbackDraft] = useState<{ messageId: string; rating: FeedbackRating } | null>(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
@@ -2603,6 +2604,7 @@ export default function Index() {
     selectedSpaceId.current = space.id;
     setCurrentSpace(space);
     setHandoffQuestion("");
+    setHandoffStrategy('dense');
     setEvalDraft(null);
     setSelectedDocumentId(null);
     setActivePage(destination);
@@ -2741,7 +2743,7 @@ export default function Index() {
         const id = await ensureConversation();
         if (id === "demo-conversation")
           throw new ApiRequestError("演示模式", 0);
-        const answer = await streamOwnerAnswer(id, question, setStreamingText, controller?.signal);
+        const answer = await streamOwnerAnswer(id, question, setStreamingText, controller?.signal, handoffStrategy);
         setMessages((items) => [
           ...items,
           {
@@ -2787,7 +2789,7 @@ export default function Index() {
         setStreamingText("");
       }
     },
-    [currentSpace, ensureConversation, forgetConversationId],
+    [currentSpace, ensureConversation, forgetConversationId, handoffStrategy],
   );
   const handleCancel = useCallback(() => {
     streamAbort.current?.abort();
@@ -3439,7 +3441,7 @@ export default function Index() {
 
         {activePage === "retrieval" && (
           <RetrievalView key={currentSpace.id} spaceId={currentSpace.id} initialQuestion={handoffQuestion}
-            onAsk={(question) => { setHandoffQuestion(question); setActivePage("qa"); }}
+            onAsk={(question, strategy) => { setHandoffQuestion(question); setHandoffStrategy(strategy || 'dense'); setActivePage("qa"); }}
           />
         )}
         {activePage === "documents" && selectedDocumentId && <DocumentDetailView key={selectedDocumentId} spaceId={currentSpace.id} documentId={selectedDocumentId} onBack={() => { setSelectedDocumentId(null); void loadSpaceData(currentSpace, "documents"); }} onAsk={() => setActivePage("qa")} onRetrieve={() => setActivePage("retrieval")} />}
@@ -3461,6 +3463,7 @@ export default function Index() {
             onRetrieve={() => setActivePage("retrieval")}
           />
         )}
+        {activePage === "qa" && handoffStrategy==='hybrid' && <View className='inline-banner'><Text>本次问答使用混合检索 · RRF</Text><Button className='text-button' onClick={()=>setHandoffStrategy('dense')}>恢复向量检索</Button></View>}
         {activePage === "qa" && (
           <QaView
             initialQuestion={handoffQuestion}
@@ -3541,6 +3544,7 @@ export default function Index() {
   }, [
     activePage,
     handoffQuestion,
+    handoffStrategy,
     selectedDocumentId,
     categories,
     tags,
