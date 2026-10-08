@@ -1,0 +1,25 @@
+{
+  "status": "PASSED",
+  "space_id": "1e9e70a7-3bf8-4ab8-ad5e-049ae4943580",
+  "cases": 40,
+  "same_pool_checks": 40,
+  "saved_contract_checks": 40,
+  "scope_disabled_and_history": "PASSED",
+  "split_metrics": {
+    "tune": {
+      "positive": 20,
+      "before_hit1": 18,
+      "after_hit1": 19,
+      "before_hit3": 19,
+      "after_hit3": 20
+    },
+    "holdout": {
+      "positive": 12,
+      "before_hit1": 10,
+      "after_hit1": 12,
+      "before_hit3": 12,
+      "after_hit3": 12
+    }
+  },
+  "notes": "Literal evidence hit metrics, not answer accuracy. Unknown queries still produce candidates; refusal is separately tested."
+}

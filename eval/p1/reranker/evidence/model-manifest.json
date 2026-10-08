@@ -1,0 +1,58 @@
+{
+  "repo_id": "BAAI/bge-reranker-v2-m3",
+  "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+  "license": "apache-2.0",
+  "files": [
+    {
+      "rfilename": "README.md",
+      "blobId": "553540879ec61aea21df00434c984c0f760a3fcc",
+      "size": 17229
+    },
+    {
+      "rfilename": "config.json",
+      "blobId": "9f62673cb00ec41dcec8947b9ed16f6f2eb23ba2",
+      "size": 795
+    },
+    {
+      "rfilename": "model.safetensors",
+      "blobId": "773a0a7d7cc8a010835938a3a82a87eac8b21909",
+      "size": 2271071852,
+      "lfs": {
+        "sha256": "d9e3e081faff1eefb84019509b2f5558fd74c1a05a2c7db22f74174fcedb5286",
+        "size": 2271071852,
+        "pointerSize": 135
+      }
+    },
+    {
+      "rfilename": "sentencepiece.bpe.model",
+      "blobId": "7a3f40a75f870bc1f21700cd414dc2acc431583c",
+      "size": 5069051,
+      "lfs": {
+        "sha256": "cfc8146abe2a0488e9e2a0c56de7952f7c11ab059eca145a0a727afce0db2865",
+        "size": 5069051,
+        "pointerSize": 132
+      }
+    },
+    {
+      "rfilename": "special_tokens_map.json",
+      "blobId": "b1879d702821e753ffe4245048eee415d54a9385",
+      "size": 964
+    },
+    {
+      "rfilename": "tokenizer.json",
+      "blobId": "1c98a28b19c084901b2622d8e8b15e85eed13bff",
+      "size": 17098273,
+      "lfs": {
+        "sha256": "69564b696052886ed0ac63fa393e928384e0f8caada38c1f4864a9bfbf379c15",
+        "size": 17098273,
+        "pointerSize": 133
+      }
+    },
+    {
+      "rfilename": "tokenizer_config.json",
+      "blobId": "328a00a9a560aadcf2a3064f917517359eb3cc26",
+      "size": 1173
+    }
+  ],
+  "bytes": 2293259337
+}

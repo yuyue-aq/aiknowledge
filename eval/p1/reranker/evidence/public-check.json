@@ -1,0 +1,13 @@
+{
+  "status": "PASSED",
+  "visible_answer": {
+    "message_id": "9a72a8fe-6181-4f11-8950-6550a590bfad",
+    "status": "ANSWERED",
+    "answer": "PUBLIC_RULE_810 的访客试用期限为14天。"
+  },
+  "private_answer": {
+    "message_id": "a26f77f9-7fa5-4a8f-8a58-2f303387b227",
+    "status": "INSUFFICIENT_EVIDENCE",
+    "answer": "证据中未记录 PRIVATE_ONLY_991 的内部保密口令。"
+  }
+}

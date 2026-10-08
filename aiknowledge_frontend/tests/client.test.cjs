@@ -281,3 +281,15 @@ test('H5 fetch timeout is distinct from an explicit user cancellation', async ()
   controller.abort()
   await assert.rejects(client.searchKnowledge('space', '检索问题', 5, controller.signal), { code: 'REQUEST_ABORTED' })
 })
+
+
+test('real rerank strategy reaches diagnostic owner answer and frozen evaluation', async () => {
+  const calls=[]
+  const {client}=loadClient(async options=>{calls.push(options);return {statusCode:201,data:{answer:'响应',run_id:'actual'}}})
+  await client.searchKnowledge('space','问题',5,undefined,'hybrid_rerank')
+  await client.streamOwnerAnswer('conversation','问题',()=>{},undefined,'hybrid_rerank')
+  await client.enqueueEvaluation('space','hybrid_rerank')
+  assert.equal(calls[0].data.strategy,'hybrid_rerank')
+  assert.equal(calls[1].data.strategy,'hybrid_rerank')
+  assert.ok(calls[2].url.endsWith('strategy=hybrid_rerank'))
+})

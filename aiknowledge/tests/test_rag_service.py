@@ -323,3 +323,15 @@ async def test_reranker_is_an_explicit_replaceable_stage_and_noop_preserves_orde
         "first",
         "second",
     ]
+
+
+@pytest.mark.asyncio
+async def test_neural_logits_keep_model_order_and_do_not_use_cosine_threshold():
+    reranker=ReverseReranker()
+    llm=FakeLlmClient('{"status":"ANSWERED","can_answer":true,"answer":"有依据。","citation_ids":["C1"]}')
+    service=EvidenceRagService(embedding_client=FakeEmbeddingClient(),llm_client=llm,
+        config=RetrievalConfig(top_k=2,minimum_evidence_score=.7),reranker=reranker)
+    answer=await service.answer_ranked('资料有哪些？',[
+        RankedSourceChunk(SourceChunk('b','b','模型第一条证据'),-1.,'cross_encoder'),
+        RankedSourceChunk(SourceChunk('a','a','模型第二条证据'),-2.,'cross_encoder')])
+    assert answer.execution_snapshot['context_chunk_ids']==['b','a'] and not reranker.calls

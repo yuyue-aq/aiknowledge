@@ -1,0 +1,502 @@
+{
+  "notes": "同一固定500题与活动资料版本；模型辅助评分，同源偏差仍存在。未作为生产性能或普遍准确率保证。",
+  "new_summary": {
+    "total": 500,
+    "complete": 494,
+    "partial": 4,
+    "incorrect": 2,
+    "strict_pass_rate": 0.988,
+    "by_kind": {
+      "事实": {
+        "total": 81,
+        "complete": 81,
+        "partial": 0,
+        "incorrect": 0,
+        "strict_pass_rate": 1.0
+      },
+      "拒答": {
+        "total": 50,
+        "complete": 50,
+        "partial": 0,
+        "incorrect": 0,
+        "strict_pass_rate": 1.0
+      },
+      "综合": {
+        "total": 194,
+        "complete": 190,
+        "partial": 4,
+        "incorrect": 0,
+        "strict_pass_rate": 0.979381443298969
+      },
+      "计算": {
+        "total": 100,
+        "complete": 100,
+        "partial": 0,
+        "incorrect": 0,
+        "strict_pass_rate": 1.0
+      },
+      "追问": {
+        "total": 75,
+        "complete": 73,
+        "partial": 0,
+        "incorrect": 2,
+        "strict_pass_rate": 0.9733333333333334
+      }
+    },
+    "by_format": {
+      "pdf": {
+        "total": 167,
+        "complete": 166,
+        "partial": 0,
+        "incorrect": 1,
+        "strict_pass_rate": 0.9940119760479041
+      },
+      "md": {
+        "total": 167,
+        "complete": 163,
+        "partial": 4,
+        "incorrect": 0,
+        "strict_pass_rate": 0.9760479041916168
+      },
+      "txt": {
+        "total": 166,
+        "complete": 165,
+        "partial": 0,
+        "incorrect": 1,
+        "strict_pass_rate": 0.9939759036144579
+      }
+    },
+    "negative_refusal_status_correct": 50,
+    "citation_source_checks": 891,
+    "source_integrity": "PASSED",
+    "input_tokens": 1275107,
+    "output_tokens": 55072,
+    "product_actions": 575,
+    "prompt_versions": [
+      "rag-prompt-v2-multitask-assumptions"
+    ],
+    "grader_usage": {
+      "input_tokens": 506476,
+      "output_tokens": 18268,
+      "calls": 228,
+      "model": "deepseek-flash"
+    },
+    "assistant_overrides": 0,
+    "latency_p50_seconds": 27.621000000000002,
+    "latency_p95_seconds": 30.569,
+    "latency_max_seconds": 33.36,
+    "target_met": true,
+    "model_input_checks": 575,
+    "service_failures": 0,
+    "raw_complete": 494,
+    "same_b_sources": true
+  },
+  "comparisons": {
+    "dense": {
+      "baseline_summary": {
+        "total": 500,
+        "complete": 488,
+        "partial": 8,
+        "incorrect": 4,
+        "strict_pass_rate": 0.976,
+        "by_kind": {
+          "事实": {
+            "total": 81,
+            "complete": 81,
+            "partial": 0,
+            "incorrect": 0,
+            "strict_pass_rate": 1.0
+          },
+          "拒答": {
+            "total": 50,
+            "complete": 50,
+            "partial": 0,
+            "incorrect": 0,
+            "strict_pass_rate": 1.0
+          },
+          "综合": {
+            "total": 194,
+            "complete": 185,
+            "partial": 8,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9536082474226805
+          },
+          "计算": {
+            "total": 100,
+            "complete": 100,
+            "partial": 0,
+            "incorrect": 0,
+            "strict_pass_rate": 1.0
+          },
+          "追问": {
+            "total": 75,
+            "complete": 72,
+            "partial": 0,
+            "incorrect": 3,
+            "strict_pass_rate": 0.96
+          }
+        },
+        "by_format": {
+          "pdf": {
+            "total": 167,
+            "complete": 166,
+            "partial": 0,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9940119760479041
+          },
+          "md": {
+            "total": 167,
+            "complete": 157,
+            "partial": 8,
+            "incorrect": 2,
+            "strict_pass_rate": 0.9401197604790419
+          },
+          "txt": {
+            "total": 166,
+            "complete": 165,
+            "partial": 0,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9939759036144579
+          }
+        },
+        "negative_refusal_status_correct": 50,
+        "citation_source_checks": 905,
+        "source_integrity": "PASSED",
+        "input_tokens": 1612119,
+        "output_tokens": 69060,
+        "product_actions": 575,
+        "prompt_versions": [
+          "rag-prompt-v2-multitask-assumptions"
+        ],
+        "grader_usage": {
+          "input_tokens": 225206,
+          "output_tokens": 16040,
+          "calls": 77,
+          "model": "deepseek-flash"
+        },
+        "assistant_overrides": 1,
+        "latency_p50_seconds": 4.1495,
+        "latency_p95_seconds": 14.684,
+        "latency_max_seconds": 17.192,
+        "target_met": true
+      },
+      "became_complete": [
+        "T083",
+        "T104",
+        "T128",
+        "T146",
+        "T200",
+        "T209",
+        "T221",
+        "T230",
+        "T269",
+        "T428"
+      ],
+      "lost_complete": [
+        "T176",
+        "T191",
+        "T212",
+        "T245"
+      ],
+      "score_changes": [
+        {
+          "id": "T083",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第1、3项正确，但第2项错误：资料明确记录项目A的Embedding模型为BAAI/bge-large-zh-v1.5，回答却称未记录。",
+          "after_reason": "三项均正确完整：青禾软件工作室（虚构）、BAAI/bge-large-zh-v1.5、停用后不能继续使用。"
+        },
+        {
+          "id": "T104",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第2、3项正确，但第1项错误：资料明确记载Redis用于热点库存查询缓存、不承担最终库存一致性判断，回答却称未提供。",
+          "after_reason": "三项均正确完整：Redis为热点库存查询缓存且不承担最终一致性判断；团队空间一个拥有者、多个管理员；试用期14天、保留30天，并说明为版本1.0测试事实。"
+        },
+        {
+          "id": "T128",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第1项错误拒答，资料明确项目A接受PDF、Markdown、TXT；第2、3项正确。",
+          "after_reason": "三项均完整正确：文件格式、团队管理员权限、14天与30天及虚构测试事实说明均准确。"
+        },
+        {
+          "id": "T146",
+          "before": 1,
+          "after": 2,
+          "before_reason": "前两项正确，但第三项遗漏了资料中明确记录的“数据库事务与行级锁”并发控制方案，错误称资料未提供。",
+          "after_reason": "三项均正确完整：Embedding模型BAAI/bge-large-zh-v1.5、向量维度1024、项目B用数据库事务与行级锁控制并发出库，且未增加无依据事实。"
+        },
+        {
+          "id": "T176",
+          "before": 2,
+          "after": 1,
+          "before_reason": "三项均正确完整：项目A 2026年3月至6月、项目B 2026年7月至9月、项目B业务为入库出库库存查询操作审计；附加未实现内容不违反要求。",
+          "after_reason": "项目A起止年月和项目B业务正确，但项目B开发起止年月资料明确为2026年7月至2026年9月，回答却称未提供，遗漏必答事实。"
+        },
+        {
+          "id": "T191",
+          "before": 2,
+          "after": 1,
+          "before_reason": "三项均正确：更新时间2026-10-03、pgvector保存向量、P95为预热后1.8秒且不含模型冷启动与答案生成。",
+          "after_reason": "第2、3项正确，但第1项档案更新时间应为2026-10-03，回答错误称资料未提供。"
+        },
+        {
+          "id": "T200",
+          "before": 1,
+          "after": 2,
+          "before_reason": "项目B后端与公开问答资料范围正确，但当前城市应为南京，回答错误称资料未提供。",
+          "after_reason": "三项均正确完整：南京；项目B后端Python、FastAPI、PostgreSQL、Redis；公开问答限分享范围内已授权且已启用资料，并正确补充私密资料不得返回。"
+        },
+        {
+          "id": "T209",
+          "before": 0,
+          "after": 2,
+          "before_reason": "第1项错误：资料明确项目A使用余弦相似度，回答却称未提供，属主要事实错误。",
+          "after_reason": "三项均正确完整：余弦相似度；团队管理员管理资料、查看原文引用、检索测试、管理评测；14天与30天并说明虚构测试事实。"
+        },
+        {
+          "id": "T212",
+          "before": 2,
+          "after": 1,
+          "before_reason": "三项均正确完整：江宁信息学院（虚构）、约160秒与60秒、项目B四项后端测试。",
+          "after_reason": "第1、2项正确，但第3项遗漏了资料明确记录的项目B后端测试：重复请求、库存不足、事务回滚与并发出库，错误称资料未提供。"
+        },
+        {
+          "id": "T221",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第2项遗漏“数据库事务与行级锁”这一必答事实，仅称未记录，属主要事实遗漏。",
+          "after_reason": "三项均正确完整：Markdown按标题分段、项目B用数据库事务与行级锁、上传新版本以已生效新版本为依据。"
+        },
+        {
+          "id": "T230",
+          "before": 1,
+          "after": 2,
+          "before_reason": "库存非负整数和停用后不能继续使用正确；并发出库控制答成幂等键与回滚，遗漏核心的数据库事务与行级锁。",
+          "after_reason": "三项均正确完整：非负整数、数据库事务与行级锁、停用后不得继续使用。"
+        },
+        {
+          "id": "T245",
+          "before": 2,
+          "after": 1,
+          "before_reason": "三项均正确完整：本科、江宁信息学院（虚构）、版本1.0。",
+          "after_reason": "最高学历和版本正确，但学校名称资料已明确为江宁信息学院，回答却称未提供，遗漏必答事实。"
+        },
+        {
+          "id": "T269",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第1、3项正确；第2项错误，资料明确记载Redis用于热点库存查询缓存、不承担最终库存一致性判断，却答资料未记录。",
+          "after_reason": "三项均正确完整：入学毕业年月、Redis职责边界、撤销链接后不能提问。"
+        },
+        {
+          "id": "T428",
+          "before": 0,
+          "after": 2,
+          "before_reason": "问题问第三个先按什么分段，应为TXT空行；回答错误地说第三个是PDF按段落切分。",
+          "after_reason": "正确指出第三个TXT先按空行分段，符合资料与顺序要求。"
+        }
+      ]
+    },
+    "hybrid": {
+      "baseline_summary": {
+        "total": 500,
+        "complete": 485,
+        "partial": 8,
+        "incorrect": 7,
+        "strict_pass_rate": 0.97,
+        "by_kind": {
+          "事实": {
+            "total": 81,
+            "complete": 80,
+            "partial": 0,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9876543209876543
+          },
+          "拒答": {
+            "total": 50,
+            "complete": 50,
+            "partial": 0,
+            "incorrect": 0,
+            "strict_pass_rate": 1.0
+          },
+          "综合": {
+            "total": 194,
+            "complete": 183,
+            "partial": 8,
+            "incorrect": 3,
+            "strict_pass_rate": 0.9432989690721649
+          },
+          "计算": {
+            "total": 100,
+            "complete": 100,
+            "partial": 0,
+            "incorrect": 0,
+            "strict_pass_rate": 1.0
+          },
+          "追问": {
+            "total": 75,
+            "complete": 72,
+            "partial": 0,
+            "incorrect": 3,
+            "strict_pass_rate": 0.96
+          }
+        },
+        "by_format": {
+          "pdf": {
+            "total": 167,
+            "complete": 165,
+            "partial": 1,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9880239520958084
+          },
+          "md": {
+            "total": 167,
+            "complete": 155,
+            "partial": 7,
+            "incorrect": 5,
+            "strict_pass_rate": 0.9281437125748503
+          },
+          "txt": {
+            "total": 166,
+            "complete": 165,
+            "partial": 0,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9939759036144579
+          }
+        },
+        "negative_refusal_status_correct": 50,
+        "citation_source_checks": 889,
+        "source_integrity": "PASSED",
+        "input_tokens": 1275004,
+        "output_tokens": 53574,
+        "product_actions": 575,
+        "prompt_versions": [
+          "rag-prompt-v2-multitask-assumptions"
+        ],
+        "grader_usage": {
+          "input_tokens": 200759,
+          "output_tokens": 15701,
+          "calls": 63,
+          "model": "deepseek-flash"
+        },
+        "assistant_overrides": 0,
+        "latency_p50_seconds": 3.3235,
+        "latency_p95_seconds": 4.587,
+        "latency_max_seconds": 20.06,
+        "target_met": true
+      },
+      "became_complete": [
+        "T053",
+        "T086",
+        "T098",
+        "T101",
+        "T113",
+        "T146",
+        "T164",
+        "T169",
+        "T257",
+        "T269",
+        "T428"
+      ],
+      "lost_complete": [
+        "T176",
+        "T191"
+      ],
+      "score_changes": [
+        {
+          "id": "T053",
+          "before": 0,
+          "after": 2,
+          "before_reason": "资料明确记录团队共3人，回答却称未记录，属有资料却拒答。",
+          "after_reason": "正确回答项目B团队共3人，事实完整准确。"
+        },
+        {
+          "id": "T086",
+          "before": 1,
+          "after": 2,
+          "before_reason": "幂等键与团队空间数量规则正确，但档案编号应为RAG-DEMO-001，回答误答为未提供该字段并只列项目编号。",
+          "after_reason": "三项均正确完整：档案编号RAG-DEMO-001、幂等键识别与不重复扣减、一个拥有者多个管理员。"
+        },
+        {
+          "id": "T098",
+          "before": 0,
+          "after": 2,
+          "before_reason": "第1项学位应为工学学士，资料明确记录，却错误回答资料未提供；主要事实错误。",
+          "after_reason": "三项均正确完整：工学学士、证据不足明确拒答不补造、14天与30天并说明为虚构测试事实且与真实套餐无关。"
+        },
+        {
+          "id": "T101",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第1、2项正确，但第3项遗漏项目B编号PRJ-B，错误称资料未记录。",
+          "after_reason": "三项均正确完整：全部虚构仅供验收、Docker Compose、仓流库存管理/PRJ-B。"
+        },
+        {
+          "id": "T113",
+          "before": 1,
+          "after": 2,
+          "before_reason": "岗位与未实现业务正确，但并发控制方案答成幂等键与回滚，遗漏核心的数据库事务与行级锁。",
+          "after_reason": "三项均正确完整：实习岗位为后端开发实习生；项目B并发控制为数据库事务与行级锁；未实现支付、配送、财务对账、跨仓库调拨。"
+        },
+        {
+          "id": "T146",
+          "before": 1,
+          "after": 2,
+          "before_reason": "Embedding模型和1024维正确，但并发控制答成幂等键，遗漏核心的数据库事务与行级锁。",
+          "after_reason": "三项均正确完整：Embedding模型BAAI/bge-large-zh-v1.5、向量维度1024、项目B用数据库事务与行级锁控制并发出库，且未增加无依据事实。"
+        },
+        {
+          "id": "T164",
+          "before": 0,
+          "after": 2,
+          "before_reason": "第一项错误：资料明确记载获得工学学士学位，回答却称资料未提供，属有资料却拒答。",
+          "after_reason": "三项均正确完整：工学学士、PDF保留页码后按段落切分、个人空间仅由拥有者管理。"
+        },
+        {
+          "id": "T169",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第1项正确；第2项核心业务（入库、出库、库存查询、操作审计）正确，但额外加入库存规则、并发方案等非“已实现业务”内容，超出范围。",
+          "after_reason": "两项均正确：项目A Redis管理异步任务；项目B业务为商品入库、出库、库存查询与操作审计，附加未实现范围不违反要求。"
+        },
+        {
+          "id": "T176",
+          "before": 2,
+          "after": 1,
+          "before_reason": "项目A、B起止年月及项目B业务范围均正确完整。",
+          "after_reason": "项目A起止年月和项目B业务正确，但项目B开发起止年月资料明确为2026年7月至2026年9月，回答却称未提供，遗漏必答事实。"
+        },
+        {
+          "id": "T191",
+          "before": 2,
+          "after": 1,
+          "before_reason": "三项均正确：2026-10-03；pgvector保存向量；P95为1.8秒且不含模型冷启动与答案生成。",
+          "after_reason": "第2、3项正确，但第1项档案更新时间应为2026-10-03，回答错误称资料未提供。"
+        },
+        {
+          "id": "T257",
+          "before": 1,
+          "after": 2,
+          "before_reason": "pgvector保存向量和排序前过滤空间与资料状态正确，但学校名称资料已提供为江宁信息学院，回答称未提供，遗漏主要事实。",
+          "after_reason": "三项均正确完整：江宁信息学院（虚构）、pgvector保存向量、排序前限定空间与资料状态。"
+        },
+        {
+          "id": "T269",
+          "before": 0,
+          "after": 2,
+          "before_reason": "第1项错误：资料明确记载2021年9月至2025年6月就读，回答却称未提供；其余两项正确但主要事实错误。",
+          "after_reason": "三项均正确完整：入学毕业年月、Redis职责边界、撤销链接后不能提问。"
+        },
+        {
+          "id": "T428",
+          "before": 0,
+          "after": 2,
+          "before_reason": "第三个应为TXT先按空行分段，回答错误地说第三个是PDF。",
+          "after_reason": "正确指出第三个TXT先按空行分段，符合资料与顺序要求。"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "Real pinned model before/after scores and ranks",
+    "Current source readable",
+    "Clear and empty validation",
+    "Controlled model error and real retry",
+    "Changing mode clears stale reranking",
+    "390px stacked panels and reachable source",
+    "Model generation handoff, busy mode lock and Dense restore",
+    "Evaluation model strategy selectable"
+  ],
+  "browser": "real Edge",
+  "mocked_success": false,
+  "controlled_failure": "HTTP503 and delayed forwarding"
+}

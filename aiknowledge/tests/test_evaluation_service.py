@@ -399,3 +399,26 @@ async def test_explicit_hybrid_eval_snapshot_is_used_by_worker_not_current_defau
     assert detail.run.status is EvalRunStatus.COMPLETED
     assert received[0]['strategy']=='hybrid'
     with pytest.raises(ValueError):await service.enqueue_run(space_id=repo.space_id,strategy='unknown')
+
+
+@pytest.mark.asyncio
+async def test_unused_reranker_configuration_does_not_invalidate_dense_eval():
+    service,repo,_=build_service()
+    await service.create_case(space_id=repo.space_id,question='固定问题',expected_answer=None,
+        expected_document_ids=(),scope=EvalScope.OWNER,category_ids=())
+    run=await service.enqueue_run(space_id=repo.space_id)
+    service._run_snapshot['reranker_config']={'revision':'new-model'}
+    detail=await service.execute_pending(run.id)
+    assert detail.run.status is EvalRunStatus.COMPLETED
+
+
+@pytest.mark.asyncio
+async def test_reranker_revision_change_invalidates_only_rerank_eval():
+    service,repo,runner=build_service()
+    service._run_snapshot['reranker_config']={'revision':'first'}
+    await service.create_case(space_id=repo.space_id,question='固定问题',expected_answer=None,
+        expected_document_ids=(),scope=EvalScope.OWNER,category_ids=())
+    run=await service.enqueue_run(space_id=repo.space_id,strategy='hybrid_rerank')
+    service._run_snapshot['reranker_config']={'revision':'second'}
+    detail=await service.execute_pending(run.id)
+    assert detail.run.status is EvalRunStatus.FAILED and detail.run.failure_code=='EVAL_CONFIG_MISMATCH'

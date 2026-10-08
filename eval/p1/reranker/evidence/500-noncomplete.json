@@ -1,0 +1,204 @@
+[
+  {
+    "id": "T176",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A起止年月是什么；2）项目B开发起止年月是什么；3）项目B已实现哪些业务。",
+    "expected_answer": "2026年3月至2026年6月；2026年7月至2026年9月；商品入库、出库、库存查询、操作审计",
+    "response": {
+      "message_id": "f8fe7fd7-678a-44c8-b47c-63e6af3e5696",
+      "status": "ANSWERED",
+      "answer": "1）项目A（知舟私有知识库）的开发时间为2026年3月至2026年6月。2）资料未提供项目B的开发起止年月。3）项目B（仓流库存管理）面向虚构的晨星文具仓库，已实现的业务包括商品入库、出库、库存查询与操作审计。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "项目名称：知舟私有知识库。项目编号：PRJ-A。开发时间：2026 年 3 月至 2026 年 6 月。林知远担任独立开发者，负责需求分析、前后端实现、测试与部署。",
+          "page_number": null,
+          "ordinal": 8,
+          "score": -6.034153
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "项目面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计。后端采用 Python、FastAPI、PostgreSQL 和 Redis；前端由另一位成员使用 Vue 开发。项目 B 没有使用 pgvector，也没有使用 Embedding 或 RAG。",
+          "page_number": null,
+          "ordinal": 16,
+          "score": -3.984544
+        }
+      ]
+    },
+    "review": {
+      "score": 1,
+      "reason": "项目A起止年月和项目B业务正确，但项目B开发起止年月资料明确为2026年7月至2026年9月，回答却称未提供，遗漏必答事实。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T191",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案更新时间是哪天；2）项目A的pgvector保存什么；3）示例检索P95是什么且排除了什么。",
+    "expected_answer": "2026-10-03；向量；预热后1.8秒，不含模型冷启动与答案生成",
+    "response": {
+      "message_id": "ede5af79-daf0-4145-9843-f842cc3cbec7",
+      "status": "ANSWERED",
+      "answer": "1）档案更新时间：资料未提供相关信息。2）项目A的pgvector保存向量。3）示例检索P95耗时为1.8秒，该指标不包括模型冷启动和答案生成。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "本资料没有记录林知远的工资、英语考试分数、具体家庭住址或项目 A 的真实公网地址。也没有记录 2027 年发生的项目、在其他公司任职的情况或项目 B 的 AI 模型供应商。",
+          "page_number": null,
+          "ordinal": 26,
+          "score": -5.19409
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "项目服务于个人学习资料整理，支持上传 PDF、Markdown 和 TXT 后进行有依据问答。后端采用 Python 与 FastAPI，前端采用 React 与 TypeScript；PostgreSQL 保存业务数据，pgvector 保存向量，Redis 管理异步任务，Docker Compose 用于本地部署。",
+          "page_number": null,
+          "ordinal": 9,
+          "score": -1.179596
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "在虚构的 50 道测试题和 200 份中文文档上，Recall@5 为 0.86。模型预热后，单次检索 P95 耗时为 1.8 秒；该指标不包括模型冷启动和答案生成。人工答案正确率为 0.90。这些指标仅是本测试资料中的示例数据，并非当前知溯系统的测量结果。",
+          "page_number": null,
+          "ordinal": 13,
+          "score": 0.369157
+        }
+      ]
+    },
+    "review": {
+      "score": 1,
+      "reason": "第2、3项正确，但第1项档案更新时间应为2026-10-03，回答错误称资料未提供。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T212",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）学校名称是什么；2）示例首次模型加载和前端等待上限是多少；3）项目B有哪些后端测试。",
+    "expected_answer": "江宁信息学院，虚构学校；约160秒、60秒；重复请求、库存不足、事务回滚、并发出库",
+    "response": {
+      "message_id": "06d6f247-ff14-4304-9e3a-a0fa3467fffc",
+      "status": "ANSWERED",
+      "answer": "1）学校名称：林知远就读于虚构的江宁信息学院（2021年9月至2025年6月，软件工程专业，获工学学士学位）。2）示例首次模型加载和前端等待上限：首次模型加载曾耗时约160秒，超过前端60秒等待上限。3）项目B的后端测试：资料未提供相关信息。证据中项目B（仓流库存管理）仅记录了业务范围与技术栈（面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计；后端采用Python、FastAPI、PostgreSQL和Redis；前端由另一位成员使用Vue开发；未使用pgvector、Embedding或RAG），未记录其后端测试内容。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "2021 年 9 月至 2025 年 6 月，林知远就读于虚构的江宁信息学院，专业为软件工程，获得工学学士学位。毕业设计为“课程资料检索助手”。",
+          "page_number": null,
+          "ordinal": 4,
+          "score": -5.980333
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "首次模型加载曾耗时约 160 秒，超过前端 60 秒等待上限。林知远为检索请求设置单独的等待时间，并区分超时与普通网络错误。另通过过滤停用资料，防止检索继续返回旧内容。",
+          "page_number": null,
+          "ordinal": 14,
+          "score": 0.795289
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "项目面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计。后端采用 Python、FastAPI、PostgreSQL 和 Redis；前端由另一位成员使用 Vue 开发。项目 B 没有使用 pgvector，也没有使用 Embedding 或 RAG。",
+          "page_number": null,
+          "ordinal": 16,
+          "score": -3.720967
+        }
+      ]
+    },
+    "review": {
+      "score": 1,
+      "reason": "第1、2项正确，但第3项遗漏了资料明确记录的项目B后端测试：重复请求、库存不足、事务回滚与并发出库，错误称资料未提供。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T245",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他的最高学历是什么；2）学校名称是什么；3）档案版本是什么。",
+    "expected_answer": "本科；江宁信息学院，虚构学校；1.0",
+    "response": {
+      "message_id": "ed466b20-6078-4ae5-a787-9fe4c382cbbf",
+      "status": "ANSWERED",
+      "answer": "1）最高学历：本科（证据 C2）。2）学校名称：资料未提供相关信息（证据 C2、C9 均未记录学校名称）。3）档案版本：1.0（证据 C1、C7）。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "姓名：林知远。求职方向：Python 后端开发与 RAG 应用开发。当前所在地：南京。最高学历：本科。该资料未提供手机号、邮箱、身份证号、薪资、家庭信息或真实联系方式。",
+          "page_number": null,
+          "ordinal": 3,
+          "score": -1.73875
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "本资料中的人物、学校、公司、项目与指标均为虚构，仅用于知识库功能验收。资料编号：RAG-DEMO-001。版本：1.0。更新时间：2026-10-03。",
+          "page_number": null,
+          "ordinal": 2,
+          "score": -1.504179
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "虚构测试资料 | RAG-DEMO-001 | 版本 1.0 | 更新于 2026-10-03",
+          "page_number": null,
+          "ordinal": 1,
+          "score": -3.960791
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "本资料没有记录林知远的工资、英语考试分数、具体家庭住址或项目 A 的真实公网地址。也没有记录 2027 年发生的项目、在其他公司任职的情况或项目 B 的 AI 模型供应商。",
+          "page_number": null,
+          "ordinal": 26,
+          "score": -4.112152
+        }
+      ]
+    },
+    "review": {
+      "score": 1,
+      "reason": "最高学历和版本正确，但学校名称资料已明确为江宁信息学院，回答却称未提供，遗漏必答事实。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T420",
+    "question": "接着上一问，那访客证据必须符合哪三条件？",
+    "expected_answer": "分享范围内、已授权、已启用",
+    "response": {
+      "message_id": "4c70cdc6-fef3-43aa-aced-f3375972257d",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "answer": "资料未提供相关信息。证据中仅说明公开问答只能使用分享范围内已授权且已启用的资料、私密资料不得通过公开链接返回、链接撤销后访客不能继续使用该链接提问，但没有记录“访客证据必须符合哪三条件”这一表述或对应的三项条件。",
+      "model": "deepseek-flash",
+      "citations": []
+    },
+    "review": {
+      "score": 0,
+      "reason": "资料明确给出公开问答需满足分享范围内、已授权、已启用三项条件，回答却以资料未提供为由拒答，属有资料却整体拒答。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T439",
+    "question": "接着上一问，这两个示例时间相差多久？",
+    "expected_answer": "约100秒，推算",
+    "response": {
+      "message_id": "bf5d3fc3-4275-472c-854a-d917a0d1663a",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "answer": "证据未提供可比较的两个示例时间，无法计算相差多久。",
+      "model": "deepseek-flash",
+      "citations": []
+    },
+    "review": {
+      "score": 0,
+      "reason": "资料明确给出首次模型加载约160秒和前端等待上限60秒，可推算相差约100秒；回答却称证据不足并拒答，主要事实缺失。",
+      "method": "model-assisted"
+    }
+  }
+]

@@ -205,7 +205,7 @@ class QuestionRequest(BaseModel):
 
     question: str = Field(min_length=1, max_length=2_000)
     stream: bool = False
-    strategy: Literal['dense','hybrid'] | None = None
+    strategy: Literal['dense','hybrid','hybrid_rerank'] | None = None
 
 
 class OwnerCitationResponse(BaseModel):

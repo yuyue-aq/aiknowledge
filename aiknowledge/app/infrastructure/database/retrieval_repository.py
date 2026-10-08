@@ -69,6 +69,9 @@ class SqlAlchemyRetrievalRepository:
         return {'document': SqlAlchemyDocumentRepository._to_document(document),
             'versions': [SqlAlchemyDocumentRepository._to_version(item) for item in versions], 'chunks': chunks}
 
+    async def commit(self):
+        await self._session.commit()
+
     async def add_run(self, run: RetrievalRun) -> None:
         self._session.add(RetrievalRunRecord(
             id=run.id, space_id=run.scope.space_id, user_id=run.scope.user_id,

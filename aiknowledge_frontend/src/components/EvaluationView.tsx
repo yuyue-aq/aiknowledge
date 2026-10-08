@@ -43,7 +43,7 @@ export function EvaluationView({ spaceId, categories, notify, initialQuestion = 
   const [runs, setRuns] = useState<EvalRun[]>([])
   const [versions, setVersions] = useState<EvalSetVersion[]>([])
   const [versionId, setVersionId] = useState('')
-  const [strategy,setStrategy]=useState<'dense' | 'hybrid'>('dense')
+  const [strategy,setStrategy]=useState<'dense' | 'hybrid' | 'hybrid_rerank'>('dense')
   const [versionLabel, setVersionLabel] = useState('')
   const [query, setQuery] = useState('')
   const [draft, setDraft] = useState<Draft>(() => initialQuestion ? { ...newDraft(), question: initialQuestion, expected_answer: initialAnswer } : restoredDraft(spaceId) || newDraft())
@@ -205,7 +205,7 @@ export function EvaluationView({ spaceId, categories, notify, initialQuestion = 
       <V2Heading title='质量自测' description='用固定问题验证资料与回答效果。' actions={<V2Button icon='plus' onClick={() => edit()}>添加测试题</V2Button>} />
       <div className='v2-row'><select data-v2-control aria-label='运行题集版本' value={versionId} onChange={event => setVersionId(event.target.value)} className='v2-compact-select'>
         <option value=''>当前题集 · {cases.length} 题</option>{versions.map(version => <option key={version.id} value={version.id}>v{version.version_number} · {version.label}</option>)}</select>
-        <select data-v2-control aria-label='评测检索方式' disabled={busy} className='v2-compact-select' value={strategy} onChange={event=>setStrategy(event.target.value as 'dense' | 'hybrid')}><option value='dense'>向量检索基线</option><option value='hybrid'>混合检索 · RRF</option></select>
+        <select data-v2-control aria-label='评测检索方式' disabled={busy} className='v2-compact-select' value={strategy} onChange={event=>setStrategy(event.target.value as 'dense' | 'hybrid' | 'hybrid_rerank')}><option value='dense'>向量检索基线</option><option value='hybrid'>混合检索 · RRF</option><option value='hybrid_rerank'>混合检索 + 模型重排</option></select>
         <V2Button kind='outline' disabled={busy || !(versionId ? versions.find(version => version.id === versionId)?.cases.length : cases.length)} onClick={() => void start()}>运行题集</V2Button>
         <V2Button kind='ghost' disabled={runs.length < 2} onClick={() => setPage('compare')}>基线与复测对比</V2Button></div>
       <div className='v2-row v2-between'><input data-v2-control aria-label='搜索测试问题' placeholder='搜索测试问题…' value={query} onChange={event => setQuery(event.target.value)} className='v2-search-input' />
@@ -266,7 +266,7 @@ export function EvaluationView({ spaceId, categories, notify, initialQuestion = 
 
     {page === 'run' && <>
       <V2Heading title='运行质量自测' description={activeRun ? `运行 ${new Date(activeRun.created_at).toLocaleString('zh-CN')}` : '题集与资料已冻结'} actions={<V2Button kind='outline' disabled={!detail?.results.length} onClick={() => setPage('grade')}>查看评分</V2Button>} />
-      <V2Panel><div className='v2-row v2-between'><h2>{activeRun?.status === 'COMPLETED' ? '运行完成' : activeRun?.status === 'FAILED' ? '运行未完成' : '正在检查题目'}</h2><small>保留已完成结果 · {activeRun?.retrieval_config_snapshot?.retrieval_strategy==='hybrid' ? '混合检索' : '向量检索'}</small></div>
+      <V2Panel><div className='v2-row v2-between'><h2>{activeRun?.status === 'COMPLETED' ? '运行完成' : activeRun?.status === 'FAILED' ? '运行未完成' : '正在检查题目'}</h2><small>保留已完成结果 · {activeRun?.retrieval_config_snapshot?.retrieval_strategy==='hybrid_rerank' ? '模型重排' : activeRun?.retrieval_config_snapshot?.retrieval_strategy==='hybrid' ? '混合检索' : '向量检索'}</small></div>
         <strong>已完成 {completed} / {total} 题</strong><div className='v2-progress' role='progressbar' aria-valuenow={completed} aria-valuemin={0} aria-valuemax={total || 1}><span style={{ width: `${total ? completed / total * 100 : 0}%` }} /></div>
         {activeRun?.failure_message && <V2Notice danger>{activeRun.failure_message}</V2Notice>}
         <div className='v2-row'><V2Button kind='outline' onClick={() => setPage('cases')}>返回题集</V2Button>

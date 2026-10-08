@@ -119,8 +119,8 @@ class EvidenceRagService:
 
         if not question.strip() or not chunks:
             return self._insufficient_evidence()
-        fused=all(item.score_kind=='rrf' for item in chunks)
-        if any(item.score_kind=='rrf' for item in chunks) and not fused:
+        fused=all(item.score_kind in ('rrf','cross_encoder') for item in chunks)
+        if len({item.score_kind for item in chunks})>1 and any(item.score_kind in ('rrf','cross_encoder') for item in chunks):
             raise ValueError('Mixed score kinds cannot share a context ranking')
         ordered_chunks = list(chunks) if fused else sorted(chunks, key=lambda item: item.score, reverse=True)
         reranked = ordered_chunks if fused else list(self._reranker.rerank(question, ordered_chunks))

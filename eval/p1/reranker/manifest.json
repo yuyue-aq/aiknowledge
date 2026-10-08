@@ -1,0 +1,16 @@
+{
+  "cases": 40,
+  "split": {
+    "tune": 24,
+    "holdout": 16
+  },
+  "gold_sha256": "04a76d174558968d942283b2f169d6f5d27c308adb86eb68f949ac75a17fd47f",
+  "material_sha256": {
+    "01-青岚规则.md": "d3aed5aff0a502bb550eb92ff0e41b38e2b712bd35fecc3cfc783d9dfa534293",
+    "02-星桥规则.md": "1b9a5781a6167c42f90756ad26cf1fb3407eb0af7043df087587dc35105f8e60",
+    "03-云栈规则.md": "9db22df802d9214f91fdad303b52638237ba890d67563ba941c0f0fcfafdfc89",
+    "04-禾川规则.md": "032f41a47f5fe32c45f0874e7e2da0da12fcbf7d53887fa04765547e14e17510"
+  },
+  "frozen_before_live_ranking": true,
+  "notes": "Chinese paraphrases, entity-specific hard negatives; unknown facts require generation refusal separately. Ranking metrics use explicit literal evidence, not semantic answer accuracy."
+}

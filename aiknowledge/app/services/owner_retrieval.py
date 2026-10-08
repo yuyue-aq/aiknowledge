@@ -9,6 +9,7 @@ from app.domain.retrieval import RetrievalError, RetrievalResult, RetrievalRun, 
 from app.services.retrieval import RetrievalService
 from app.services.bm25 import Bm25Retriever
 from app.services.hybrid_retrieval import HybridRetriever, branch_snapshot
+from app.services.reranked_retrieval import RerankedRetriever
 
 
 class OwnerRetrievalRepository(Protocol):
@@ -21,9 +22,10 @@ class OwnerRetrievalRepository(Protocol):
 
 
 class OwnerRetrievalService:
-    def __init__(self, *, repository: OwnerRetrievalRepository, retrieval: RetrievalService, model_name: str, bm25: Bm25Retriever | None = None):
+    def __init__(self, *, repository: OwnerRetrievalRepository, retrieval: RetrievalService, model_name: str, bm25: Bm25Retriever | None = None, reranker=None):
         self._repository, self._retrieval, self._model = repository, retrieval, model_name
         self._bm25=bm25 or Bm25Retriever()
+        self._reranker=reranker
 
     async def _scope(self, space_id: UUID, user_id: UUID) -> RetrievalScope:
         scope = await self._repository.resolve_owner_scope(space_id=space_id, user_id=user_id)
@@ -32,7 +34,7 @@ class OwnerRetrievalService:
         return scope
 
     async def search(self, *, space_id: UUID, user_id: UUID, question: str, top_k: int = 4, strategy: str = 'dense') -> tuple[RetrievalRun, RetrievalResult]:
-        if strategy not in ('dense','bm25','hybrid'):raise RetrievalError('RETRIEVAL_INPUT_INVALID','不支持的检索方式。',422)
+        if strategy not in ('dense','bm25','hybrid','hybrid_rerank'):raise RetrievalError('RETRIEVAL_INPUT_INVALID','不支持的检索方式。',422)
         if not isinstance(question,str) or not question.strip() or len(question.strip())>2000:
             raise RetrievalError('RETRIEVAL_INPUT_INVALID','请输入1—2000字的问题。',422)
         if isinstance(top_k,bool) or not isinstance(top_k,int) or not 1<=top_k<=20:
@@ -43,7 +45,17 @@ class OwnerRetrievalService:
             return await self._repository.retrieve(scope=scope, embedding=vector, limit=limit)
 
         hybrid=HybridRetriever(self._retrieval,self._bm25)
-        if strategy=='hybrid':
+        if strategy=='hybrid_rerank':
+            async def corpus(limit):return await self._repository.keyword_corpus(scope=scope,limit=limit)
+            async def validate(items):
+                latest=await self._scope(space_id,user_id)
+                current=await self._repository.get_current_chunks(scope=latest,chunk_ids=tuple(item.id for item in items))
+                if not scope.same_access(latest) or {item.id for item in current}!={item.id for item in items}:
+                    raise RetrievalError('RETRIEVAL_SCOPE_CHANGED','资料范围已变化，请重新检索。',409)
+                release=getattr(self._repository,'commit',None)
+                if callable(release):await release()
+            result=await RerankedRetriever(hybrid,self._reranker).search(question=question,fetch=fetch,corpus=corpus,top_k=top_k,validate=validate)
+        elif strategy=='hybrid':
             async def corpus(limit):
                 return await self._repository.keyword_corpus(scope=scope,limit=limit)
             result=await hybrid.search(question=question,fetch=fetch,corpus=corpus,top_k=top_k)
@@ -65,6 +77,7 @@ class OwnerRetrievalService:
         run = RetrievalRun(uuid4(), scope, result.question, top_k, tuple(x.id for x in result.items),
                            tuple(x.score for x in result.items), result.timings_ms,
                            'bm25-zh-bigram-v1' if strategy=='bm25' else self._model, datetime.now(UTC),strategy,
+                           result.config_snapshot if strategy=='hybrid_rerank' else
                            {**hybrid.config,'branches':branch_snapshot(result)} if strategy=='hybrid' else
                            self._bm25.config if strategy=='bm25' else {'score_kind':'cosine'})
         await self._repository.add_run(run)

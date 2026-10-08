@@ -209,3 +209,25 @@ async def test_bm25_database_failure_has_safe_error_and_no_saved_result():
         await service(repo,encoder).search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='bm25')
     assert error.value.code=='RETRIEVAL_UNAVAILABLE'
     assert 'private' not in str(error.value) and not repo.runs
+
+
+@pytest.mark.asyncio
+async def test_owner_real_reranking_is_explicit_and_checks_scope_after_inference():
+    from app.infrastructure.reranking.bge import RerankResult
+    repo,encoder=Repository(),Encoder()
+    class Scorer:
+        config={'revision':'pinned-test'}
+        async def rerank(self,q,items):
+            return RerankResult(tuple(replace(x,score=2.,score_kind='cross_encoder',rerank_rank=i,
+                fusion_score=x.score) for i,x in enumerate(items,1)),self.config,(),{'inference':1.})
+    app=OwnerRetrievalService(repository=repo,retrieval=RetrievalService(encoder,expected_dimension=3,maximum_k=50),model_name='bge',reranker=Scorer())
+    run,result=await app.search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='hybrid_rerank')
+    assert run.strategy=='hybrid_rerank' and result.items[0].score_kind=='cross_encoder'
+    assert 'fusion' in run.config_snapshot['branches']
+    class Changed(Scorer):
+        async def rerank(self,q,items):
+            result=await super().rerank(q,items);repo.scope=replace(repo.scope,knowledge_revision=99);return result
+    app._reranker=Changed()
+    with pytest.raises(RetrievalError) as error:
+        await app.search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='hybrid_rerank')
+    assert error.value.code=='RETRIEVAL_SCOPE_CHANGED' and len(repo.runs)==1

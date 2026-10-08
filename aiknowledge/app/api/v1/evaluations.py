@@ -662,7 +662,7 @@ async def review_evaluation_result(
 
 
 @router.post('/spaces/{space_id}/eval-runs/async', status_code=202, response_model=EvalRunResponse)
-async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service), strategy: Literal['dense','hybrid'] | None = None):
+async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service), strategy: Literal['dense','hybrid','hybrid_rerank'] | None = None):
     try:
         run = await service.enqueue_run(space_id=space_id, owner_user_id=user.id, **({'strategy':strategy} if strategy else {}))
     except Exception as error:
@@ -672,7 +672,7 @@ async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_c
 
 
 @router.post('/eval-versions/{version_id}/runs/async', status_code=202, response_model=EvalRunResponse)
-async def enqueue_version(version_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service), strategy: Literal['dense','hybrid'] | None = None):
+async def enqueue_version(version_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service), strategy: Literal['dense','hybrid','hybrid_rerank'] | None = None):
     try:
         run = await service.enqueue_run(version_id=version_id, owner_user_id=user.id, **({'strategy':strategy} if strategy else {}))
     except Exception as error:

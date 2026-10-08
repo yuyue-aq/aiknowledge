@@ -26,6 +26,7 @@ from app.domain.spaces import PublicRetrievalScope
 from app.services.usage import UsageService
 from app.services.retrieval import RetrievalService
 from app.services.hybrid_retrieval import HybridRetriever, branch_snapshot
+from app.services.reranked_retrieval import RerankedRetriever
 from app.services.rag import PROMPT_VERSION
 from app.services.query_planning import complex_question
 
@@ -180,6 +181,7 @@ class ConversationService:
         question_rewriter: QuestionRewriterPort | None = None,
         history_limit: int = 6,
         retrieval_strategy: str = 'dense',
+        reranker=None,
         id_factory: Callable[[], UUID] = uuid4,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         usage_service: UsageService | None = None,
@@ -188,7 +190,7 @@ class ConversationService:
             raise ValueError("retrieval_candidate_limit must be positive")
         if history_limit < 0:
             raise ValueError("history_limit must not be negative")
-        if retrieval_strategy not in ('dense','hybrid'):raise ValueError('Invalid retrieval strategy')
+        if retrieval_strategy not in ('dense','hybrid','hybrid_rerank'):raise ValueError('Invalid retrieval strategy')
         self._strategy=retrieval_strategy
         self._repository = repository
         self._embedding_client = embedding_client
@@ -196,6 +198,7 @@ class ConversationService:
         self._retrieval = RetrievalService(embedding_client,
             expected_dimension=int(dimension) if dimension is not None else None, maximum_k=50)
         self._hybrid=HybridRetriever(self._retrieval)
+        self._reranker=reranker
         self._rag_service = rag_service
         self._retrieval_candidate_limit = retrieval_candidate_limit
         self._rag_snapshot = dict(rag_snapshot or {})
@@ -469,7 +472,7 @@ class ConversationService:
                 prompt_version=self._prompt_version,
                 rewritten_question=rewritten_question,
                 model_snapshot={**self._rag_snapshot,
-                    'reranker':'disabled-for-rrf' if (answer.execution_snapshot or {}).get('retrieval_strategy')=='hybrid' else self._rag_snapshot.get('reranker','lexical-dense-v1'),
+                    'reranker':(answer.execution_snapshot or {}).get('retrieval_config',{}).get('reranker',{}).get('model','disabled-for-rrf') if (answer.execution_snapshot or {}).get('retrieval_strategy') in ('hybrid','hybrid_rerank') else self._rag_snapshot.get('reranker','lexical-dense-v1'),
                     'execution_timings_ms':(answer.execution_snapshot or {}).get('timings_ms',{}),
                     'context_chunk_ids':(answer.execution_snapshot or {}).get('context_chunk_ids',[]),
                     'retrieved_chunks':(answer.execution_snapshot or {}).get('retrieved_chunks',[]),
@@ -516,8 +519,8 @@ class ConversationService:
         scope_check: Callable | None = None,
     ) -> tuple[RagAnswer, tuple[RetrievedChunk, ...]]:
         strategy=strategy or self._strategy
-        if strategy not in ('dense','hybrid'):raise ConversationQuestionError('不支持的检索方式。')
-        config=self._hybrid.config if strategy=='hybrid' else {'strategy':'dense','score_kind':'cosine'}
+        if strategy not in ('dense','hybrid','hybrid_rerank'):raise ConversationQuestionError('不支持的检索方式。')
+        config=(RerankedRetriever(self._hybrid,self._reranker).config if self._reranker is not None else {'strategy':'hybrid_rerank'}) if strategy=='hybrid_rerank' else self._hybrid.config if strategy=='hybrid' else {'strategy':'dense','score_kind':'cosine'}
         phase_started = perf_counter()
         if public_request and self._is_public_recovery_request(question):
             return (
@@ -536,7 +539,13 @@ class ConversationService:
         try:
             async def fetch(vector, limit):
                 return await retrieve(vector,limit)
-            if strategy=='hybrid':
+            if strategy=='hybrid_rerank':
+                async def validate(items):
+                    if scope_check is not None:await scope_check(items)
+                result=await RerankedRetriever(self._hybrid,self._reranker).search(question=question,fetch=fetch,corpus=corpus,
+                    top_k=self._retrieval_candidate_limit,validate=validate)
+                config=result.config_snapshot
+            elif strategy=='hybrid':
                 result=await self._hybrid.search(question=question,fetch=fetch,corpus=corpus,top_k=self._retrieval_candidate_limit)
                 config={**config,'branches':branch_snapshot(result)}
                 if scope_check is not None:
@@ -623,6 +632,7 @@ class ConversationService:
                 'rank': rank, 'score': item.score, 'score_kind':item.score_kind, 'content_hash': item.content_hash,
                 'dense_rank':item.dense_rank,'bm25_rank':item.bm25_rank,'fusion_rank':item.fusion_rank,
                 'dense_score':item.dense_score,'bm25_score':item.bm25_score,
+                'fusion_score':item.fusion_score,'rerank_rank':item.rerank_rank,'rerank_score':item.rerank_score,
                 'source_block_id': item.source_block_id, 'char_start': item.char_start, 'char_end': item.char_end,
             } for rank, item in enumerate(immutable_candidates, 1)],
         }

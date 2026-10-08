@@ -63,6 +63,7 @@ from app.infrastructure.storage.minio import MinioObjectStorage
 from app.services.rag import EvidenceRagService, RetrievalConfig, PROMPT_VERSION
 from app.services.retrieval import RetrievalService
 from app.services.owner_retrieval import OwnerRetrievalService
+from app.infrastructure.reranking.bge import BgeReranker
 from app.infrastructure.database.retrieval_repository import SqlAlchemyRetrievalRepository
 from app.services.conversations import ConversationService
 from app.services.public_access import PublicSessionCodec
@@ -235,6 +236,9 @@ def create_app(
             uploader=DocumentSourceUploader(app.state.document_service_factory(session)),
         )
     )
+    app.state.neural_reranker = BgeReranker(model_name=settings.reranker_model_path,revision=settings.reranker_revision,
+        batch_size=settings.reranker_batch_size,max_length=settings.reranker_max_length,
+        query_max_length=settings.reranker_query_max_length,timeout_seconds=settings.reranker_timeout_seconds)
     app.state.conversation_service_factory = conversation_service_factory or (
         lambda session: ConversationService(
             repository=SqlAlchemyConversationRepository(session),
@@ -242,6 +246,7 @@ def create_app(
             rag_service=app.state.rag_service,
             retrieval_candidate_limit=settings.retrieval_candidate_limit,
             retrieval_strategy=settings.retrieval_strategy,
+            reranker=app.state.neural_reranker,
             rag_snapshot={
                 "embedding_model": settings.bge_model_name,
                 "embedding_dimension": settings.bge_embedding_dimension,
@@ -285,6 +290,7 @@ def create_app(
             rag_service=app.state.rag_service,
             retrieval_candidate_limit=settings.retrieval_candidate_limit,
             retrieval_strategy=settings.retrieval_strategy,
+            reranker=app.state.neural_reranker,
             rag_snapshot={
                 "embedding_model": settings.bge_model_name,
                 "embedding_dimension": settings.bge_embedding_dimension,
@@ -309,6 +315,7 @@ def create_app(
                 "candidate_limit": settings.retrieval_candidate_limit,
                 "context_top_k": settings.retrieval_top_k,
                 "retrieval_strategy": settings.retrieval_strategy,
+                "reranker_config": app.state.neural_reranker.config,
             },
         )
 
@@ -342,6 +349,7 @@ def create_app(
         repository=SqlAlchemyRetrievalRepository(session),
         retrieval=RetrievalService(app.state.query_embedding_client, expected_dimension=settings.bge_embedding_dimension,maximum_k=50),
         model_name=settings.bge_model_name,
+        reranker=app.state.neural_reranker,
     ))
     app.include_router(retrieval_router, prefix='/api/v1')
     app.include_router(auth_router, prefix="/api/v1")

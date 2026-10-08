@@ -1,0 +1,11 @@
+{
+  "status": "PASSED",
+  "space_id": "888c6823-78df-42ec-9dee-04f9dedfba0f",
+  "checks": [
+    "Team administrator real model allowed",
+    "Downgraded member denied before private diagnostics",
+    "Expired content never enters any real model branch",
+    "Future-effective content never enters any real model branch",
+    "Inactive version removed; current version real model used and original fixture restored"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "status": "PASSED",
+  "space_id": "888c6823-78df-42ec-9dee-04f9dedfba0f",
+  "checks": [
+    "Saved three branch ranks and scores are identical",
+    "Disabled sources hidden in fused and both live/saved branches",
+    "Public hybrid answers open category facts",
+    "Closed-category secret is refused",
+    "Public DTO contains no raw source or ranks",
+    "Visitor diagnostics denied",
+    "Real queued Worker uses each frozen evaluation strategy"
+  ]
+}

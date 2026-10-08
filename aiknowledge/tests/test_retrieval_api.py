@@ -184,3 +184,19 @@ async def test_eval_evidence_uses_saved_ids_and_scores_and_marks_missing_sources
     assert response.status_code == 200
     assert response.json()['items'][0]['score'] == .87
     assert response.json()['unavailable_chunk_ids'] == [str(missing)]
+
+
+@pytest.mark.asyncio
+async def test_neural_rerank_api_separates_logit_from_fusion_score_and_keeps_before_lane():
+    service=Service();item=service.result.items[0]
+    service.run=replace(service.run,strategy='hybrid_rerank',scores=(-2.,),config_snapshot={'branches':{
+        'dense':[{'chunk_id':str(item.id),'rank':1,'score':.9}],
+        'bm25':[{'chunk_id':str(item.id),'rank':1,'score':2.}],
+        'fusion':[{'chunk_id':str(item.id),'rank':1,'score':2/61}]},'reranker':{'revision':'pinned'}})
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=make_app(service)),base_url='http://test') as client:
+        response=await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs',json={'question':'问题','strategy':'hybrid_rerank'})
+    assert response.status_code==201
+    data=response.json()
+    assert data['score_kind']=='cross_encoder' and data['items'][0]['rerank_score']==-2.
+    assert data['items'][0]['fusion_score']==2/61 and data['items'][0]['fusion_rank']==1
+    assert data['branches']['fusion'][0]['score_kind']=='rrf'

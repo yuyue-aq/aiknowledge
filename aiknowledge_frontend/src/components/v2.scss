@@ -101,3 +101,9 @@
 .v2-hybrid-grid .v2-evidence { margin-top: 14px; }
 .v2-hybrid-grid .v2-hybrid-excerpt { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; }
 @media (max-width: 760px) { .v2-hybrid-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.v2-rerank-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
+.v2-rerank-grid h2 { margin-top: 0; }
+.v2-rerank-grid .v2-evidence { margin-top: 14px; }
+.v2-rerank-grid .v2-rerank-excerpt { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; overflow: hidden; }
+@media (max-width: 760px) { .v2-rerank-grid { grid-template-columns: minmax(0, 1fr); } }

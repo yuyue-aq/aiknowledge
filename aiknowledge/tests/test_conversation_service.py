@@ -682,3 +682,23 @@ async def test_public_filename_usage_rule_is_not_treated_as_metadata_extraction(
     conversation=await service.create_public_conversation(scope=scope)
     answer=await service.ask_public(conversation_id=conversation.id,scope=scope,question='上传文件名有什么限制？')
     assert rag.calls and answer.assistant.answer_status is not AnswerStatus.OUT_OF_SCOPE
+
+
+@pytest.mark.asyncio
+async def test_conversation_reranker_and_diagnostics_share_pool_and_final_strategy():
+    from app.infrastructure.reranking.bge import RerankResult
+    service,repo,_,rag=build_service()
+    async def corpus(**kwargs):return repo.candidates
+    repo.keyword_corpus=corpus
+    class Scorer:
+        config={'revision':'pinned-test'}
+        async def rerank(self,q,items):
+            return RerankResult(tuple(replace(x,score=-1.,score_kind='cross_encoder',rerank_rank=n,
+                fusion_score=x.score) for n,x in enumerate(items,1)),self.config,(),{'inference':1.})
+    service._reranker=Scorer()
+    conversation=await service.create_owner_conversation(space_id=repo.space_id)
+    await service.ask_owner(conversation_id=conversation.id,question='开放分类',strategy='hybrid_rerank')
+    assert repo.owner_queries[0][2]==50
+    assert rag.calls[0][1][0].score_kind=='cross_encoder'
+    assert repo.rag_runs[0].retrieval_config_snapshot['strategy']=='hybrid_rerank'
+    assert repo.rag_runs[0].model_snapshot['retrieved_chunks'][0]['rerank_rank']==1

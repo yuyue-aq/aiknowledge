@@ -1,0 +1,268 @@
+{
+  "status": "PASSED",
+  "saved": {
+    "model_snapshot": {
+      "reranker": "BAAI/bge-reranker-v2-m3",
+      "chat_model": "deepseek-flash",
+      "embedding_model": "/models/bge-large-zh-v1.5",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "score": 4.222193241119385,
+          "char_end": 136,
+          "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107",
+          "bm25_rank": 1,
+          "bm25_score": 2.582656635186969,
+          "char_start": 0,
+          "dense_rank": 1,
+          "score_kind": "cross_encoder",
+          "dense_score": 0.5358327031135559,
+          "document_id": "6154cb84-0873-46c2-b4e9-61e724bfff89",
+          "fusion_rank": 1,
+          "rerank_rank": 1,
+          "content_hash": "29363a04dae8ca65c4bf62d3d9623bf6cce109d42779fd824e9a64b49db08a18",
+          "fusion_score": 0.03278688524590164,
+          "rerank_score": 4.222193241119385,
+          "source_block_id": "block-1",
+          "document_version_id": "f751c18e-aef6-466f-b68b-c75b0be418de"
+        },
+        {
+          "rank": 2,
+          "score": -7.739859104156494,
+          "char_end": 152,
+          "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5",
+          "bm25_rank": null,
+          "bm25_score": null,
+          "char_start": 0,
+          "dense_rank": 2,
+          "score_kind": "cross_encoder",
+          "dense_score": 0.3658516566930252,
+          "document_id": "a43f7927-e90a-438a-b56f-4025cff7c24a",
+          "fusion_rank": 2,
+          "rerank_rank": 2,
+          "content_hash": "8da875471be14de2786c4642a8a39b5e1c3606c87e4dbe67d5971293f3fad0b6",
+          "fusion_score": 0.016129032258064516,
+          "rerank_score": -7.739859104156494,
+          "source_block_id": "block-1",
+          "document_version_id": "79b3c0d4-0161-48eb-816e-621ddeba372d"
+        },
+        {
+          "rank": 3,
+          "score": -8.850591659545898,
+          "char_end": 121,
+          "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea",
+          "bm25_rank": null,
+          "bm25_score": null,
+          "char_start": 0,
+          "dense_rank": 3,
+          "score_kind": "cross_encoder",
+          "dense_score": 0.3569845344433472,
+          "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+          "fusion_rank": 3,
+          "rerank_rank": 3,
+          "content_hash": "91b0c7f8f1fd7e4f8f578279d529c71b904c8f30c588f412cdc93b4076ed8575",
+          "fusion_score": 0.015873015873015872,
+          "rerank_score": -8.850591659545898,
+          "source_block_id": "block-2",
+          "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6"
+        },
+        {
+          "rank": 4,
+          "score": -9.897796630859375,
+          "char_end": 31,
+          "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+          "bm25_rank": null,
+          "bm25_score": null,
+          "char_start": 0,
+          "dense_rank": 4,
+          "score_kind": "cross_encoder",
+          "dense_score": 0.26416801787925026,
+          "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+          "fusion_rank": 4,
+          "rerank_rank": 4,
+          "content_hash": "ccc99f606b7593fc4c577538094054a0f0b83f8af69294dd8c303a9869692dfc",
+          "fusion_score": 0.015625,
+          "rerank_score": -9.897796630859375,
+          "source_block_id": "block-1",
+          "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6"
+        }
+      ],
+      "context_chunk_ids": [
+        "830ea24e-9a40-4398-812e-eb590c286107",
+        "6b6adcb6-c649-4090-abbb-c726236b6be5",
+        "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea",
+        "0c3faf3c-0f83-454a-88cd-126aabdf558a"
+      ],
+      "retrieval_queries": [],
+      "embedding_dimension": 1024,
+      "execution_timings_ms": {
+        "total": 28092.12,
+        "corpus": 3.844,
+        "fusion": 0.141,
+        "search": 6.432,
+        "embedding": 266.281,
+        "reranking": 1795.227,
+        "generation": 580.507,
+        "bm25_ranking": 0.729,
+        "rerank_queue": 25402.276,
+        "query_planning": 0.0,
+        "retrieval_total": 27489.801
+      }
+    },
+    "retrieval_config_snapshot": {
+      "bm25": {
+        "b": 0.75,
+        "k1": 1.2,
+        "idf": "positive-log1p",
+        "analyzer": "zh-bigram-identifiers-v1",
+        "score_kind": "bm25",
+        "tf_scaling": "classic-k1-plus-one",
+        "statistics_scope": "authorized-live-chunks",
+        "max_corpus_chunks": 5000,
+        "max_corpus_characters": 2000000
+      },
+      "top_k": 4,
+      "branches": {
+        "bm25": [
+          {
+            "rank": 1,
+            "score": 2.582656635186969,
+            "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107"
+          }
+        ],
+        "dense": [
+          {
+            "rank": 1,
+            "score": 0.5358327031135559,
+            "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107"
+          },
+          {
+            "rank": 2,
+            "score": 0.3658516566930252,
+            "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5"
+          },
+          {
+            "rank": 3,
+            "score": 0.3569845344433472,
+            "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea"
+          },
+          {
+            "rank": 4,
+            "score": 0.26416801787925026,
+            "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a"
+          }
+        ],
+        "fusion": [
+          {
+            "rank": 1,
+            "score": 0.03278688524590164,
+            "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107"
+          },
+          {
+            "rank": 2,
+            "score": 0.016129032258064516,
+            "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5"
+          },
+          {
+            "rank": 3,
+            "score": 0.015873015873015872,
+            "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea"
+          },
+          {
+            "rank": 4,
+            "score": 0.015625,
+            "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a"
+          }
+        ]
+      },
+      "reranker": {
+        "model": "BAAI/bge-reranker-v2-m3",
+        "device": "cpu",
+        "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+        "use_fp16": false,
+        "normalize": false,
+        "batch_size": 4,
+        "max_length": 1024,
+        "score_kind": "cross_encoder",
+        "truncation": "reject",
+        "input_version": "heading-body-v1",
+        "candidate_limit": 50,
+        "timeout_seconds": 600.0,
+        "query_max_length": 512
+      },
+      "strategy": "hybrid_rerank",
+      "pool_size": 50,
+      "score_kind": "cross_encoder",
+      "rank_constant": 60,
+      "rerank_inputs": [
+        {
+          "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107",
+          "truncated": false,
+          "input_hash": "358edf7c4d0d047f18495996feb6f06371fb6bb6820cb4e301acbbf739fde7c5",
+          "pair_tokens": 107,
+          "query_tokens": 9,
+          "passage_tokens": 94
+        },
+        {
+          "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5",
+          "truncated": false,
+          "input_hash": "cbee24122945e91cf455ce44b5b187dc417e18a5a07e76c88dc634236d80146e",
+          "pair_tokens": 116,
+          "query_tokens": 9,
+          "passage_tokens": 103
+        },
+        {
+          "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea",
+          "truncated": false,
+          "input_hash": "55ee8dd79efee4b553f872a7670bf29f91633a9272b108170ede6319f74850dd",
+          "pair_tokens": 101,
+          "query_tokens": 9,
+          "passage_tokens": 88
+        },
+        {
+          "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+          "truncated": false,
+          "input_hash": "c94761b46936438a76f71eec263114689b524e80dc6f56556eeea684bed2b2f5",
+          "pair_tokens": 44,
+          "query_tokens": 9,
+          "passage_tokens": 31
+        }
+      ],
+      "branch_failure": "fail_closed",
+      "candidate_limit": 12,
+      "rank_window_size": 50,
+      "rerank_timings_ms": {
+        "queue": 25402.276,
+        "inference": 1795.227,
+        "model_load": 0.0
+      },
+      "minimum_evidence_score": null
+    }
+  },
+  "owner_answer": {
+    "message_id": "715c6f52-11f5-4ccf-94f2-da9907472bb7",
+    "status": "ANSWERED",
+    "answer": "遇到 SCOPE_CHANGED 时，应停止旧范围回答，重新查询当前分享范围后再提问。",
+    "model": "deepseek-flash",
+    "citations": [
+      {
+        "source_available": true,
+        "document_name": "01-公开范围.txt",
+        "quoted_text": "虚构测试资料：公开范围处理\n产品代号 PRJ-ORION。接口版本 v2.7.4。范围变化错误码 SCOPE_CHANGED。\n遇到 SCOPE_CHANGED，停止旧范围回答，重新查询当前分享范围后再提问。\n公开分类关闭后，不再读取该分类的资料。已停用的文档不参与检索。",
+        "page_number": null,
+        "ordinal": 1,
+        "score": 4.222193
+      }
+    ]
+  },
+  "public_filename_refusal": {
+    "message_id": "b326d788-1a31-493e-b4c7-fe210a059d51",
+    "status": "OUT_OF_SCOPE",
+    "answer": "公开访问仅提供开放分类内的归纳回答，不能输出或恢复原始资料。"
+  },
+  "public_naming_rule": {
+    "message_id": "984ed589-13c6-4479-ab25-31de5d18774c",
+    "status": "ANSWERED",
+    "answer": "上传文件名最长120字符。"
+  }
+}

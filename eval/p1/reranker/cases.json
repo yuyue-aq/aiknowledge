@@ -1,0 +1,322 @@
+[
+  {
+    "id": "C001",
+    "question": "青岚的访客能否拿到原始文件？",
+    "expected_document": "01-青岚规则.md",
+    "evidence_literal": "仅提供归纳回答，不允许下载原文件",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C002",
+    "question": "青岚测试版可以试用多少天？",
+    "expected_document": "01-青岚规则.md",
+    "evidence_literal": "17天",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C003",
+    "question": "青岚停用后资料保存多久？",
+    "expected_document": "01-青岚规则.md",
+    "evidence_literal": "45天",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C004",
+    "question": "青岚索引重建失败使用什么代码？",
+    "expected_document": "01-青岚规则.md",
+    "evidence_literal": "QD-741",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C005",
+    "question": "青岚谁负责批准范围变更？",
+    "expected_document": "01-青岚规则.md",
+    "evidence_literal": "高级协作者",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C006",
+    "question": "青岚怎样避免把同一次同步导入两遍？",
+    "expected_document": "01-青岚规则.md",
+    "evidence_literal": "重复标识不重复导入",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C007",
+    "question": "青岚关闭主题后，模型还能使用该主题资料回答新问题吗？",
+    "expected_document": "01-青岚规则.md",
+    "evidence_literal": "不能再进入新问题",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C008",
+    "question": "青岚文件太大时系统会自动只处理前半部分吗？",
+    "expected_document": "01-青岚规则.md",
+    "evidence_literal": "明确拒绝",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C009",
+    "question": "星桥的访客能否拿到原始文件？",
+    "expected_document": "02-星桥规则.md",
+    "evidence_literal": "仅内部管理员可下载原文件，访客不可下载",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C010",
+    "question": "星桥测试版可以试用多少天？",
+    "expected_document": "02-星桥规则.md",
+    "evidence_literal": "23天",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C011",
+    "question": "星桥停用后资料保存多久？",
+    "expected_document": "02-星桥规则.md",
+    "evidence_literal": "60天",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C012",
+    "question": "星桥索引重建失败使用什么代码？",
+    "expected_document": "02-星桥规则.md",
+    "evidence_literal": "ST-682",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C013",
+    "question": "星桥谁负责批准范围变更？",
+    "expected_document": "02-星桥规则.md",
+    "evidence_literal": "空间拥有者",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C014",
+    "question": "星桥怎样避免把同一次同步导入两遍？",
+    "expected_document": "02-星桥规则.md",
+    "evidence_literal": "重复标识不重复导入",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C015",
+    "question": "星桥关闭主题后，模型还能使用该主题资料回答新问题吗？",
+    "expected_document": "02-星桥规则.md",
+    "evidence_literal": "不能再进入新问题",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C016",
+    "question": "星桥文件太大时系统会自动只处理前半部分吗？",
+    "expected_document": "02-星桥规则.md",
+    "evidence_literal": "明确拒绝",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C017",
+    "question": "云栈的访客能否拿到原始文件？",
+    "expected_document": "03-云栈规则.md",
+    "evidence_literal": "内部签名下载链接10分钟有效，访客没有下载入口",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C018",
+    "question": "云栈测试版可以试用多少天？",
+    "expected_document": "03-云栈规则.md",
+    "evidence_literal": "31天",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C019",
+    "question": "云栈停用后资料保存多久？",
+    "expected_document": "03-云栈规则.md",
+    "evidence_literal": "90天",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C020",
+    "question": "云栈索引重建失败使用什么代码？",
+    "expected_document": "03-云栈规则.md",
+    "evidence_literal": "YZ-953",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C021",
+    "question": "云栈谁负责批准范围变更？",
+    "expected_document": "03-云栈规则.md",
+    "evidence_literal": "技术维护员",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C022",
+    "question": "云栈怎样避免把同一次同步导入两遍？",
+    "expected_document": "03-云栈规则.md",
+    "evidence_literal": "重复标识不重复导入",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C023",
+    "question": "云栈关闭主题后，模型还能使用该主题资料回答新问题吗？",
+    "expected_document": "03-云栈规则.md",
+    "evidence_literal": "不能再进入新问题",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C024",
+    "question": "云栈文件太大时系统会自动只处理前半部分吗？",
+    "expected_document": "03-云栈规则.md",
+    "evidence_literal": "明确拒绝",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C025",
+    "question": "禾川的访客能否拿到原始文件？",
+    "expected_document": "04-禾川规则.md",
+    "evidence_literal": "公开回答没有原文件下载按钮，拥有者在工作台下载",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C026",
+    "question": "禾川测试版可以试用多少天？",
+    "expected_document": "04-禾川规则.md",
+    "evidence_literal": "41天",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C027",
+    "question": "禾川停用后资料保存多久？",
+    "expected_document": "04-禾川规则.md",
+    "evidence_literal": "120天",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C028",
+    "question": "禾川索引重建失败使用什么代码？",
+    "expected_document": "04-禾川规则.md",
+    "evidence_literal": "HC-864",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C029",
+    "question": "禾川谁负责批准范围变更？",
+    "expected_document": "04-禾川规则.md",
+    "evidence_literal": "资料管理员",
+    "split": "tune",
+    "answerable": true
+  },
+  {
+    "id": "C030",
+    "question": "禾川怎样避免把同一次同步导入两遍？",
+    "expected_document": "04-禾川规则.md",
+    "evidence_literal": "重复标识不重复导入",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C031",
+    "question": "禾川关闭主题后，模型还能使用该主题资料回答新问题吗？",
+    "expected_document": "04-禾川规则.md",
+    "evidence_literal": "不能再进入新问题",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C032",
+    "question": "禾川文件太大时系统会自动只处理前半部分吗？",
+    "expected_document": "04-禾川规则.md",
+    "evidence_literal": "明确拒绝",
+    "split": "holdout",
+    "answerable": true
+  },
+  {
+    "id": "C033",
+    "question": "青岚的真实公网地址是什么？",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "holdout",
+    "answerable": false
+  },
+  {
+    "id": "C034",
+    "question": "青岚维护者的实际工资是多少？",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "tune",
+    "answerable": false
+  },
+  {
+    "id": "C035",
+    "question": "星桥的真实公网地址是什么？",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "holdout",
+    "answerable": false
+  },
+  {
+    "id": "C036",
+    "question": "星桥维护者的实际工资是多少？",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "tune",
+    "answerable": false
+  },
+  {
+    "id": "C037",
+    "question": "云栈的真实公网地址是什么？",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "holdout",
+    "answerable": false
+  },
+  {
+    "id": "C038",
+    "question": "云栈维护者的实际工资是多少？",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "tune",
+    "answerable": false
+  },
+  {
+    "id": "C039",
+    "question": "禾川的真实公网地址是什么？",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "holdout",
+    "answerable": false
+  },
+  {
+    "id": "C040",
+    "question": "禾川维护者的实际工资是多少？",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "tune",
+    "answerable": false
+  }
+]

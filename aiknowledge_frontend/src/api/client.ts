@@ -720,7 +720,7 @@ export async function getOwnerConversation(conversationId: string): Promise<Conv
   return requestJson<ConversationDetail>(`/owner/conversations/${conversationId}`)
 }
 
-export async function askOwner(conversationId: string, question: string, strategy?: 'dense' | 'hybrid'): Promise<OwnerAnswer> {
+export async function askOwner(conversationId: string, question: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'): Promise<OwnerAnswer> {
   return requestJson<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, {
     method: 'POST',
     data: { question, stream: false, ...(strategy ? { strategy } : {}) }
@@ -733,7 +733,7 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
   onText: (text: string) => void,
   signal?: AbortSignal,
   skipAuthRefresh = false,
-  strategy?: 'dense' | 'hybrid'
+  strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'
 ): Promise<T> {
   signal?.throwIfAborted()
   if (typeof fetch === 'undefined' || typeof ReadableStream === 'undefined') {
@@ -825,7 +825,7 @@ export async function streamOwnerAnswer(
   question: string,
   onText: (text: string) => void,
   signal?: AbortSignal,
-  strategy?: 'dense' | 'hybrid'
+  strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'
 ): Promise<OwnerAnswer> {
   return streamAnswer<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, question, onText, signal, false, strategy)
 }
@@ -1077,9 +1077,12 @@ export type RetrievalItem = {
   dense_rank?: number | null
   bm25_rank?: number | null
   fusion_rank?: number | null
+  fusion_score?: number | null
+  rerank_rank?: number | null
+  rerank_score?: number | null
   dense_score?: number | null
   bm25_score?: number | null
-  score_kind?: 'cosine' | 'bm25' | 'rrf'
+  score_kind?: 'cosine' | 'bm25' | 'rrf' | 'cross_encoder'
   rank: number
   chunk_id: string
   document_id: string
@@ -1098,8 +1101,8 @@ export type RetrievalItem = {
 
 export type RetrievalRun = {
   branches?: Record<string, RetrievalItem[]>
-  strategy?: 'dense' | 'bm25' | 'hybrid'
-  score_kind?: 'cosine' | 'bm25' | 'rrf'
+  strategy?: 'dense' | 'bm25' | 'hybrid' | 'hybrid_rerank'
+  score_kind?: 'cosine' | 'bm25' | 'rrf' | 'cross_encoder'
   config_snapshot?: Record<string, unknown>
   status: 'COMPLETED'
   run_id: string
@@ -1131,7 +1134,7 @@ export function getEvalEvidence(runId: string, resultId: string, signal?: AbortS
   return requestJson(`/owner/eval-runs/${runId}/results/${resultId}/evidence`, { signal })
 }
 
-export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal, strategy?: 'dense' | 'bm25' | 'hybrid'): Promise<RetrievalRun> {
+export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal, strategy?: 'dense' | 'bm25' | 'hybrid' | 'hybrid_rerank'): Promise<RetrievalRun> {
   return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK, ...(strategy ? { strategy } : {}) }, signal, timeoutMs: 660000 })
 }
 
@@ -1139,11 +1142,11 @@ export async function getRetrievalRun(runId: string, signal?: AbortSignal): Prom
   return requestJson<RetrievalRun>(`/owner/retrieval-runs/${runId}`, { signal })
 }
 
-export async function enqueueEvaluation(spaceId: string, strategy?: 'dense' | 'hybrid'): Promise<EvalRun> {
+export async function enqueueEvaluation(spaceId: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'): Promise<EvalRun> {
   return requestJson<EvalRun>(`/spaces/${spaceId}/eval-runs/async${strategy ? `?strategy=${strategy}` : ''}`, { method: 'POST' })
 }
 
-export async function enqueueEvalVersion(versionId: string, strategy?: 'dense' | 'hybrid'): Promise<EvalRun> {
+export async function enqueueEvalVersion(versionId: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'): Promise<EvalRun> {
   return requestJson<EvalRun>(`/eval-versions/${versionId}/runs/async${strategy ? `?strategy=${strategy}` : ''}`, { method: 'POST' })
 }
 

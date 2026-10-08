@@ -20,7 +20,7 @@ class RetrievalRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
     question: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=4, ge=1, le=20, strict=True)
-    strategy: Literal['dense','bm25','hybrid'] = 'dense'
+    strategy: Literal['dense','bm25','hybrid','hybrid_rerank'] = 'dense'
 
 
 class RetrievalItem(BaseModel):
@@ -33,12 +33,15 @@ class RetrievalItem(BaseModel):
     page_number: int | None
     ordinal: int
     score: float
-    score_kind: Literal['cosine','bm25','rrf'] = 'cosine'
+    score_kind: Literal['cosine','bm25','rrf','cross_encoder'] = 'cosine'
     dense_rank: int | None = None
     bm25_rank: int | None = None
     fusion_rank: int | None = None
     dense_score: float | None = None
     bm25_score: float | None = None
+    fusion_score: float | None = None
+    rerank_score: float | None = None
+    rerank_rank: int | None = None
     source_block_id: str | None
     char_start: int | None
     char_end: int | None
@@ -59,8 +62,8 @@ class RetrievalResponse(BaseModel):
     timings_ms: dict[str, float]
     items: list[RetrievalItem]
     unavailable_chunk_ids: list[UUID]
-    strategy: Literal['dense','bm25','hybrid'] = 'dense'
-    score_kind: Literal['cosine','bm25','rrf'] = 'cosine'
+    strategy: Literal['dense','bm25','hybrid','hybrid_rerank'] = 'dense'
+    score_kind: Literal['cosine','bm25','rrf','cross_encoder'] = 'cosine'
     config_snapshot: dict[str, object] = Field(default_factory=dict)
     branches: dict[str,list[RetrievalItem]] = Field(default_factory=dict)
 
@@ -69,22 +72,25 @@ class RetrievalResponse(BaseModel):
         by_id = {x.id: x for x in chunks}
         saved_branches=run.config_snapshot.get('branches',{})
         branch_maps={name:{UUID(item['chunk_id']):item for item in values} for name,values in saved_branches.items()}
-        kind={'dense':'cosine','bm25':'bm25','hybrid':'rrf'}[run.strategy]
+        kind={'dense':'cosine','bm25':'bm25','hybrid':'rrf','hybrid_rerank':'cross_encoder'}[run.strategy]
         def build_item(chunk_id,score,rank,score_kind):
             chunk=by_id.get(chunk_id)
             if chunk is None:return None
             dense=branch_maps.get('dense',{}).get(chunk_id,{})
             bm25=branch_maps.get('bm25',{}).get(chunk_id,{})
+            fusion=branch_maps.get('fusion',{}).get(chunk_id,{})
             return RetrievalItem(rank=rank,chunk_id=chunk.id,document_id=chunk.document_id,
                 document_version_id=chunk.document_version_id,document_name=chunk.document_name,
                 content=chunk.content,page_number=chunk.page_number,ordinal=chunk.ordinal,score=score,
                 score_kind=score_kind,dense_rank=dense.get('rank'),bm25_rank=bm25.get('rank'),
-                dense_score=dense.get('score'),bm25_score=bm25.get('score'),fusion_rank=rank if score_kind=='rrf' else None,
+                dense_score=dense.get('score'),bm25_score=bm25.get('score'),fusion_rank=rank if score_kind=='rrf' else fusion.get('rank'),
+                fusion_score=fusion.get('score'),rerank_score=score if score_kind=='cross_encoder' else None,
+                rerank_rank=rank if score_kind=='cross_encoder' else None,
                 **{name:getattr(chunk,name,None) for name in ('source_block_id','char_start','char_end','content_hash','token_count')})
         items=[item for rank,(cid,score) in enumerate(zip(run.chunk_ids,run.scores),1)
             if (item:=build_item(cid,score,rank,kind)) is not None]
         branches={name:[item for saved in values[:run.top_k]
-            if (item:=build_item(UUID(saved['chunk_id']),saved['score'],saved['rank'],'cosine' if name=='dense' else 'bm25')) is not None]
+            if (item:=build_item(UUID(saved['chunk_id']),saved['score'],saved['rank'],{'dense':'cosine','bm25':'bm25','fusion':'rrf'}[name])) is not None]
             for name,values in saved_branches.items()}
         return cls(run_id=run.id,space_id=run.scope.space_id,question=run.question,top_k=run.top_k,
             access_revision=run.scope.access_revision,knowledge_revision=run.scope.knowledge_revision,

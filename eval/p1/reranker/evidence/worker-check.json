@@ -1,0 +1,839 @@
+{
+  "hybrid": {
+    "run": {
+      "id": "11eae995-0709-4b09-8cc5-54b52f08070d",
+      "space_id": "888c6823-78df-42ec-9dee-04f9dedfba0f",
+      "status": "COMPLETED",
+      "retrieval_config_snapshot": {
+        "chat_model": "deepseek-flash",
+        "eval_cases": [
+          {
+            "id": "b2b6ceeb-5c7b-4c19-ad6c-c71c498310bf",
+            "scope": "OWNER",
+            "question": "v2.7.4是什么接口版本？",
+            "space_id": "888c6823-78df-42ec-9dee-04f9dedfba0f",
+            "answerable": null,
+            "created_at": "2026-10-08T10:35:02.742347+00:00",
+            "category_ids": [],
+            "evidence_refs": [],
+            "expected_answer": "公开范围产品的接口版本。",
+            "expected_behavior": null,
+            "expected_document_ids": [
+              "6154cb84-0873-46c2-b4e9-61e724bfff89"
+            ]
+          }
+        ],
+        "context_top_k": 4,
+        "owner_user_id": "22474edb-b074-4b61-8661-a09104a8ec6c",
+        "prompt_version": "rag-prompt-v2-multitask-assumptions",
+        "candidate_limit": 12,
+        "embedding_model": "/models/bge-large-zh-v1.5",
+        "reranker_config": {
+          "model": "BAAI/bge-reranker-v2-m3",
+          "device": "cpu",
+          "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+          "use_fp16": false,
+          "normalize": false,
+          "batch_size": 4,
+          "max_length": 1024,
+          "score_kind": "cross_encoder",
+          "truncation": "reject",
+          "input_version": "heading-body-v1",
+          "candidate_limit": 50,
+          "timeout_seconds": 600.0,
+          "query_max_length": 512
+        },
+        "knowledge_manifest": {
+          "chunks": [
+            {
+              "char_end": 31,
+              "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+              "char_start": 0,
+              "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+              "source_hash": "3cccd9c52a34587bea790501e66c9d1007b94068e6f253c41a6b576d4e368b32",
+              "token_count": 24,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "ccc99f606b7593fc4c577538094054a0f0b83f8af69294dd8c303a9869692dfc",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 121,
+              "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea",
+              "char_start": 0,
+              "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+              "source_hash": "3cccd9c52a34587bea790501e66c9d1007b94068e6f253c41a6b576d4e368b32",
+              "token_count": 98,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "91b0c7f8f1fd7e4f8f578279d529c71b904c8f30c588f412cdc93b4076ed8575",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-2",
+              "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 136,
+              "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107",
+              "char_start": 0,
+              "document_id": "6154cb84-0873-46c2-b4e9-61e724bfff89",
+              "source_hash": "45f52d3fdd140355a2c55cb1a6348ff23976972f64e98c45bb4a5e0aaa944c74",
+              "token_count": 110,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "29363a04dae8ca65c4bf62d3d9623bf6cce109d42779fd824e9a64b49db08a18",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "f751c18e-aef6-466f-b68b-c75b0be418de",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 152,
+              "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5",
+              "char_start": 0,
+              "document_id": "a43f7927-e90a-438a-b56f-4025cff7c24a",
+              "source_hash": "d88145dd252857f13bd8e756312bfd5c1cff7265adc46a53a2404929809cbde4",
+              "token_count": 118,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "8da875471be14de2786c4642a8a39b5e1c3606c87e4dbe67d5971293f3fad0b6",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "79b3c0d4-0161-48eb-816e-621ddeba372d",
+              "embedding_dimension": 1024
+            }
+          ],
+          "schema_version": 2,
+          "access_revision": 3,
+          "manifest_digest": "76da715e9fd8288a50088b9dbe642fb8c92bd5106c497d82c1c1e6de6314b30d",
+          "document_versions": [
+            "1a7bd774-5f1d-428a-867a-20a41603efe6",
+            "79b3c0d4-0161-48eb-816e-621ddeba372d",
+            "f751c18e-aef6-466f-b68b-c75b0be418de"
+          ],
+          "knowledge_revision": 17
+        },
+        "retrieval_strategy": "hybrid",
+        "embedding_dimension": 1024,
+        "eval_set_version_id": "c07c0732-68e9-4afc-b105-826ff40f311f",
+        "eval_set_version_number": 3
+      },
+      "started_at": "2026-10-08T10:35:03.915113Z",
+      "completed_at": "2026-10-08T10:35:05.132751Z",
+      "failure_message": null,
+      "created_at": "2026-10-08T10:35:03.008704Z",
+      "progress_total": 1,
+      "progress_completed": 1,
+      "heartbeat_at": "2026-10-08T10:35:05.135947Z",
+      "task_id": "11eae995-0709-4b09-8cc5-54b52f08070d",
+      "failure_code": null
+    },
+    "results": [
+      {
+        "id": "c323334e-10dc-4133-9767-de5d6fd4d9f1",
+        "eval_case_id": "b2b6ceeb-5c7b-4c19-ad6c-c71c498310bf",
+        "answer_status": "ANSWERED",
+        "answer": "v2.7.4 是产品代号 PRJ-ORION 的接口版本。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "v2.7.4是什么接口版本？",
+          "timings_ms": {
+            "total": 1171.88,
+            "corpus": 5.86,
+            "fusion": 0.142,
+            "search": 10.011,
+            "embedding": 383.563,
+            "generation": 745.608,
+            "bm25_ranking": 4.079,
+            "query_planning": 0.0,
+            "retrieval_total": 403.656
+          },
+          "schema_version": 3,
+          "retrieval_config": {
+            "bm25": {
+              "b": 0.75,
+              "k1": 1.2,
+              "idf": "positive-log1p",
+              "analyzer": "zh-bigram-identifiers-v1",
+              "score_kind": "bm25",
+              "tf_scaling": "classic-k1-plus-one",
+              "statistics_scope": "authorized-live-chunks",
+              "max_corpus_chunks": 5000,
+              "max_corpus_characters": 2000000
+            },
+            "branches": {
+              "bm25": [
+                {
+                  "rank": 1,
+                  "score": 2.6740982202164405,
+                  "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a"
+                },
+                {
+                  "rank": 2,
+                  "score": 2.6049404181253903,
+                  "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107"
+                },
+                {
+                  "rank": 3,
+                  "score": 0.5224752198297318,
+                  "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5"
+                }
+              ],
+              "dense": [
+                {
+                  "rank": 1,
+                  "score": 0.5299577748725155,
+                  "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a"
+                },
+                {
+                  "rank": 2,
+                  "score": 0.3606094825449433,
+                  "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107"
+                },
+                {
+                  "rank": 3,
+                  "score": 0.3563565889278164,
+                  "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5"
+                },
+                {
+                  "rank": 4,
+                  "score": 0.23432316677799414,
+                  "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea"
+                }
+              ]
+            },
+            "strategy": "hybrid",
+            "score_kind": "rrf",
+            "rank_constant": 60,
+            "branch_failure": "fail_closed",
+            "rank_window_size": 50
+          },
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 0.03278688524590164,
+              "char_end": 31,
+              "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+              "bm25_rank": 1,
+              "bm25_score": 2.6740982202164405,
+              "char_start": 0,
+              "dense_rank": 1,
+              "score_kind": "rrf",
+              "dense_score": 0.5299577748725155,
+              "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+              "fusion_rank": 1,
+              "rerank_rank": null,
+              "content_hash": "ccc99f606b7593fc4c577538094054a0f0b83f8af69294dd8c303a9869692dfc",
+              "fusion_score": null,
+              "rerank_score": null,
+              "source_block_id": "block-1",
+              "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6"
+            },
+            {
+              "rank": 2,
+              "score": 0.03225806451612903,
+              "char_end": 136,
+              "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107",
+              "bm25_rank": 2,
+              "bm25_score": 2.6049404181253903,
+              "char_start": 0,
+              "dense_rank": 2,
+              "score_kind": "rrf",
+              "dense_score": 0.3606094825449433,
+              "document_id": "6154cb84-0873-46c2-b4e9-61e724bfff89",
+              "fusion_rank": 2,
+              "rerank_rank": null,
+              "content_hash": "29363a04dae8ca65c4bf62d3d9623bf6cce109d42779fd824e9a64b49db08a18",
+              "fusion_score": null,
+              "rerank_score": null,
+              "source_block_id": "block-1",
+              "document_version_id": "f751c18e-aef6-466f-b68b-c75b0be418de"
+            },
+            {
+              "rank": 3,
+              "score": 0.031746031746031744,
+              "char_end": 152,
+              "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5",
+              "bm25_rank": 3,
+              "bm25_score": 0.5224752198297318,
+              "char_start": 0,
+              "dense_rank": 3,
+              "score_kind": "rrf",
+              "dense_score": 0.3563565889278164,
+              "document_id": "a43f7927-e90a-438a-b56f-4025cff7c24a",
+              "fusion_rank": 3,
+              "rerank_rank": null,
+              "content_hash": "8da875471be14de2786c4642a8a39b5e1c3606c87e4dbe67d5971293f3fad0b6",
+              "fusion_score": null,
+              "rerank_score": null,
+              "source_block_id": "block-1",
+              "document_version_id": "79b3c0d4-0161-48eb-816e-621ddeba372d"
+            },
+            {
+              "rank": 4,
+              "score": 0.015625,
+              "char_end": 121,
+              "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea",
+              "bm25_rank": null,
+              "bm25_score": null,
+              "char_start": 0,
+              "dense_rank": 4,
+              "score_kind": "rrf",
+              "dense_score": 0.23432316677799414,
+              "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+              "fusion_rank": 4,
+              "rerank_rank": null,
+              "content_hash": "91b0c7f8f1fd7e4f8f578279d529c71b904c8f30c588f412cdc93b4076ed8575",
+              "fusion_score": null,
+              "rerank_score": null,
+              "source_block_id": "block-2",
+              "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6"
+            }
+          ],
+          "context_chunk_ids": [
+            "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+            "830ea24e-9a40-4398-812e-eb590c286107",
+            "6b6adcb6-c649-4090-abbb-c726236b6be5",
+            "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea"
+          ],
+          "retrieval_queries": [],
+          "context_characters": [
+            31,
+            136,
+            152,
+            121
+          ],
+          "retrieval_strategy": "hybrid"
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 4,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": null,
+          "evidence_overlap_at_k": null
+        },
+        "failure_code": null
+      }
+    ],
+    "summary": {
+      "total": 1,
+      "answered": 1,
+      "insufficient_evidence": 0,
+      "out_of_scope": 0,
+      "failed": 0,
+      "citation_count": 1,
+      "out_of_scope_violations": 0,
+      "reviewed_correct": 0,
+      "reviewed_partial": 0,
+      "reviewed_incorrect": 0,
+      "answered_rate": 1.0,
+      "citation_rate": 1.0,
+      "reviewed_accuracy": null,
+      "answer_accuracy": null,
+      "reviewed_coverage": 0.0,
+      "retrieval_measured_count": 1,
+      "document_recall_at_k": 1.0,
+      "document_hit_at_k": 1.0,
+      "evidence_recall_at_k": null,
+      "evidence_overlap_at_k": null,
+      "correct_refusal_rate": null
+    }
+  },
+  "hybrid_rerank": {
+    "run": {
+      "id": "587e77ed-12df-4567-9fe9-85d7adab6493",
+      "space_id": "888c6823-78df-42ec-9dee-04f9dedfba0f",
+      "status": "COMPLETED",
+      "retrieval_config_snapshot": {
+        "chat_model": "deepseek-flash",
+        "eval_cases": [
+          {
+            "id": "b2b6ceeb-5c7b-4c19-ad6c-c71c498310bf",
+            "scope": "OWNER",
+            "question": "v2.7.4是什么接口版本？",
+            "space_id": "888c6823-78df-42ec-9dee-04f9dedfba0f",
+            "answerable": null,
+            "created_at": "2026-10-08T10:35:02.742347+00:00",
+            "category_ids": [],
+            "evidence_refs": [],
+            "expected_answer": "公开范围产品的接口版本。",
+            "expected_behavior": null,
+            "expected_document_ids": [
+              "6154cb84-0873-46c2-b4e9-61e724bfff89"
+            ]
+          }
+        ],
+        "context_top_k": 4,
+        "owner_user_id": "22474edb-b074-4b61-8661-a09104a8ec6c",
+        "prompt_version": "rag-prompt-v2-multitask-assumptions",
+        "candidate_limit": 12,
+        "embedding_model": "/models/bge-large-zh-v1.5",
+        "reranker_config": {
+          "model": "BAAI/bge-reranker-v2-m3",
+          "device": "cpu",
+          "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+          "use_fp16": false,
+          "normalize": false,
+          "batch_size": 4,
+          "max_length": 1024,
+          "score_kind": "cross_encoder",
+          "truncation": "reject",
+          "input_version": "heading-body-v1",
+          "candidate_limit": 50,
+          "timeout_seconds": 600.0,
+          "query_max_length": 512
+        },
+        "knowledge_manifest": {
+          "chunks": [
+            {
+              "char_end": 31,
+              "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+              "char_start": 0,
+              "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+              "source_hash": "3cccd9c52a34587bea790501e66c9d1007b94068e6f253c41a6b576d4e368b32",
+              "token_count": 24,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "ccc99f606b7593fc4c577538094054a0f0b83f8af69294dd8c303a9869692dfc",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 121,
+              "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea",
+              "char_start": 0,
+              "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+              "source_hash": "3cccd9c52a34587bea790501e66c9d1007b94068e6f253c41a6b576d4e368b32",
+              "token_count": 98,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "91b0c7f8f1fd7e4f8f578279d529c71b904c8f30c588f412cdc93b4076ed8575",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-2",
+              "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 136,
+              "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107",
+              "char_start": 0,
+              "document_id": "6154cb84-0873-46c2-b4e9-61e724bfff89",
+              "source_hash": "45f52d3fdd140355a2c55cb1a6348ff23976972f64e98c45bb4a5e0aaa944c74",
+              "token_count": 110,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "29363a04dae8ca65c4bf62d3d9623bf6cce109d42779fd824e9a64b49db08a18",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "f751c18e-aef6-466f-b68b-c75b0be418de",
+              "embedding_dimension": 1024
+            },
+            {
+              "char_end": 152,
+              "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5",
+              "char_start": 0,
+              "document_id": "a43f7927-e90a-438a-b56f-4025cff7c24a",
+              "source_hash": "d88145dd252857f13bd8e756312bfd5c1cff7265adc46a53a2404929809cbde4",
+              "token_count": 118,
+              "chunk_config": {
+                "overlap_limit": "half_chunk",
+                "max_characters": 1800,
+                "strategy_version": "sentence-token-budget-v2",
+                "overlap_characters": 240,
+                "token_count_strategy": "model_tokenizer",
+                "preserve_source_offsets": true,
+                "max_tokens_including_special": 512
+              },
+              "content_hash": "8da875471be14de2786c4642a8a39b5e1c3606c87e4dbe67d5971293f3fad0b6",
+              "parser_version": "mvp-parser-v1",
+              "embedding_model": "/models/bge-large-zh-v1.5",
+              "source_block_id": "block-1",
+              "document_version_id": "79b3c0d4-0161-48eb-816e-621ddeba372d",
+              "embedding_dimension": 1024
+            }
+          ],
+          "schema_version": 2,
+          "access_revision": 3,
+          "manifest_digest": "76da715e9fd8288a50088b9dbe642fb8c92bd5106c497d82c1c1e6de6314b30d",
+          "document_versions": [
+            "1a7bd774-5f1d-428a-867a-20a41603efe6",
+            "79b3c0d4-0161-48eb-816e-621ddeba372d",
+            "f751c18e-aef6-466f-b68b-c75b0be418de"
+          ],
+          "knowledge_revision": 17
+        },
+        "retrieval_strategy": "hybrid_rerank",
+        "embedding_dimension": 1024,
+        "eval_set_version_id": "c07c0732-68e9-4afc-b105-826ff40f311f",
+        "eval_set_version_number": 3
+      },
+      "started_at": "2026-10-08T10:35:05.439396Z",
+      "completed_at": "2026-10-08T10:35:42.229135Z",
+      "failure_message": null,
+      "created_at": "2026-10-08T10:35:05.382782Z",
+      "progress_total": 1,
+      "progress_completed": 1,
+      "heartbeat_at": "2026-10-08T10:35:42.233199Z",
+      "task_id": "587e77ed-12df-4567-9fe9-85d7adab6493",
+      "failure_code": null
+    },
+    "results": [
+      {
+        "id": "62748c6f-417c-44e4-8387-5ecf30375f3e",
+        "eval_case_id": "b2b6ceeb-5c7b-4c19-ad6c-c71c498310bf",
+        "answer_status": "ANSWERED",
+        "answer": "v2.7.4 是产品代号 PRJ-ORION 的接口版本。",
+        "citation_count": 1,
+        "reviewer_score": null,
+        "reviewer_note": null,
+        "execution_snapshot": {
+          "question": "v2.7.4是什么接口版本？",
+          "timings_ms": {
+            "total": 36747.325,
+            "corpus": 6.956,
+            "fusion": 0.174,
+            "search": 9.802,
+            "embedding": 388.323,
+            "reranking": 35359.871,
+            "generation": 951.347,
+            "bm25_ranking": 0.886,
+            "rerank_queue": 0.031,
+            "query_planning": 0.0,
+            "retrieval_total": 35782.59
+          },
+          "schema_version": 3,
+          "retrieval_config": {
+            "bm25": {
+              "b": 0.75,
+              "k1": 1.2,
+              "idf": "positive-log1p",
+              "analyzer": "zh-bigram-identifiers-v1",
+              "score_kind": "bm25",
+              "tf_scaling": "classic-k1-plus-one",
+              "statistics_scope": "authorized-live-chunks",
+              "max_corpus_chunks": 5000,
+              "max_corpus_characters": 2000000
+            },
+            "branches": {
+              "bm25": [
+                {
+                  "rank": 1,
+                  "score": 2.6740982202164405,
+                  "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a"
+                },
+                {
+                  "rank": 2,
+                  "score": 2.6049404181253903,
+                  "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107"
+                },
+                {
+                  "rank": 3,
+                  "score": 0.5224752198297318,
+                  "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5"
+                }
+              ],
+              "dense": [
+                {
+                  "rank": 1,
+                  "score": 0.5299577748725155,
+                  "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a"
+                },
+                {
+                  "rank": 2,
+                  "score": 0.3606094825449433,
+                  "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107"
+                },
+                {
+                  "rank": 3,
+                  "score": 0.3563565889278164,
+                  "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5"
+                },
+                {
+                  "rank": 4,
+                  "score": 0.23432316677799414,
+                  "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea"
+                }
+              ],
+              "fusion": [
+                {
+                  "rank": 1,
+                  "score": 0.03278688524590164,
+                  "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a"
+                },
+                {
+                  "rank": 2,
+                  "score": 0.03225806451612903,
+                  "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107"
+                },
+                {
+                  "rank": 3,
+                  "score": 0.031746031746031744,
+                  "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5"
+                },
+                {
+                  "rank": 4,
+                  "score": 0.015625,
+                  "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea"
+                }
+              ]
+            },
+            "reranker": {
+              "model": "BAAI/bge-reranker-v2-m3",
+              "device": "cpu",
+              "revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+              "use_fp16": false,
+              "normalize": false,
+              "batch_size": 4,
+              "max_length": 1024,
+              "score_kind": "cross_encoder",
+              "truncation": "reject",
+              "input_version": "heading-body-v1",
+              "candidate_limit": 50,
+              "timeout_seconds": 600.0,
+              "query_max_length": 512
+            },
+            "strategy": "hybrid_rerank",
+            "pool_size": 50,
+            "score_kind": "cross_encoder",
+            "rank_constant": 60,
+            "rerank_inputs": [
+              {
+                "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+                "truncated": false,
+                "input_hash": "dcfbb06d98332b2f9d3c6e42390f1fbb27bc6952d086afff2e0ee84639bdbc00",
+                "pair_tokens": 44,
+                "query_tokens": 9,
+                "passage_tokens": 31
+              },
+              {
+                "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107",
+                "truncated": false,
+                "input_hash": "d47f2fdc6d5514ef11cbbf52864bdc500789acbff9904db46977fc99b5479ac3",
+                "pair_tokens": 107,
+                "query_tokens": 9,
+                "passage_tokens": 94
+              },
+              {
+                "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5",
+                "truncated": false,
+                "input_hash": "0eff55986cc2797a860b28cf1d2535b82f556195662876ecaa5a320404e9f173",
+                "pair_tokens": 116,
+                "query_tokens": 9,
+                "passage_tokens": 103
+              },
+              {
+                "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea",
+                "truncated": false,
+                "input_hash": "e36b0dcb3dbcbefb617b40f0904a8239e3741e6c93dc6602d2836e1f859ce1a8",
+                "pair_tokens": 101,
+                "query_tokens": 9,
+                "passage_tokens": 88
+              }
+            ],
+            "branch_failure": "fail_closed",
+            "rank_window_size": 50,
+            "rerank_timings_ms": {
+              "queue": 0.031,
+              "inference": 35359.871,
+              "model_load": 33221.562
+            }
+          },
+          "retrieved_chunks": [
+            {
+              "rank": 1,
+              "score": 3.206143379211426,
+              "char_end": 136,
+              "chunk_id": "830ea24e-9a40-4398-812e-eb590c286107",
+              "bm25_rank": 2,
+              "bm25_score": 2.6049404181253903,
+              "char_start": 0,
+              "dense_rank": 2,
+              "score_kind": "cross_encoder",
+              "dense_score": 0.3606094825449433,
+              "document_id": "6154cb84-0873-46c2-b4e9-61e724bfff89",
+              "fusion_rank": 2,
+              "rerank_rank": 1,
+              "content_hash": "29363a04dae8ca65c4bf62d3d9623bf6cce109d42779fd824e9a64b49db08a18",
+              "fusion_score": 0.03225806451612903,
+              "rerank_score": 3.206143379211426,
+              "source_block_id": "block-1",
+              "document_version_id": "f751c18e-aef6-466f-b68b-c75b0be418de"
+            },
+            {
+              "rank": 2,
+              "score": -3.710982084274292,
+              "char_end": 31,
+              "chunk_id": "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+              "bm25_rank": 1,
+              "bm25_score": 2.6740982202164405,
+              "char_start": 0,
+              "dense_rank": 1,
+              "score_kind": "cross_encoder",
+              "dense_score": 0.5299577748725155,
+              "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+              "fusion_rank": 1,
+              "rerank_rank": 2,
+              "content_hash": "ccc99f606b7593fc4c577538094054a0f0b83f8af69294dd8c303a9869692dfc",
+              "fusion_score": 0.03278688524590164,
+              "rerank_score": -3.710982084274292,
+              "source_block_id": "block-1",
+              "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6"
+            },
+            {
+              "rank": 3,
+              "score": -5.2873005867004395,
+              "char_end": 152,
+              "chunk_id": "6b6adcb6-c649-4090-abbb-c726236b6be5",
+              "bm25_rank": 3,
+              "bm25_score": 0.5224752198297318,
+              "char_start": 0,
+              "dense_rank": 3,
+              "score_kind": "cross_encoder",
+              "dense_score": 0.3563565889278164,
+              "document_id": "a43f7927-e90a-438a-b56f-4025cff7c24a",
+              "fusion_rank": 3,
+              "rerank_rank": 3,
+              "content_hash": "8da875471be14de2786c4642a8a39b5e1c3606c87e4dbe67d5971293f3fad0b6",
+              "fusion_score": 0.031746031746031744,
+              "rerank_score": -5.2873005867004395,
+              "source_block_id": "block-1",
+              "document_version_id": "79b3c0d4-0161-48eb-816e-621ddeba372d"
+            },
+            {
+              "rank": 4,
+              "score": -9.050921440124512,
+              "char_end": 121,
+              "chunk_id": "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea",
+              "bm25_rank": null,
+              "bm25_score": null,
+              "char_start": 0,
+              "dense_rank": 4,
+              "score_kind": "cross_encoder",
+              "dense_score": 0.23432316677799414,
+              "document_id": "42702949-38e9-49dd-a2d5-72d044a4f040",
+              "fusion_rank": 4,
+              "rerank_rank": 4,
+              "content_hash": "91b0c7f8f1fd7e4f8f578279d529c71b904c8f30c588f412cdc93b4076ed8575",
+              "fusion_score": 0.015625,
+              "rerank_score": -9.050921440124512,
+              "source_block_id": "block-2",
+              "document_version_id": "1a7bd774-5f1d-428a-867a-20a41603efe6"
+            }
+          ],
+          "context_chunk_ids": [
+            "830ea24e-9a40-4398-812e-eb590c286107",
+            "0c3faf3c-0f83-454a-88cd-126aabdf558a",
+            "6b6adcb6-c649-4090-abbb-c726236b6be5",
+            "47c3f2d8-6f3b-48c6-b36b-55ca19d6ceea"
+          ],
+          "retrieval_queries": [],
+          "context_characters": [
+            136,
+            31,
+            152,
+            121
+          ],
+          "retrieval_strategy": "hybrid_rerank"
+        },
+        "retrieval_metrics": {
+          "k": 12,
+          "refusal_correct": null,
+          "retrieved_count": 4,
+          "document_hit_at_k": 1.0,
+          "document_recall_at_k": 1.0,
+          "evidence_recall_at_k": null,
+          "evidence_overlap_at_k": null
+        },
+        "failure_code": null
+      }
+    ],
+    "summary": {
+      "total": 1,
+      "answered": 1,
+      "insufficient_evidence": 0,
+      "out_of_scope": 0,
+      "failed": 0,
+      "citation_count": 1,
+      "out_of_scope_violations": 0,
+      "reviewed_correct": 0,
+      "reviewed_partial": 0,
+      "reviewed_incorrect": 0,
+      "answered_rate": 1.0,
+      "citation_rate": 1.0,
+      "reviewed_accuracy": null,
+      "answer_accuracy": null,
+      "reviewed_coverage": 0.0,
+      "retrieval_measured_count": 1,
+      "document_recall_at_k": 1.0,
+      "document_hit_at_k": 1.0,
+      "evidence_recall_at_k": null,
+      "evidence_overlap_at_k": null,
+      "correct_refusal_rate": null
+    }
+  }
+}

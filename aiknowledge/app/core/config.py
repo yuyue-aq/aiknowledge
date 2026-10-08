@@ -37,7 +37,14 @@ class Settings(BaseSettings):
     bge_timeout_seconds: float = Field(default=600.0, gt=0)
     bge_max_retries: int = Field(default=1, ge=0, le=3)
 
-    retrieval_strategy: Literal['dense','hybrid'] = 'dense'
+    reranker_model_path: str = '/models/bge-reranker-v2-m3'
+    reranker_revision: str = '953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e'
+    reranker_batch_size: int = Field(default=4,ge=1,le=16)
+    reranker_max_length: int = Field(default=1024,ge=8,le=2048)
+    reranker_query_max_length: int = Field(default=512,ge=1,le=1024)
+    reranker_timeout_seconds: float = Field(default=600.,gt=0,le=900)
+
+    retrieval_strategy: Literal['dense','hybrid','hybrid_rerank'] = 'dense'
     retrieval_top_k: int = Field(default=4, ge=1, le=20)
     retrieval_candidate_limit: int = Field(default=12, ge=1, le=50)
     # No global production threshold is hard-coded. It must be calibrated with

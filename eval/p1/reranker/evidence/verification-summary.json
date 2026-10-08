@@ -1,0 +1,19 @@
+{
+  "frontend": {
+    "typescript": "PASSED",
+    "stylelint": "PASSED",
+    "count": 31,
+    "h5_build": "PASSED",
+    "eslint": "PASSED"
+  },
+  "baseline_b": "59e4d10ca14ccfc65a70c32a251a63d6d58ee4c1",
+  "runtime": "real Docker + Edge",
+  "status": "PASSED",
+  "formal_main": "d7b8801ae227a1f6b1b3a897cde1f0e1be70ae62",
+  "backend": {
+    "seconds": 13.42,
+    "count": 438,
+    "command": "python -m pytest -q"
+  },
+  "model_cache_all_files": "VERIFIED"
+}

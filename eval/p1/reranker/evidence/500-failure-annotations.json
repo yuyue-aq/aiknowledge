@@ -1,0 +1,109 @@
+[
+  {
+    "id": "T176",
+    "facts": [
+      {
+        "literal": "2026年7月至2026年9月",
+        "evidence_ids": [
+          "c7275938-ce77-4693-963c-124416a8e3a5"
+        ],
+        "in_original_rrf_pool": true,
+        "in_final_candidates": false,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T191",
+    "facts": [
+      {
+        "literal": "2026-10-03",
+        "evidence_ids": [
+          "7a42a416-9080-455b-97e5-eca71c4b4111",
+          "b110404d-aaab-45de-986b-decd2eabb961"
+        ],
+        "in_original_rrf_pool": true,
+        "in_final_candidates": false,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T212",
+    "facts": [
+      {
+        "literal": "重复请求、库存不足、事务回滚与并发出库的后端测试",
+        "evidence_ids": [
+          "8395b3a0-2c27-449a-a628-c99e93eeb57c"
+        ],
+        "in_original_rrf_pool": true,
+        "in_final_candidates": false,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T245",
+    "facts": [
+      {
+        "literal": "江宁信息学院",
+        "evidence_ids": [
+          "01e98844-5c28-4dcf-9bff-c93a4db049b4"
+        ],
+        "in_original_rrf_pool": true,
+        "in_final_candidates": false,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T420",
+    "facts": [
+      {
+        "literal": "分享范围内已授权且已启用",
+        "evidence_ids": [
+          "65beb7de-27c7-44b9-9952-69d9f4f6bdde",
+          "a1e9fab5-aa0f-487a-a485-2a2148993a71"
+        ],
+        "in_original_rrf_pool": true,
+        "in_final_candidates": true,
+        "in_context": true
+      }
+    ],
+    "classification": "generation_or_reference_failure_with_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T439",
+    "facts": [
+      {
+        "literal": "160秒",
+        "evidence_ids": [
+          "09d955df-d6f8-4eb1-a08e-8cdb4b56d74b"
+        ],
+        "in_original_rrf_pool": true,
+        "in_final_candidates": true,
+        "in_context": true
+      },
+      {
+        "literal": "60秒",
+        "evidence_ids": [
+          "09d955df-d6f8-4eb1-a08e-8cdb4b56d74b"
+        ],
+        "in_original_rrf_pool": true,
+        "in_final_candidates": true,
+        "in_context": true
+      }
+    ],
+    "classification": "generation_or_reference_failure_with_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  }
+]

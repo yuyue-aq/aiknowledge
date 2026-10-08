@@ -264,7 +264,7 @@ class EvaluationService:
     async def enqueue_run(self, *, space_id: UUID | None = None, version_id: UUID | None = None, owner_user_id: UUID | None = None, strategy: str | None = None) -> EvalRun:
         snapshot = dict(self._run_snapshot)
         if strategy is not None:
-            if strategy not in ('dense','hybrid'):raise ValueError('不支持的检索方式。')
+            if strategy not in ('dense','hybrid','hybrid_rerank'):raise ValueError('不支持的检索方式。')
             snapshot['retrieval_strategy']=strategy
         if version_id is not None:
             version = await self.get_version(version_id, owner_user_id=owner_user_id)
@@ -333,7 +333,8 @@ class EvaluationService:
                 await self._repository.commit()
 
         try:
-            if any(run_snapshot.get(key) != value for key, value in self._run_snapshot.items() if key!='retrieval_strategy') or run_snapshot.get('retrieval_strategy','dense') not in ('dense','hybrid'):
+            uses_reranker=run_snapshot.get('retrieval_strategy','dense')=='hybrid_rerank'
+            if any(run_snapshot.get(key) != value for key, value in self._run_snapshot.items() if key not in ('retrieval_strategy','reranker_config')) or (uses_reranker and run_snapshot.get('reranker_config')!=self._run_snapshot.get('reranker_config')) or run_snapshot.get('retrieval_strategy','dense') not in ('dense','hybrid','hybrid_rerank'):
                 raise EvaluationConfigurationError('评测配置已变化，请恢复原配置或创建新运行。')
             if len(cases) != run.progress_total:
                 raise EvaluationSnapshotError('题集快照无效，请创建新运行。')

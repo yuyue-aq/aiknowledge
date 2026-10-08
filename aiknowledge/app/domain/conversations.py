@@ -143,6 +143,9 @@ class RetrievedChunk:
     fusion_rank: int | None = None
     dense_score: float | None = None
     bm25_score: float | None = None
+    fusion_score: float | None = None
+    rerank_rank: int | None = None
+    rerank_score: float | None = None
 
 
 @dataclass(frozen=True, slots=True)

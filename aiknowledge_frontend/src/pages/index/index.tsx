@@ -2339,7 +2339,7 @@ export default function Index() {
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [activePage, setActivePage] = useState<WorkspacePage>("spaces");
   const [handoffQuestion, setHandoffQuestion] = useState("");
-  const [handoffStrategy,setHandoffStrategy]=useState<'dense' | 'hybrid'>('dense');
+  const [handoffStrategy,setHandoffStrategy]=useState<'dense' | 'hybrid' | 'hybrid_rerank'>('dense');
   const [evalDraft, setEvalDraft] = useState<{ question: string; answer: string } | null>(null);
   const [feedbackDraft, setFeedbackDraft] = useState<{ messageId: string; rating: FeedbackRating } | null>(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
@@ -3463,7 +3463,7 @@ export default function Index() {
             onRetrieve={() => setActivePage("retrieval")}
           />
         )}
-        {activePage === "qa" && handoffStrategy==='hybrid' && <View className='inline-banner'><Text>本次问答使用混合检索 · RRF</Text><Button className='text-button' onClick={()=>setHandoffStrategy('dense')}>恢复向量检索</Button></View>}
+        {activePage === "qa" && handoffStrategy!=='dense' && <View className='inline-banner'><Text>本次问答使用{handoffStrategy==='hybrid_rerank' ? '混合检索 + 模型重排' : '混合检索 · RRF'}</Text><Button className='text-button' disabled={streaming} onClick={()=>setHandoffStrategy('dense')}>恢复向量检索</Button></View>}
         {activePage === "qa" && (
           <QaView
             initialQuestion={handoffQuestion}

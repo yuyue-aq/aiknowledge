@@ -37,8 +37,11 @@ env.update(AIKNOWLEDGE_REDIS_URL='redis://redis:6379/1',
     AIKNOWLEDGE_SHARE_TOKEN_PEPPER='aiknowledge-p1-local-share-pepper',
     AIKNOWLEDGE_AUTH_REQUIRED='true',
     AIKNOWLEDGE_CORS_ALLOWED_ORIGINS='http://127.0.0.1:10087,http://localhost:10087',
-    OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',TOKENIZERS_PARALLELISM='false')
-selected={k:v for k,v in env.items() if k.startswith('AIKNOWLEDGE_') or k in ('OMP_NUM_THREADS','MKL_NUM_THREADS','TOKENIZERS_PARALLELISM')}
+    AIKNOWLEDGE_RERANKER_MODEL_PATH='/models/bge-reranker-v2-m3',
+    AIKNOWLEDGE_RERANKER_REVISION='953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e',
+    HF_HUB_OFFLINE='1',TRANSFORMERS_OFFLINE='1',HF_HUB_DISABLE_PROGRESS_BARS='1',
+    OMP_NUM_THREADS='4',MKL_NUM_THREADS='4',TOKENIZERS_PARALLELISM='false')
+selected={k:v for k,v in env.items() if k.startswith('AIKNOWLEDGE_') or k in ('OMP_NUM_THREADS','MKL_NUM_THREADS','TOKENIZERS_PARALLELISM','HF_HUB_OFFLINE','TRANSFORMERS_OFFLINE','HF_HUB_DISABLE_PROGRESS_BARS')}
 if any('\n' in v or '\r' in v for v in selected.values()):raise ValueError('Environment values must be single-line')
 (runtime/'runtime.env').write_text('\n'.join(f'{k}={v}' for k,v in selected.items())+'\n',encoding='utf-8')
 pg=json.loads(captured('inspect','aiknowledge-postgres-1'))[0]
