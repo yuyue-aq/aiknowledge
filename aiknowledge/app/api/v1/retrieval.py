@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Request
@@ -20,6 +20,7 @@ class RetrievalRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True, extra='forbid')
     question: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=4, ge=1, le=20, strict=True)
+    strategy: Literal['dense','bm25'] = 'dense'
 
 
 class RetrievalItem(BaseModel):
@@ -32,6 +33,7 @@ class RetrievalItem(BaseModel):
     page_number: int | None
     ordinal: int
     score: float
+    score_kind: Literal['cosine','bm25'] = 'cosine'
     source_block_id: str | None
     char_start: int | None
     char_end: int | None
@@ -52,6 +54,9 @@ class RetrievalResponse(BaseModel):
     timings_ms: dict[str, float]
     items: list[RetrievalItem]
     unavailable_chunk_ids: list[UUID]
+    strategy: Literal['dense','bm25'] = 'dense'
+    score_kind: Literal['cosine','bm25'] = 'cosine'
+    config_snapshot: dict[str, object] = Field(default_factory=dict)
 
     @classmethod
     def build(cls, run: RetrievalRun, chunks):
@@ -64,11 +69,13 @@ class RetrievalResponse(BaseModel):
             items.append(RetrievalItem(rank=rank, chunk_id=chunk.id, document_id=chunk.document_id,
                 document_version_id=getattr(chunk, 'document_version_id', None), document_name=chunk.document_name,
                 content=chunk.content, page_number=chunk.page_number, ordinal=chunk.ordinal, score=score,
+                score_kind='bm25' if run.strategy=='bm25' else 'cosine',
                 **{name: getattr(chunk, name, None) for name in ('source_block_id', 'char_start', 'char_end', 'content_hash', 'token_count')}))
         return cls(run_id=run.id, space_id=run.scope.space_id, question=run.question, top_k=run.top_k,
             access_revision=run.scope.access_revision, knowledge_revision=run.scope.knowledge_revision,
             model_name=run.model_name, created_at=run.created_at, timings_ms=run.timings_ms, items=items,
-            unavailable_chunk_ids=[x for x in run.chunk_ids if x not in by_id])
+            unavailable_chunk_ids=[x for x in run.chunk_ids if x not in by_id],strategy=run.strategy,
+            score_kind='bm25' if run.strategy=='bm25' else 'cosine',config_snapshot=run.config_snapshot)
 
 
 class DocumentVersionResponse(BaseModel):
@@ -146,7 +153,7 @@ async def get_document_detail(space_id: UUID, document_id: UUID, user: Annotated
 @router.post('/owner/spaces/{space_id}/retrieval-runs', response_model=RetrievalResponse, status_code=201)
 async def search(space_id: UUID, payload: RetrievalRequest, user: Annotated[User, Depends(get_current_user)], service=Depends(get_service)):
     try:
-        run, result = await service.search(space_id=space_id, user_id=user.id, question=payload.question, top_k=payload.top_k)
+        run, result = await service.search(space_id=space_id, user_id=user.id, question=payload.question, top_k=payload.top_k,strategy=payload.strategy)
     except RetrievalError as exc:
         raise AppError(code=exc.code, message=str(exc), status_code=exc.status_code) from exc
     return RetrievalResponse.build(run, result.items)

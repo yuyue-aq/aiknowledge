@@ -39,6 +39,12 @@ class SqlAlchemyRetrievalRepository:
     async def retrieve(self, *, scope: RetrievalScope, embedding: list[float], limit: int):
         return await self._conversations.retrieve_owner(space_id=scope.space_id, embedding=embedding, limit=limit)
 
+    async def keyword_corpus(self, *, scope: RetrievalScope, limit: int):
+        statement=self._conversations._base_retrieval_statement(None).where(
+            ChunkRecord.space_id==scope.space_id).order_by(None).order_by(ChunkRecord.id).limit(limit)
+        rows=await self._session.execute(statement)
+        return self._conversations._map_retrieval_rows(rows.all())
+
     async def get_current_chunks(self, *, scope: RetrievalScope, chunk_ids: tuple[UUID, ...]):
         if not chunk_ids:
             return []
@@ -70,6 +76,7 @@ class SqlAlchemyRetrievalRepository:
             resolved_at=run.scope.resolved_at, question=run.question, top_k=run.top_k,
             chunk_ids=[str(x) for x in run.chunk_ids], scores=list(run.scores),
             timings_ms=dict(run.timings_ms), model_name=run.model_name, created_at=run.created_at,
+            strategy=run.strategy, config_snapshot=dict(run.config_snapshot),
         ))
         await self._session.flush()
 
@@ -79,4 +86,4 @@ class SqlAlchemyRetrievalRepository:
             return None
         return RetrievalRun(row.id, RetrievalScope(row.space_id, row.user_id, row.access_revision,
             row.knowledge_revision, row.resolved_at), row.question, row.top_k, tuple(UUID(x) for x in row.chunk_ids),
-            tuple(row.scores), dict(row.timings_ms), row.model_name, row.created_at)
+            tuple(row.scores), dict(row.timings_ms), row.model_name, row.created_at,row.strategy,dict(row.config_snapshot))

@@ -1,0 +1,107 @@
+[
+  {
+    "id": "K01",
+    "question": "PRJ-ORION",
+    "expected_document": "01-公开范围.txt",
+    "evidence_literal": "PRJ-ORION",
+    "split": "tune"
+  },
+  {
+    "id": "K02",
+    "question": "SCOPE_CHANGED",
+    "expected_document": "01-公开范围.txt",
+    "evidence_literal": "SCOPE_CHANGED",
+    "split": "tune"
+  },
+  {
+    "id": "K03",
+    "question": "v2.7.4",
+    "expected_document": "01-公开范围.txt",
+    "evidence_literal": "v2.7.4",
+    "split": "tune"
+  },
+  {
+    "id": "K04",
+    "question": "INV_STOCK_LOW",
+    "expected_document": "02-库存规则.md",
+    "evidence_literal": "INV_STOCK_LOW",
+    "split": "tune"
+  },
+  {
+    "id": "K05",
+    "question": "DUPLICATE_ORDER",
+    "expected_document": "02-库存规则.md",
+    "evidence_literal": "DUPLICATE_ORDER",
+    "split": "tune"
+  },
+  {
+    "id": "K06",
+    "question": "INV-2026-0418",
+    "expected_document": "02-库存规则.md",
+    "evidence_literal": "INV-2026-0418",
+    "split": "tune"
+  },
+  {
+    "id": "K07",
+    "question": "v3.4.2",
+    "expected_document": "02-库存规则.md",
+    "evidence_literal": "v3.4.2",
+    "split": "tune"
+  },
+  {
+    "id": "K08",
+    "question": "tenant.alpha",
+    "expected_document": "03-接口与租户.txt",
+    "evidence_literal": "tenant.alpha",
+    "split": "tune"
+  },
+  {
+    "id": "K09",
+    "question": "数据库事务",
+    "expected_document": "02-库存规则.md",
+    "evidence_literal": "数据库事务",
+    "split": "tune"
+  },
+  {
+    "id": "K10",
+    "question": "停用文档",
+    "expected_document": "01-公开范围.txt",
+    "evidence_literal": "停用",
+    "split": "tune"
+  },
+  {
+    "id": "K11",
+    "question": "SVC-HELIOS",
+    "expected_document": "03-接口与租户.txt",
+    "evidence_literal": "SVC-HELIOS",
+    "split": "holdout"
+  },
+  {
+    "id": "K12",
+    "question": "AUTH_TOKEN_EXPIRED",
+    "expected_document": "03-接口与租户.txt",
+    "evidence_literal": "AUTH_TOKEN_EXPIRED",
+    "split": "holdout"
+  },
+  {
+    "id": "K13",
+    "question": "令牌到期以后怎样恢复访问？",
+    "expected_document": "03-接口与租户.txt",
+    "evidence_literal": "重新登录",
+    "split": "holdout"
+  },
+  {
+    "id": "K14",
+    "question": "UNKNOWN_CODE_78219",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "holdout"
+  },
+  {
+    "id": "K15",
+    "question": "v9.9.9",
+    "expected_document": null,
+    "evidence_literal": null,
+    "split": "holdout"
+  }
+]

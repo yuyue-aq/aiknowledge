@@ -1,10 +1,13 @@
 from datetime import UTC, datetime
+import asyncio
+from time import perf_counter
 from typing import Protocol
 from uuid import UUID, uuid4
 
 from app.domain.conversations import RetrievedChunk
 from app.domain.retrieval import RetrievalError, RetrievalResult, RetrievalRun, RetrievalScope
 from app.services.retrieval import RetrievalService
+from app.services.bm25 import Bm25Retriever
 
 
 class OwnerRetrievalRepository(Protocol):
@@ -13,11 +16,13 @@ class OwnerRetrievalRepository(Protocol):
     async def get_current_chunks(self, *, scope: RetrievalScope, chunk_ids: tuple[UUID, ...]) -> list[RetrievedChunk]: ...
     async def add_run(self, run: RetrievalRun) -> None: ...
     async def get_run(self, run_id: UUID) -> RetrievalRun | None: ...
+    async def keyword_corpus(self, *, scope: RetrievalScope, limit: int) -> list[RetrievedChunk]: ...
 
 
 class OwnerRetrievalService:
-    def __init__(self, *, repository: OwnerRetrievalRepository, retrieval: RetrievalService, model_name: str):
+    def __init__(self, *, repository: OwnerRetrievalRepository, retrieval: RetrievalService, model_name: str, bm25: Bm25Retriever | None = None):
         self._repository, self._retrieval, self._model = repository, retrieval, model_name
+        self._bm25=bm25 or Bm25Retriever()
 
     async def _scope(self, space_id: UUID, user_id: UUID) -> RetrievalScope:
         scope = await self._repository.resolve_owner_scope(space_id=space_id, user_id=user_id)
@@ -25,19 +30,35 @@ class OwnerRetrievalService:
             raise RetrievalError('RETRIEVAL_NOT_FOUND', '空间或检索记录不存在。', 404)
         return scope
 
-    async def search(self, *, space_id: UUID, user_id: UUID, question: str, top_k: int = 4) -> tuple[RetrievalRun, RetrievalResult]:
+    async def search(self, *, space_id: UUID, user_id: UUID, question: str, top_k: int = 4, strategy: str = 'dense') -> tuple[RetrievalRun, RetrievalResult]:
+        if strategy not in ('dense','bm25'):raise RetrievalError('RETRIEVAL_INPUT_INVALID','不支持的检索方式。',422)
+        if not isinstance(question,str) or not question.strip() or len(question.strip())>2000:
+            raise RetrievalError('RETRIEVAL_INPUT_INVALID','请输入1—2000字的问题。',422)
+        if isinstance(top_k,bool) or not isinstance(top_k,int) or not 1<=top_k<=20:
+            raise RetrievalError('RETRIEVAL_INPUT_INVALID','Top K必须为1—20的整数。',422)
         scope = await self._scope(space_id, user_id)
 
         async def fetch(vector, limit):
             return await self._repository.retrieve(scope=scope, embedding=vector, limit=limit)
 
-        result = await self._retrieval.search(question=question, fetch=fetch, top_k=top_k)
+        if strategy=='bm25':
+            started=perf_counter()
+            try:corpus=await self._repository.keyword_corpus(scope=scope,limit=self._bm25.max_corpus_chunks+1)
+            except Exception as exc:raise RetrievalError('RETRIEVAL_UNAVAILABLE','关键词检索暂时不可用，请稍后重试。') from exc
+            fetched=perf_counter()
+            items=await asyncio.to_thread(self._bm25.rank,question,corpus,top_k)
+            ranked=perf_counter()
+            result=RetrievalResult(question.strip(),top_k,items,{'embedding':0.,'corpus':round((fetched-started)*1000,3),
+                'ranking':round((ranked-fetched)*1000,3),'total':round((ranked-started)*1000,3)})
+        else:result = await self._retrieval.search(question=question, fetch=fetch, top_k=top_k)
         current_scope = await self._scope(space_id, user_id)
         current = await self._repository.get_current_chunks(scope=current_scope, chunk_ids=tuple(x.id for x in result.items))
         if not scope.same_access(current_scope) or {x.id for x in current} != {x.id for x in result.items}:
             raise RetrievalError('RETRIEVAL_SCOPE_CHANGED', '资料范围已变化，请重新检索。', 409)
         run = RetrievalRun(uuid4(), scope, result.question, top_k, tuple(x.id for x in result.items),
-                           tuple(x.score for x in result.items), result.timings_ms, self._model, datetime.now(UTC))
+                           tuple(x.score for x in result.items), result.timings_ms,
+                           'bm25-zh-bigram-v1' if strategy=='bm25' else self._model, datetime.now(UTC),strategy,
+                           self._bm25.config if strategy=='bm25' else {'score_kind':'cosine'})
         await self._repository.add_run(run)
         return run, result
 

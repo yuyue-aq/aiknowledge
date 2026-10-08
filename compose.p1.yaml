@@ -1,0 +1,42 @@
+# Requires the official postgres/redis/minio infrastructure and model cache.
+# P1 uses a separate database, Redis DB, bucket and auth secrets.
+services:
+  p1-api:
+    image: aiknowledge-p1-api
+    env_file: &p1_env
+      - path: ./tmp/p1-preview-runtime/runtime.env
+        format: raw
+    command: [sh, -c, 'alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000']
+    ports: ['127.0.0.1:8001:8000']
+    volumes: &p1_models [bge_model_cache:/models/bge-large-zh-v1.5:ro]
+    networks: [official]
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/ready',timeout=5)"]
+      interval: 5s
+      timeout: 8s
+      retries: 20
+  p1-worker:
+    image: aiknowledge-p1-api
+    env_file: *p1_env
+    command: [celery, -A, app.workers.celery_app:celery_app, worker, --loglevel=INFO, --concurrency=1]
+    volumes: *p1_models
+    networks: [official]
+    depends_on:
+      p1-api: {condition: service_healthy}
+  p1-beat:
+    image: aiknowledge-p1-api
+    env_file: *p1_env
+    command: [celery, -A, app.workers.celery_app:celery_app, beat, --loglevel=INFO, --schedule=/tmp/p1-celerybeat]
+    networks: [official]
+    depends_on:
+      p1-api: {condition: service_healthy}
+  p1-frontend:
+    image: aiknowledge-p1-frontend
+    ports: ['127.0.0.1:10087:80']
+    networks: [official]
+    depends_on:
+      p1-api: {condition: service_healthy}
+networks:
+  official: {external: true, name: aiknowledge_dev}
+volumes:
+  bge_model_cache: {external: true, name: aiknowledge_bge_models_v1}

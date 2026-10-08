@@ -2598,14 +2598,14 @@ export default function Index() {
     if (loggedIn) void loadSpaces();
   }, [loggedIn, loadSpaces]);
 
-  const loadSpaceData = useCallback(async (space: Space) => {
+  const loadSpaceData = useCallback(async (space: Space, destination: WorkspacePage = "qa") => {
     stopAllDocumentPolling();
     selectedSpaceId.current = space.id;
     setCurrentSpace(space);
     setHandoffQuestion("");
     setEvalDraft(null);
     setSelectedDocumentId(null);
-    setActivePage("qa");
+    setActivePage(destination);
     setConversationId(readStoredConversationId(space.id));
     setMessages([]);
     setDocuments([]);
@@ -3442,7 +3442,7 @@ export default function Index() {
             onAsk={(question) => { setHandoffQuestion(question); setActivePage("qa"); }}
           />
         )}
-        {activePage === "documents" && selectedDocumentId && <DocumentDetailView key={selectedDocumentId} spaceId={currentSpace.id} documentId={selectedDocumentId} onBack={() => { setSelectedDocumentId(null); void loadSpaceData(currentSpace); }} onAsk={() => setActivePage("qa")} onRetrieve={() => setActivePage("retrieval")} />}
+        {activePage === "documents" && selectedDocumentId && <DocumentDetailView key={selectedDocumentId} spaceId={currentSpace.id} documentId={selectedDocumentId} onBack={() => { setSelectedDocumentId(null); void loadSpaceData(currentSpace, "documents"); }} onAsk={() => setActivePage("qa")} onRetrieve={() => setActivePage("retrieval")} />}
         {activePage === "documents" && !selectedDocumentId && (
           <DocumentsView
             space={currentSpace}

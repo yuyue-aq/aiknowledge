@@ -77,3 +77,17 @@ async def test_current_evidence_query_filters_id_scope_versions_and_time():
     for required in ('chunks.space_id =', 'chunks.id IN', 'documents.active_version_id = chunks.document_version_id',
                      'documents.is_enabled IS true', 'documents.expires_at > clock_timestamp()', 'documents.deleted_at IS NULL'):
         assert required in sql
+
+
+@pytest.mark.asyncio
+async def test_keyword_corpus_uses_live_authorization_predicate_without_vector_distance():
+    from app.domain.retrieval import RetrievalScope
+    session=Session();scope=RetrievalScope(uuid4(),uuid4(),0,0,datetime.now(UTC))
+    await SqlAlchemyRetrievalRepository(session).keyword_corpus(scope=scope,limit=101)
+    sql=str(session.statement.compile(dialect=postgresql.dialect()))
+    for required in ('chunks.space_id =','documents.active_version_id = chunks.document_version_id',
+                     'documents.is_enabled IS true','documents.expires_at > clock_timestamp()',
+                     'documents.effective_at <= clock_timestamp()','documents.deleted_at IS NULL','chunks.is_active IS true'):
+        assert required in sql
+    assert '<=>' not in sql
+    assert 101 in session.statement.compile().params.values()

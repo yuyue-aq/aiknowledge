@@ -1,0 +1,4 @@
+虚构测试资料：接口与租户
+服务代号 SVC-HELIOS。租户标签 tenant.alpha。身份令牌过期代码 AUTH_TOKEN_EXPIRED。
+AUTH_TOKEN_EXPIRED 需要重新登录。租户标签用于区分接口调用来源。
+本文介绍接口鉴权，不包含库存业务规则，也不包含公开资料范围变更流程。

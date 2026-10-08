@@ -44,7 +44,8 @@ def test_alembic_has_one_linear_schema_head_and_preserves_initial_revision() -> 
     config = Config(str(PROJECT_ROOT / "alembic.ini"))
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_current_head() == "20261002_0022"
+    assert script.get_current_head() == "20261007_0023"
+    assert script.get_revision("20261007_0023").down_revision == "20261002_0022"
     revision = script.get_revision("20260911_0001")
     assert revision is not None
     assert revision.down_revision is None

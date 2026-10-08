@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from dataclasses import replace
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -32,6 +33,10 @@ class Service:
     async def get_run(self, run_id, **kwargs):
         self.calls.append(kwargs)
         return self.run, self.result.items
+
+
+
+
 
 
 def make_app(service, authenticated=True):
@@ -117,6 +122,21 @@ async def test_retrieval_error_preserves_stable_code_and_safe_message():
         response = await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs', json={'question': '问题'})
     assert response.status_code == 409
     assert response.json()['code'] == 'RETRIEVAL_SCOPE_CHANGED'
+
+
+@pytest.mark.asyncio
+async def test_bm25_api_preserves_non_cosine_score_and_exposes_strategy():
+    service=Service()
+    service.run=replace(service.run,strategy='bm25',scores=(3.2,),config_snapshot={'analyzer':'zh-bigram-identifiers-v1'})
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=make_app(service)),base_url='http://test') as client:
+        response=await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs',json={'question':'SCOPE_CHANGED','strategy':'bm25'})
+        invalid=await client.post(f'/api/v1/owner/spaces/{service.space_id}/retrieval-runs',json={'question':'x','strategy':'hybrid'})
+    assert response.status_code==201
+    assert service.calls[0]['strategy']=='bm25'
+    assert response.json()['strategy']=='bm25'
+    assert response.json()['items'][0]['score']==3.2
+    assert response.json()['items'][0]['score_kind']=='bm25'
+    assert invalid.status_code==422
 
 
 @pytest.mark.asyncio

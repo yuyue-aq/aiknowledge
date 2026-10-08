@@ -1072,6 +1072,7 @@ export type EvidenceRef = {
 }
 
 export type RetrievalItem = {
+  score_kind?: 'cosine' | 'bm25'
   rank: number
   chunk_id: string
   document_id: string
@@ -1089,6 +1090,9 @@ export type RetrievalItem = {
 }
 
 export type RetrievalRun = {
+  strategy?: 'dense' | 'bm25'
+  score_kind?: 'cosine' | 'bm25'
+  config_snapshot?: Record<string, unknown>
   status: 'COMPLETED'
   run_id: string
   space_id: string
@@ -1098,7 +1102,7 @@ export type RetrievalRun = {
   knowledge_revision: number
   model_name: string
   created_at: string
-  timings_ms: { embedding: number; search: number; total: number }
+  timings_ms: { embedding: number; search?: number; corpus?: number; ranking?: number; total: number }
   items: RetrievalItem[]
   unavailable_chunk_ids: string[]
 }
@@ -1119,8 +1123,8 @@ export function getEvalEvidence(runId: string, resultId: string, signal?: AbortS
   return requestJson(`/owner/eval-runs/${runId}/results/${resultId}/evidence`, { signal })
 }
 
-export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal): Promise<RetrievalRun> {
-  return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK }, signal, timeoutMs: 660000 })
+export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal, strategy?: 'dense' | 'bm25'): Promise<RetrievalRun> {
+  return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK, ...(strategy ? { strategy } : {}) }, signal, timeoutMs: 660000 })
 }
 
 export async function getRetrievalRun(runId: string, signal?: AbortSignal): Promise<RetrievalRun> {

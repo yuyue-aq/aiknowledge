@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
@@ -49,3 +49,5 @@ class RetrievalRun:
     timings_ms: dict[str, float]
     model_name: str
     created_at: datetime
+    strategy: str = 'dense'
+    config_snapshot: dict[str, object] = field(default_factory=dict)

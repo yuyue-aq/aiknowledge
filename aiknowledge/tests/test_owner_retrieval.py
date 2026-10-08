@@ -48,6 +48,11 @@ class Repository:
             self.scope = replace(self.scope, knowledge_revision=1)
         return [self.chunk]
 
+    async def keyword_corpus(self, *, scope, limit):
+        assert scope.space_id == self.space_id
+        if self.changed:self.scope=replace(self.scope, knowledge_revision=1)
+        return [replace(self.chunk,content='SCOPE_CHANGED 分享范围改变后重新提问。')]
+
     async def add_run(self, run):
         self.runs[run.id] = run
 
@@ -60,6 +65,10 @@ class Repository:
 
 def service(repo, encoder):
     return OwnerRetrievalService(repository=repo, retrieval=RetrievalService(encoder, expected_dimension=3), model_name='test-bge')
+
+
+
+
 
 
 @pytest.mark.asyncio
@@ -142,3 +151,47 @@ async def test_time_expiration_is_checked_even_without_revision_change():
         await service(repo, encoder).search(space_id=repo.space_id, user_id=repo.user_id, question='问题', top_k=4)
     assert error.value.code == 'RETRIEVAL_SCOPE_CHANGED'
     assert not repo.runs
+
+
+@pytest.mark.asyncio
+async def test_bm25_recalls_without_dense_or_embedding_and_saves_strategy():
+    repo,encoder=Repository(),Encoder()
+    async def forbidden(**kwargs):raise AssertionError('BM25 must not use dense candidates')
+    repo.retrieve=forbidden
+    app=service(repo,encoder)
+    run,result=await app.search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='bm25')
+    assert encoder.calls==0
+    assert len(result.items)==1 and result.items[0].score>0
+    assert run.strategy=='bm25' and run.config_snapshot['analyzer']=='zh-bigram-identifiers-v1'
+    saved,_=await app.get_run(run.id,user_id=repo.user_id)
+    assert saved.strategy=='bm25'
+
+
+@pytest.mark.asyncio
+async def test_bm25_scope_change_drops_result():
+    repo,encoder=Repository(),Encoder();repo.changed=True
+    with pytest.raises(RetrievalError) as error:
+        await service(repo,encoder).search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='bm25')
+    assert error.value.code=='RETRIEVAL_SCOPE_CHANGED'
+    assert not repo.runs and encoder.calls==0
+
+
+@pytest.mark.asyncio
+async def test_bm25_denied_scope_never_reads_corpus():
+    repo,encoder=Repository(),Encoder();repo.allowed=False
+    async def forbidden(**kwargs):raise AssertionError('Unauthorized corpus read')
+    repo.keyword_corpus=forbidden
+    with pytest.raises(RetrievalError) as error:
+        await service(repo,encoder).search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='bm25')
+    assert error.value.status_code==404 and encoder.calls==0
+
+
+@pytest.mark.asyncio
+async def test_bm25_database_failure_has_safe_error_and_no_saved_result():
+    repo,encoder=Repository(),Encoder()
+    async def unavailable(**kwargs):raise RuntimeError('private connection details')
+    repo.keyword_corpus=unavailable
+    with pytest.raises(RetrievalError) as error:
+        await service(repo,encoder).search(space_id=repo.space_id,user_id=repo.user_id,question='SCOPE_CHANGED',strategy='bm25')
+    assert error.value.code=='RETRIEVAL_UNAVAILABLE'
+    assert 'private' not in str(error.value) and not repo.runs

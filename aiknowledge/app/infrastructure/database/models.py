@@ -557,6 +557,8 @@ class RetrievalRunRecord(Base):
     space_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey('knowledge_spaces.id', ondelete='CASCADE'), nullable=False)
     user_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), ForeignKey('users.id', ondelete='CASCADE'), nullable=False)
     question: Mapped[str] = mapped_column(Text, nullable=False)
+    strategy: Mapped[str] = mapped_column(String(16), nullable=False, server_default='dense')
+    config_snapshot: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict, server_default='{}')
     top_k: Mapped[int] = mapped_column(Integer, nullable=False)
     access_revision: Mapped[int] = mapped_column(BigInteger, nullable=False)
     knowledge_revision: Mapped[int] = mapped_column(BigInteger, nullable=False)

@@ -37,6 +37,16 @@
 .v2-panel { padding: 20px; margin-bottom: 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .v2-two { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(270px, 1fr); gap: 20px; align-items: start; }
 .v2-query { display: grid; grid-template-columns: minmax(0, 1fr) 110px auto; gap: 14px; align-items: end; }
+.v2-query-strategy { grid-template-columns: minmax(0, 1fr) 174px 90px 116px; }
+.v2-input-clear { position: relative; }
+.v2-input-clear input { padding-right: 42px; }
+
+.v2-clear-query {
+  position: absolute; top: 6px; right: 6px; width: 32px; height: 32px; border: 0;
+  border-radius: 8px; background: transparent; color: var(--muted); cursor: pointer;
+
+  &:hover { background: var(--ice); color: var(--cobalt); }
+}
 
 .v2-evidence {
   display: block; width: 100%; margin-bottom: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 12px;
@@ -80,6 +90,7 @@
   .v2-heading h1 { font-size: 23px; }
   .v2-two { grid-template-columns: minmax(0, 1fr); }
   .v2-query { grid-template-columns: minmax(0, 1fr) 90px; }
+  .v2-query-strategy > div:first-child { grid-column: 1 / -1; }
   .v2-query .v2-button { grid-column: 1 / -1; }
   .v2-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .v2-grade-layout .v2-case-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }

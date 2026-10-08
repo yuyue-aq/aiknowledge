@@ -185,6 +185,15 @@ test('V2 retrieval sends question and K to authenticated diagnostics without gen
   assert.equal(calls.length, 1)
 })
 
+test('keyword diagnostics transmit BM25 strategy without changing chat requests', async () => {
+  const calls = []
+  const { client } = loadClient(async (options) => { calls.push(options); return { statusCode: 201, data: { run_id: 'keyword' } } })
+  await client.searchKnowledge('space', 'SCOPE_CHANGED', 5, undefined, 'bm25')
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].data.strategy, 'bm25')
+  assert.match(calls[0].url, /retrieval-runs$/)
+})
+
 test('V2 evaluation uses immediate async endpoints and polls the saved run', async () => {
   const calls = []
   const { client } = loadClient(async ({ url }) => {
