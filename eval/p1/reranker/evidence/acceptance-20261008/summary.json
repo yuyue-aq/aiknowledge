@@ -1,0 +1,12 @@
+{
+  "status": "PASSED",
+  "space_id": "7725b434-a219-4dc2-a488-fd41c01a7a4c",
+  "ui_groups": 9,
+  "scope_groups": 11,
+  "assistant_ui_reviewed_cases": 3,
+  "worker_runs_completed": 2,
+  "same_knowledge_manifest": true,
+  "model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+  "known_500_failures_preserved": 6,
+  "notes": "Only new synthetic acceptance space; controlled 503 tests UI error handling. No fake successful model responses. Three assistant UI reviews are not independent human evaluation of 500 cases."
+}

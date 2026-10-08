@@ -1,0 +1,25 @@
+{
+  "status": "PASSED",
+  "run_id": "370620ef-d2fb-4b28-83c5-69d67f586591",
+  "grades": [
+    {
+      "question": "云栈停用后资料保存多久？",
+      "answer": "云栈停用后资料保留90天。",
+      "result_id": "07ca1bdc-847d-44e1-868f-9e7d90591694",
+      "score": 1
+    },
+    {
+      "question": "青岚测试版可以试用多少天？",
+      "answer": "青岚测试版试用时间为17天。",
+      "result_id": "11c66fe5-4c46-417a-bf30-0bc16a63c512",
+      "score": 1
+    },
+    {
+      "question": "青岚的真实公网地址是什么？",
+      "answer": "证据中未记录青岚的真实公网地址。",
+      "result_id": "29c484ee-ac23-4c67-9d43-e214e4c4f04c",
+      "score": 1
+    }
+  ],
+  "review_method": "assistant checks three approved synthetic facts, then operates actual scoring UI; not independent human evaluation"
+}

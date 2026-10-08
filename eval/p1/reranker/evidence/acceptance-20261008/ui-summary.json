@@ -1,0 +1,17 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "Three specified questions: correct service, real scores/ranks and complete current source",
+    "Clear returns focus and empty question shows validation",
+    "Controlled error clearly shown; retry uses real model",
+    "Changing parameters cancels stale results in both columns",
+    "Top K and query edits invalidate both old ranking columns",
+    "390px panels stack, no overflow and source/ask remain reachable",
+    "Real 17-day cited answer, unknown-address refusal, busy lock and Dense restore",
+    "UI dispatches same frozen three cases; both real Worker runs complete",
+    "Same-version comparison renders actual paired results"
+  ],
+  "browser": "real Edge",
+  "mocked_success": false,
+  "controlled_failure": "503 and delayed forwarding only"
+}

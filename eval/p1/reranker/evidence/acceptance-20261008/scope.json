@@ -1,0 +1,17 @@
+{
+  "status": "PASSED",
+  "space_id": "7725b434-a219-4dc2-a488-fd41c01a7a4c",
+  "checks": [
+    "Pinned actual model and saved score/rank contract",
+    "Long query explicitly rejected by upstream/model token validation, no silent truncation",
+    "Disabled source excluded in new retrieval, historical read and new answer",
+    "Expired and future-effective documents excluded from every branch",
+    "In-flight real request rejects old scope with 409 and no result",
+    "Only current activity version enters model; old 17-day version excluded",
+    "Cross-space content never enters authorized model candidates",
+    "Team admin allowed; downgrade immediately denies private diagnostics",
+    "Public category isolation, filename recovery refusal and restricted DTO",
+    "Real Worker refuses mixed knowledge versions during frozen evaluation",
+    "Deleted document excluded from new and historical retrieval"
+  ]
+}

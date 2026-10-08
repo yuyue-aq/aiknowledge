@@ -1,0 +1,9 @@
+{
+  "status_code": 422,
+  "body": {
+    "code": "QUERY_TOKEN_LIMIT",
+    "message": "问题超过向量模型输入上限，请精简后重试。",
+    "request_id": "7dbfab85-33e4-4d28-9f88-60b2e3bafde5",
+    "details": null
+  }
+}

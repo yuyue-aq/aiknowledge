@@ -20,3 +20,11 @@
 旧500题用原版14天/30天；新40题四份规则中的17/23/31/41天属于另一数据集。禁止将两组混入同一空间，或修改标答提高分数。模型辅助评分有同源偏差，引用/ID完整性与语义正确率是不同指标。
 
 `evidence`只收录脱敏、可审阅的小型记录。完整500题原始请求、答案、引用、辅助评分理由和截图在忽略的output目录，凭证在.auth目录，模型在tmp/models目录。完整报告及人工验收文档位于仓库根目录。
+
+## C代验收复现
+
+`acceptance_check.py seed`创建新虚构账号/团队空间、四份规则和冻结三题，保存到独立.auth/p1-c-acceptance；`acceptance_check.py scope`在该空间检验权限、生命周期、公开范围、输入限制、在途变更及删除。重复运行只替换该空间的旧测试分享链接，恢复资料规则/时间/启用状态，不操作原500题空间。新版本恢复规则后活动版本ID会改变，这是正常生命周期行为。
+
+随后运行`acceptance_ui.cjs`（真实Edge/Playwright）操作检索、问答、相同版本的RRF/C Worker运行及对照；`acceptance_grade_ui.cjs`逐题核对三条虚构事实、实际保存评分；最后`acceptance_verify.py`只读确认Worker结果、冻结知识清单与评分落库。Node需要可用Playwright的NODE_PATH。成功响应不伪造，受控503只验页面错误处理。
+
+最新证据在output/p1-reranker/acceptance-20261008，小型摘要在evidence/acceptance-20261008，结论及非阻断观察见根目录P1阶段C-代验收报告-20261008.md。这三题助手评分不替代500题独立人工评测。

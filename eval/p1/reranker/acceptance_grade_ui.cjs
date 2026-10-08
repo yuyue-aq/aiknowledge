@@ -1,0 +1,40 @@
+const fs=require('fs'),path=require('path'),assert=require('assert/strict')
+const {chromium}=require('playwright')
+;(async()=>{
+  const root=path.resolve(__dirname,'../../..'),out=path.join(root,'output/p1-reranker/acceptance-20261008')
+  const auth=JSON.parse(fs.readFileSync(path.join(root,'.auth/p1-c-acceptance/credentials.json'),'utf8'))
+  const state=JSON.parse(fs.readFileSync(path.join(root,'.auth/p1-c-acceptance/state.json'),'utf8'))
+  const ui=JSON.parse(fs.readFileSync(path.join(out,'ui.json'),'utf8')),run=ui.runs.find(x=>x.retrieval_config_snapshot.retrieval_strategy==='hybrid_rerank')
+  assert.ok(run)
+  const browser=await chromium.launch({channel:'msedge',headless:true}),page=await browser.newPage({viewport:{width:1440,height:1000},timezoneId:'Asia/Shanghai'})
+  const grades=[]
+  try{
+    await page.goto('http://127.0.0.1:10087/#/pages/index/index')
+    await page.locator('input[placeholder="请输入邮箱"]').fill(auth.email);await page.locator('input[placeholder="请输入密码"]').fill(auth.password)
+    await page.getByRole('button',{name:'登录',exact:true}).click();await page.getByText(state.space_name,{exact:true}).first().click()
+    await page.getByText('评测',{exact:true}).first().click()
+    const date=new Date(run.created_at).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})
+    await page.locator('.v2-panel .v2-row.v2-between').filter({hasText:date}).filter({hasText:'已完成'}).getByRole('button',{name:'打开运行',exact:true}).click()
+    await page.getByRole('heading',{name:'人工评分',exact:true}).waitFor()
+    assert.equal(await page.locator('.v2-case-list button').count(),3)
+    for(let i=0;i<3;i++){
+      await page.locator('.v2-case-list button').nth(i).click()
+      const question=await page.locator('.v2-grade-layout > .v2-panel h2').first().innerText()
+      const answer=await page.locator('.v2-grade-layout > .v2-panel p.v2-source-text').first().innerText()
+      if(question.includes('公网地址'))assert.ok(/未提供|未记录|不足/.test(answer))
+      else if(question.includes('青岚'))assert.ok(answer.includes('17'))
+      else if(question.includes('云栈'))assert.ok(answer.includes('90'))
+      else throw Error('Unexpected frozen acceptance question')
+      await page.getByRole('button',{name:'正确',exact:true}).click()
+      await page.getByLabel('评分说明').fill('助手代验收：逐题核对批准的虚构规则；17天、90天或未记录地址与资料一致。此三题评分不覆盖500题，也不作为独立人工准确率。')
+      const response=page.waitForResponse(r=>r.request().method()==='PATCH'&&r.url().includes('/eval-results/'))
+      await page.getByRole('button',{name:'保存评分',exact:true}).click();const saved=await (await response).json();assert.equal(saved.reviewer_score,1)
+      grades.push({question,answer,result_id:saved.id,score:saved.reviewer_score});console.log('PASS','Manual UI review and persisted score',i+1)
+      await page.getByText('人工评分已保存。',{exact:true}).waitFor()
+    }
+    await page.waitForFunction(()=>!document.querySelector('.v2-case-list').textContent.includes('待评分'))
+    await page.screenshot({path:path.join(out,'grading.png'),fullPage:true})
+    fs.writeFileSync(path.join(out,'grading.json'),JSON.stringify({status:'PASSED',run_id:run.id,grades,review_method:'assistant checks three approved synthetic facts, then operates actual scoring UI; not independent human evaluation'},null,2))
+  }catch(error){await page.screenshot({path:path.join(out,'grading-failure.png'),fullPage:true}).catch(()=>{});throw error}
+  finally{await browser.close()}
+})().catch(error=>{console.error(error.message);process.exit(1)})
