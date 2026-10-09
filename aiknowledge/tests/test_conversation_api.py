@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import UTC, datetime
+from types import SimpleNamespace
 from uuid import UUID, uuid4
 
 import httpx
@@ -105,6 +106,38 @@ async def test_public_space_only_returns_share_scoped_published_faq_questions():
     assert faq_calls == [{'scope': curated_scope, 'limit': 6}]
     assert documents.json()['content_mode'] == 'DOCUMENTS'
     assert documents.json()['suggested_questions'] == []
+
+
+@pytest.mark.asyncio
+async def test_public_cookie_scope_preserves_share_link_content_mode():
+    spaces = FakePublicSpaceService()
+    curated_scope = replace(
+        spaces.scope,
+        content_mode=PublicContentMode.PUBLISHED_ANSWERS,
+        visitor_question_limit=10,
+    )
+
+    class Codec:
+        def read_session(self, token):
+            assert token == "valid-public-session"
+            return curated_scope.share_link_id, "visitor-1"
+
+    class Service:
+        async def resolve_public_scope_by_link_id(self, share_link_id):
+            assert share_link_id == curated_scope.share_link_id
+            return curated_scope
+
+    scope = await get_public_scope(
+        SimpleNamespace(headers={"origin": None}),
+        "valid-public-session",
+        Codec(),
+        Service(),
+    )
+
+    assert scope.share_link_id == curated_scope.share_link_id
+    assert scope.visitor_id == "visitor-1"
+    assert scope.visitor_question_limit == 10
+    assert scope.content_mode is PublicContentMode.PUBLISHED_ANSWERS
 
 
 @pytest.mark.asyncio

@@ -169,6 +169,7 @@ async def get_public_scope(
             visitor_id=visitor_id if scope.visitor_question_limit is not None else None,
             visitor_question_limit=scope.visitor_question_limit,
             allowed_origins=scope.allowed_origins,
+            content_mode=scope.content_mode,
         )
     except (PublicSessionInvalidError, PublicAccessDeniedError) as error:
         raise AppError(
