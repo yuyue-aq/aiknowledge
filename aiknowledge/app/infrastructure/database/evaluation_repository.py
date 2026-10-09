@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import exists, or_, select, update, func, and_
-from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy import exists, or_, select, update, func, and_, case, cast
+from sqlalchemy.dialects.postgresql import insert as pg_insert, JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.conversations import (
@@ -23,6 +23,7 @@ from app.infrastructure.database.models import (
     EvalRunRecord,
     EvalSetVersionRecord,
     FeedbackRecord,
+    CitationRecord,
     ConversationRecord,
     KnowledgeSpaceRecord,
     MessageRecord,
@@ -31,12 +32,14 @@ from app.infrastructure.database.models import (
     share_link_categories,
 )
 from app.domain.users import SpaceRole
+from app.domain.documents import DocumentStatus
 from app.domain.evaluation import EvidenceRef
 from app.infrastructure.database.models import ChunkRecord, DocumentRecord
 from app.infrastructure.database.conversation_repository import SqlAlchemyConversationRepository
 from app.services.evaluation_metrics import evidence_coverage
 from app.services.evaluation_snapshot import knowledge_manifest
 from app.infrastructure.database.models import DocumentVersionRecord
+from app.services.knowledge_impact import build_knowledge_impact
 from app.infrastructure.database.feedback_repository import original_feedback_question_expression
 
 
@@ -290,6 +293,7 @@ class SqlAlchemyEvaluationRepository:
                 execution_snapshot=result.execution_snapshot,
                 retrieval_metrics=result.retrieval_metrics,
                 failure_code=result.failure_code,
+                model_grade_suggestions=list(result.model_grade_suggestions),
             )
         )
         await self._session.flush()
@@ -313,6 +317,16 @@ class SqlAlchemyEvaluationRepository:
         record.reviewer_score = result.reviewer_score
         record.reviewer_note = result.reviewer_note
         await self._session.flush()
+
+    async def append_model_grade_suggestion(self, result_id: UUID, suggestion: dict[str, object]) -> EvalResult | None:
+        statement = update(EvalResultRecord).where(EvalResultRecord.id == result_id).values(
+            model_grade_suggestions=EvalResultRecord.model_grade_suggestions.op("||")(
+                cast([suggestion], JSONB)
+            )
+        ).returning(EvalResultRecord).execution_options(populate_existing=True)
+        record = (await self._session.execute(statement)).scalar_one_or_none()
+        await self._session.flush()
+        return self._to_result(record) if record is not None else None
 
     async def commit(self) -> None:
         await self._session.commit()
@@ -346,6 +360,124 @@ class SqlAlchemyEvaluationRepository:
             'embedding_model': row.embedding_model, 'embedding_dimension': row.embedding_dimension,
         } for row in rows]
         return knowledge_manifest(chunks, access_revision=before.access_revision, knowledge_revision=before.knowledge_revision)
+
+    async def get_knowledge_impact(self, space_id: UUID) -> dict[str, object]:
+        """Summarize stale regression evidence and historical citations for admins."""
+        now = datetime.now(UTC)
+        document_rows = (await self._session.execute(select(
+            DocumentRecord.id, DocumentRecord.original_filename, DocumentRecord.active_version_id,
+            DocumentRecord.status, DocumentRecord.is_enabled, DocumentRecord.effective_at,
+            DocumentRecord.expires_at, DocumentRecord.deleted_at,
+        ).where(DocumentRecord.space_id == space_id))).all()
+        documents = []
+        for row in document_rows:
+            status = getattr(row.status, 'value', row.status)
+            available = (
+                status == DocumentStatus.READY.value
+                and bool(row.is_enabled)
+                and row.deleted_at is None
+                and (row.effective_at is None or row.effective_at <= now)
+                and (row.expires_at is None or row.expires_at > now)
+                and row.active_version_id is not None
+            )
+            documents.append({
+                'id': row.id,
+                'name': row.original_filename,
+                'active_version_id': row.active_version_id,
+                'available': available,
+            })
+
+        case_records = (await self._session.scalars(select(EvalCaseRecord).where(
+            EvalCaseRecord.space_id == space_id).order_by(EvalCaseRecord.created_at, EvalCaseRecord.id))).all()
+        cases = [self._to_case(record) for record in case_records]
+
+        source_unavailable = or_(
+            DocumentRecord.deleted_at.is_not(None),
+            DocumentRecord.status != DocumentStatus.READY,
+            DocumentRecord.active_version_id.is_(None),
+            DocumentRecord.is_enabled.is_(False),
+            and_(DocumentRecord.effective_at.is_not(None), DocumentRecord.effective_at > now),
+            and_(DocumentRecord.expires_at.is_not(None), DocumentRecord.expires_at <= now),
+        )
+        citation_impact_status = case(
+            (source_unavailable, 'SOURCE_UNAVAILABLE'),
+            else_='VERSION_CHANGED',
+        )
+        citation_from_space = (
+            select(CitationRecord.id)
+            .select_from(CitationRecord)
+            .join(MessageRecord, MessageRecord.id == CitationRecord.message_id)
+            .join(ConversationRecord, ConversationRecord.id == MessageRecord.conversation_id)
+            .join(ChunkRecord, ChunkRecord.id == CitationRecord.chunk_id)
+            .join(DocumentRecord, DocumentRecord.id == ChunkRecord.document_id)
+            .where(
+                ConversationRecord.space_id == space_id,
+                or_(source_unavailable, ChunkRecord.document_version_id != DocumentRecord.active_version_id),
+            )
+        )
+        citation_total = int(await self._session.scalar(
+            select(func.count()).select_from(citation_from_space.subquery())
+        ) or 0)
+        citation_rows = (await self._session.execute(
+            select(
+                DocumentRecord.id.label('document_id'),
+                DocumentRecord.original_filename.label('document_name'),
+                ChunkRecord.document_version_id.label('cited_version_id'),
+                DocumentRecord.active_version_id.label('active_version_id'),
+                citation_impact_status.label('status'),
+                func.count(CitationRecord.id).label('citation_count'),
+                func.count(func.distinct(CitationRecord.message_id)).label('message_count'),
+            )
+            .select_from(CitationRecord)
+            .join(MessageRecord, MessageRecord.id == CitationRecord.message_id)
+            .join(ConversationRecord, ConversationRecord.id == MessageRecord.conversation_id)
+            .join(ChunkRecord, ChunkRecord.id == CitationRecord.chunk_id)
+            .join(DocumentRecord, DocumentRecord.id == ChunkRecord.document_id)
+            .where(
+                ConversationRecord.space_id == space_id,
+                or_(source_unavailable, ChunkRecord.document_version_id != DocumentRecord.active_version_id),
+            )
+            .group_by(
+                DocumentRecord.id, DocumentRecord.original_filename, ChunkRecord.document_version_id,
+                DocumentRecord.active_version_id, citation_impact_status,
+            )
+            .order_by(func.count(CitationRecord.id).desc(), DocumentRecord.original_filename)
+            .limit(50)
+        )).all()
+        outdated_citations = [{
+            'document_id': row.document_id,
+            'document_name': row.document_name,
+            'cited_version_id': row.cited_version_id,
+            'active_version_id': row.active_version_id,
+            'status': row.status,
+            'citation_count': row.citation_count,
+            'message_count': row.message_count,
+        } for row in citation_rows]
+
+        latest_record = (await self._session.scalars(select(EvalRunRecord).where(
+            EvalRunRecord.space_id == space_id,
+            EvalRunRecord.status == EvalRunStatus.COMPLETED,
+        ).order_by(EvalRunRecord.created_at.desc(), EvalRunRecord.id.desc()).limit(1))).first()
+        latest_run = None
+        if latest_record is not None:
+            result_rows = (await self._session.execute(select(
+                EvalResultRecord.eval_case_id, EvalResultRecord.answer_status,
+            ).where(EvalResultRecord.eval_run_id == latest_record.id))).all()
+            latest_run = {
+                'id': latest_record.id,
+                'created_at': latest_record.created_at,
+                'cases': (latest_record.retrieval_config_snapshot or {}).get('eval_cases', []),
+                'results': [{'eval_case_id': row.eval_case_id, 'answer_status': row.answer_status}
+                    for row in result_rows],
+            }
+
+        return build_knowledge_impact(
+            documents=documents,
+            cases=cases,
+            outdated_citations=outdated_citations,
+            outdated_citation_total=citation_total,
+            latest_run=latest_run,
+        )
 
     async def list_recoverable_runs(self, *, limit: int = 20):
         statement = select(EvalRunRecord.id).where(or_(
@@ -399,6 +531,7 @@ class SqlAlchemyEvaluationRepository:
             answer_status=result.answer_status, answer=result.answer, citation_count=result.citation_count,
             execution_snapshot=result.execution_snapshot, retrieval_metrics=result.retrieval_metrics,
             failure_code=result.failure_code,
+            model_grade_suggestions=list(result.model_grade_suggestions),
         ).on_conflict_do_nothing(constraint='uq_eval_results_run_case'))
         await self._session.execute(update(EvalRunRecord).where(EvalRunRecord.id == result.eval_run_id,
             EvalRunRecord.lease_owner == lease_token).values(progress_completed=select(func.count(EvalResultRecord.id)).where(
@@ -475,6 +608,7 @@ class SqlAlchemyEvaluationRepository:
             execution_snapshot=record.execution_snapshot,
             retrieval_metrics=record.retrieval_metrics,
             failure_code=record.failure_code,
+            model_grade_suggestions=tuple(dict(item) for item in (record.model_grade_suggestions or []) if isinstance(item, dict)),
         )
 
     @staticmethod

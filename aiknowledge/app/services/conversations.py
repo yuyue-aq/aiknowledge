@@ -22,6 +22,7 @@ from app.domain.conversations import (
     RetrievedChunk,
 )
 from app.domain.rag import AnswerStatus, RagAnswer, RankedSourceChunk, SourceChunk, Usage
+from app.domain.public_answers import PublicContentMode
 from app.domain.spaces import PublicRetrievalScope
 from app.domain.retrieval import RetrievalMetadataFilter
 from app.services.usage import UsageService
@@ -76,6 +77,10 @@ class ConversationRepository(Protocol):
         limit: int,
         metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> list[RetrievedChunk]: ...
+
+    async def list_public_faq_questions(
+        self, *, scope: PublicRetrievalScope, limit: int = 6
+    ) -> list[str]: ...
 
     async def commit(self) -> None: ...
 
@@ -344,6 +349,12 @@ class ConversationService:
         strategy: str | None = None,
         metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> ConversationAnswer:
+        if scope.content_mode is PublicContentMode.PUBLISHED_ANSWERS and metadata_filter is not None and (
+            metadata_filter.tag_ids or metadata_filter.formats or metadata_filter.version_min is not None
+            or metadata_filter.version_max is not None or metadata_filter.valid_from is not None
+            or metadata_filter.valid_to is not None
+        ):
+            raise ConversationQuestionError('已审核问答分享链接只支持分类筛选。')
         conversation = await self._require_conversation(conversation_id)
         if (
             conversation.kind is not ConversationKind.PUBLIC
@@ -370,6 +381,16 @@ class ConversationService:
             metadata_filter=metadata_filter,
             scope_check=self._scope_checker(scope.space_id, public_scope=scope, metadata_filter=metadata_filter),
         )
+
+    async def list_public_faq_questions(
+        self, *, scope: PublicRetrievalScope, limit: int = 6
+    ) -> list[str]:
+        if scope.content_mode is not PublicContentMode.PUBLISHED_ANSWERS or limit <= 0:
+            return []
+        reader = getattr(self._repository, 'list_public_faq_questions', None)
+        if reader is None:
+            return []
+        return await reader(scope=scope, limit=min(limit, 6))
 
     async def answer_owner(self, *, space_id: UUID, question: str, strategy: str | None = None,
         metadata_filter: RetrievalMetadataFilter | None = None) -> RagAnswer:
@@ -767,12 +788,22 @@ class ConversationService:
             CitationSnapshot(
                 id=self._id_factory(),
                 message_id=message_id,
-                chunk_id=candidate_by_id[citation.source_chunk_id].id,
-                document_name=candidate_by_id[citation.source_chunk_id].document_name,
-                quoted_text=candidate_by_id[citation.source_chunk_id].content,
+                chunk_id=(
+                    None if candidate_by_id[citation.source_chunk_id].public_answer_version_id
+                    else candidate_by_id[citation.source_chunk_id].id
+                ),
+                document_name=(
+                    candidate_by_id[citation.source_chunk_id].public_answer_title
+                    or candidate_by_id[citation.source_chunk_id].document_name
+                ),
+                quoted_text=(
+                    candidate_by_id[citation.source_chunk_id].public_answer_text
+                    or candidate_by_id[citation.source_chunk_id].content
+                ),
                 page_number=candidate_by_id[citation.source_chunk_id].page_number,
                 ordinal=candidate_by_id[citation.source_chunk_id].ordinal,
                 score=citation.score,
+                public_answer_version_id=candidate_by_id[citation.source_chunk_id].public_answer_version_id,
             )
             for citation in answer.citations
         )

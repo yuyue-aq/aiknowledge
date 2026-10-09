@@ -18,9 +18,11 @@ from app.domain.conversations import (
 )
 from app.domain.rag import AnswerStatus
 from app.domain.spaces import Category, KnowledgeSpace, PublicRetrievalScope, SpaceVisibility
+from app.domain.public_answers import PublicContentMode
+from app.api.dependencies import get_database_session
 from app.core.config import Settings
 from app.main import create_app
-from app.api.v1.conversations import OwnerAnswerResponse, OwnerConversationDetailResponse, PublicAnswerResponse, _as_sse
+from app.api.v1.conversations import OwnerAnswerResponse, OwnerConversationDetailResponse, PublicAnswerResponse, _as_sse, get_public_scope
 
 
 @pytest.mark.asyncio
@@ -39,7 +41,70 @@ async def test_public_hybrid_strategy_goes_to_generation_not_question_quota():
         await client.post('/api/v1/public/session',json={'token':'only-returned-once-token'})
         response=await client.post(f'/api/v1/public/conversations/{conversations.public_conversation_id}/messages',json={'question':'开放规则？','strategy':'hybrid'})
     assert response.status_code==200 and strategies==['hybrid']
-    assert set(response.json())=={'message_id','status','answer'}
+    assert set(response.json())=={'message_id','status','answer','sources'}
+    assert response.json()['sources'] == []
+
+
+def test_public_answer_response_only_exposes_curated_public_answer_sources():
+    now = datetime.now(UTC)
+    conversation_id, user_id, assistant_id = uuid4(), uuid4(), uuid4()
+    user = ConversationMessage(user_id, conversation_id, MessageRole.USER, '问题', now)
+    assistant = ConversationMessage(
+        assistant_id, conversation_id, MessageRole.ASSISTANT, '答案', now,
+        answer_status=AnswerStatus.ANSWERED,
+    )
+    curated_version_id = uuid4()
+    answer = ConversationAnswer(
+        user=user,
+        assistant=assistant,
+        citations=(
+            CitationSnapshot(uuid4(), assistant_id, uuid4(), '私有文档.pdf', '私有原文', 1, 1, 0.2),
+            CitationSnapshot(uuid4(), assistant_id, None, '审核问题', '审核答案', None, 1, 0.1,
+                public_answer_version_id=curated_version_id),
+        ),
+    )
+
+    response = PublicAnswerResponse.from_domain(answer)
+
+    assert [source.model_dump() for source in response.sources] == [
+        {'title': '审核问题', 'content': '审核答案'},
+    ]
+
+
+@pytest.mark.asyncio
+async def test_public_space_only_returns_share_scoped_published_faq_questions():
+    spaces = FakePublicSpaceService()
+    conversations = FakeConversationService(spaces.space.id, spaces.link_id)
+    faq_calls = []
+
+    async def list_faq(*, scope, limit):
+        faq_calls.append({'scope': scope, 'limit': limit})
+        return ['如何申请？', '何时到账？']
+
+    conversations.list_public_faq_questions = list_faq
+    app = create_app(
+        settings=Settings(auth_required=False),
+        conversation_service_factory=lambda _: conversations,
+        space_service_factory=lambda _: spaces,
+    )
+    async def session():
+        yield None
+    app.dependency_overrides[get_database_session] = session
+    curated_scope = replace(spaces.scope, content_mode=PublicContentMode.PUBLISHED_ANSWERS)
+    app.dependency_overrides[get_public_scope] = lambda: curated_scope
+
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url='http://test') as client:
+        curated = await client.get('/api/v1/public/space')
+        app.dependency_overrides[get_public_scope] = lambda: spaces.scope
+        documents = await client.get('/api/v1/public/space')
+
+    assert curated.status_code == 200
+    assert curated.json()['content_mode'] == 'PUBLISHED_ANSWERS'
+    assert curated.json()['suggested_questions'] == ['如何申请？', '何时到账？']
+    assert 'answer' not in curated.json()
+    assert faq_calls == [{'scope': curated_scope, 'limit': 6}]
+    assert documents.json()['content_mode'] == 'DOCUMENTS'
+    assert documents.json()['suggested_questions'] == []
 
 
 @pytest.mark.asyncio

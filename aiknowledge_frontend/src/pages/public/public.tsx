@@ -9,6 +9,7 @@ import {
   getPublicSpace,
   streamPublicAnswer,
   type AnswerStatus,
+  type PublicApprovedSource,
   type PublicSpace,
 } from "../../api/client";
 import { Icon } from "../../components/Icon";
@@ -19,6 +20,7 @@ type PublicMessage = {
   role: "USER" | "ASSISTANT";
   content: string;
   status?: AnswerStatus;
+  sources?: PublicApprovedSource[];
   createdAt: string;
 };
 const localId = (prefix: string) =>
@@ -85,7 +87,15 @@ export default function Public() {
     setError("");
     setQuestionError("");
     try {
-      const result = await createPublicSession(nextToken.trim(), nextPassword.trim() || undefined);
+      const sessionSpace = await createPublicSession(nextToken.trim(), nextPassword.trim() || undefined);
+      let result = sessionSpace;
+      if (sessionSpace.content_mode === 'PUBLISHED_ANSWERS') {
+        try {
+          result = await getPublicSpace();
+        } catch (loadError) {
+          if (loadError instanceof ApiRequestError && [401, 403, 404].includes(loadError.status)) throw loadError;
+        }
+      }
       setSpace(result);
       setState("ready");
       setToken(nextToken.trim());
@@ -133,6 +143,7 @@ export default function Public() {
           role: "ASSISTANT",
           content: result.answer,
           status: result.status,
+          sources: result.sources ?? [],
           createdAt: now(),
         },
       ]);
@@ -311,30 +322,26 @@ export default function Public() {
         <View className='public-messages' aria-live='polite'>
           {messages.length === 0 && (
             <View className='public-suggestions'>
-              <Text className='suggestions-title'>你可以这样问</Text>
-              <View className='suggestion-grid'>
-                <Button
-                  className='suggestion-card'
-                  onClick={() => void send("你负责过哪些工作？")}
-                >
-                  你负责过哪些工作？
-                  <Icon name='arrow' />
-                </Button>
-                <Button
-                  className='suggestion-card'
-                  onClick={() => void send("项目解决了什么问题？")}
-                >
-                  项目解决了什么问题？
-                  <Icon name='arrow' />
-                </Button>
-                <Button
-                  className='suggestion-card'
-                  onClick={() => void send("产品适合哪些用户？")}
-                >
-                  产品适合哪些用户？
-                  <Icon name='arrow' />
-                </Button>
-              </View>
+              <Text className='suggestions-title'>{space.content_mode === 'PUBLISHED_ANSWERS' ? '常见问题' : '你可以这样问'}</Text>
+              {space.content_mode === 'PUBLISHED_ANSWERS' ? (
+                space.suggested_questions?.length ? (
+                  <View className='suggestion-grid'>
+                    {space.suggested_questions.map((question) => (
+                      <Button key={question} className='suggestion-card' onClick={() => void send(question)}>
+                        {question}<Icon name='arrow' />
+                      </Button>
+                    ))}
+                  </View>
+                ) : <Text className='public-empty-faq'>暂时没有已发布的常见问题，你仍可以直接输入问题。</Text>
+              ) : (
+                <View className='suggestion-grid'>
+                  {['你负责过哪些工作？', '项目解决了什么问题？', '产品适合哪些用户？'].map((question) => (
+                    <Button key={question} className='suggestion-card' onClick={() => void send(question)}>
+                      {question}<Icon name='arrow' />
+                    </Button>
+                  ))}
+                </View>
+              )}
             </View>
           )}
           {messages.map((message) => (
@@ -453,9 +460,20 @@ function PublicBubble({ message }: { message: PublicMessage }) {
         )}
         <Text className='public-answer-label'>
           <Icon name='globe' />
-          {message.status === "FAILED" ? "需要重试" : "基于公开资料回答"}
+          {message.status === "FAILED" ? "需要重试" : message.sources?.length ? "基于已审核问答" : "基于公开资料回答"}
         </Text>
         <Text>{message.content}</Text>
+        {message.sources && message.sources.length > 0 && (
+          <View className='public-approved-sources'>
+            <Text className='public-approved-sources-title'>已审核问答依据</Text>
+            {message.sources.map((source, index) => (
+              <View className='public-approved-source' key={`${source.title}-${index}`}>
+                <Text className='public-approved-source-title'>{source.title}</Text>
+                <Text>{source.content}</Text>
+              </View>
+            ))}
+          </View>
+        )}
         <Text className='public-time'>{formatTime(message.createdAt)}</Text>
       </View>
     </View>

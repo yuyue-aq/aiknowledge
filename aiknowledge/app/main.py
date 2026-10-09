@@ -22,6 +22,7 @@ from app.api.v1.usage import router as usage_router
 from app.api.v1.public_analytics import router as public_analytics_router
 from app.api.v1.sources import router as sources_router
 from app.api.v1.spaces import router as spaces_router
+from app.api.v1.public_answers import router as public_answers_router
 from app.core.config import Settings, get_settings
 from app.core.errors import (
     AppError,
@@ -42,6 +43,7 @@ from app.infrastructure.database.conversation_repository import SqlAlchemyConver
 from app.infrastructure.database.feedback_repository import SqlAlchemyFeedbackRepository
 from app.infrastructure.database.evaluation_repository import SqlAlchemyEvaluationRepository
 from app.infrastructure.database.space_repository import SqlAlchemySpaceRepository
+from app.infrastructure.database.public_answer_repository import SqlAlchemyPublicAnswerRepository
 from app.infrastructure.database.auth_repository import SqlAlchemyAuthRepository
 from app.infrastructure.database.membership_repository import SqlAlchemyMembershipRepository
 from app.infrastructure.database.public_question_repository import SqlAlchemyPublicQuestionLogRepository
@@ -77,7 +79,9 @@ from app.services.public_analytics import PublicAnalyticsService
 from app.services.sources import DocumentSourceUploader, HttpSourceFetcher, SourceSyncService
 from app.services.feedback import FeedbackService
 from app.services.evaluations import EvaluationService
+from app.services.evaluation_judge import DeepSeekEvaluationJudge
 from app.services.spaces import SpaceService
+from app.services.public_answers import PublicAnswerService
 from app.services.document_workflow import DocumentUploadService
 from app.services.document_management import (
     DocumentApplicationService,
@@ -108,6 +112,7 @@ def create_app(
     public_analytics_service_factory: Callable[[AsyncSession], object] | None = None,
     source_service_factory: Callable[[AsyncSession], object] | None = None,
     retrieval_service_factory: Callable[[AsyncSession], object] | None = None,
+    public_answer_service_factory: Callable[[AsyncSession], object] | None = None,
 ) -> FastAPI:
     settings = settings or get_settings()
     database = database or Database(
@@ -122,10 +127,23 @@ def create_app(
         bucket_name=settings.minio_bucket,
         secure=settings.minio_secure,
     )
+    judge_api_key = settings.deepseek_api_key.get_secret_value() if settings.deepseek_api_key is not None else None
+    evaluation_judge_client = DeepSeekChatClient(
+        api_key=judge_api_key,
+        base_url=settings.deepseek_base_url,
+        model=settings.deepseek_model,
+        timeout_seconds=settings.deepseek_timeout_seconds,
+        temperature=0.0,
+        max_tokens=500,
+        thinking_enabled=False,
+        max_retries=settings.deepseek_max_retries,
+    )
+    evaluation_judge = DeepSeekEvaluationJudge(client=evaluation_judge_client)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         yield
+        await evaluation_judge_client.aclose()
         await database.dispose()
 
     app = FastAPI(title="AiKnowledge API", version="2.0.0", lifespan=lifespan)
@@ -174,6 +192,7 @@ def create_app(
     )
     app.state.query_embedding_client = embedding_client
     app.state.settings = settings
+    app.state.evaluation_judge = evaluation_judge
     app.state.rate_limiter = rate_limiter
     app.state.database = database
     app.state.storage = storage
@@ -308,6 +327,7 @@ def create_app(
             repository=SqlAlchemyEvaluationRepository(session),
             runner=runner,
             dispatcher=CeleryEvaluationDispatcher(celery_app),
+            judge=app.state.evaluation_judge,
             run_snapshot={
                 "prompt_version": PROMPT_VERSION,
                 "embedding_model": settings.bge_model_name,
@@ -322,6 +342,12 @@ def create_app(
 
     app.state.evaluation_service_factory = (
         evaluation_service_factory or default_evaluation_service
+    )
+    app.state.public_answer_service_factory = public_answer_service_factory or (
+        lambda session: PublicAnswerService(
+            repository=SqlAlchemyPublicAnswerRepository(session),
+            embedding_client=app.state.query_embedding_client,
+        )
     )
     app.state.readiness_probe = readiness_probe or CompositeReadinessProbe(
         DatabaseReadinessProbe(database),
@@ -365,6 +391,7 @@ def create_app(
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(memberships_router, prefix="/api/v1")
     app.include_router(spaces_router, prefix="/api/v1")
+    app.include_router(public_answers_router, prefix="/api/v1")
     app.include_router(documents_router, prefix="/api/v1")
     app.include_router(tags_router, prefix="/api/v1")
     app.include_router(usage_router, prefix="/api/v1")

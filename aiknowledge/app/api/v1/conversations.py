@@ -33,6 +33,7 @@ from app.domain.spaces import (
     PublicAccessEventType,
     PublicRetrievalScope,
 )
+from app.domain.public_answers import PublicContentMode
 from app.domain.users import User
 from app.services.conversations import ConversationQuestionError
 from app.services.public_access import PublicSessionInvalidError
@@ -48,6 +49,10 @@ PUBLIC_SESSION_COOKIE = "aiknowledge_public_session"
 
 
 class ConversationServicePort(Protocol):
+    async def list_public_faq_questions(
+        self, *, scope: PublicRetrievalScope, limit: int = 6
+    ) -> list[str]: ...
+
     async def create_owner_conversation(
         self, *, space_id: UUID, title: str | None = None, owner_user_id: UUID | None = None
     ) -> Conversation: ...
@@ -326,12 +331,18 @@ class OwnerConversationDetailResponse(BaseModel):
         )
 
 
+class PublicApprovedSourceResponse(BaseModel):
+    title: str
+    content: str
+
+
 class PublicAnswerResponse(BaseModel):
-    """Intentionally source-free DTO for anonymous guest access."""
+    """Guest DTO may expose only already-reviewed public answer sources."""
 
     message_id: UUID
     status: AnswerStatus
     answer: str
+    sources: list['PublicApprovedSourceResponse'] = Field(default_factory=list)
 
     @classmethod
     def from_domain(cls, answer: ConversationAnswer) -> "PublicAnswerResponse":
@@ -341,6 +352,10 @@ class PublicAnswerResponse(BaseModel):
             message_id=assistant.id,
             status=assistant.answer_status,
             answer=assistant.content,
+            sources=[
+                PublicApprovedSourceResponse(title=citation.document_name, content=citation.quoted_text)
+                for citation in answer.citations if citation.public_answer_version_id is not None
+            ],
         )
 
 
@@ -367,15 +382,23 @@ class PublicSpaceResponse(BaseModel):
     name: str
     description: str | None
     categories: list[PublicCategoryResponse]
+    content_mode: PublicContentMode
+    suggested_questions: list[str] = Field(default_factory=list)
 
 
 def _public_space_response(
-    space: KnowledgeSpace, categories: list[Category], scope: PublicRetrievalScope
+    space: KnowledgeSpace, categories: list[Category], scope: PublicRetrievalScope,
+    suggested_questions: list[str] | None = None,
 ) -> PublicSpaceResponse:
     allowed = set(scope.category_ids)
     return PublicSpaceResponse(
         name=space.name,
         description=space.description,
+        content_mode=scope.content_mode,
+        suggested_questions=(
+            list(suggested_questions or [])
+            if scope.content_mode is PublicContentMode.PUBLISHED_ANSWERS else []
+        ),
         categories=[
             PublicCategoryResponse(
                 name=category.display_name or category.name,
@@ -485,7 +508,10 @@ def _public_stream_check(request: Request, scope: PublicRetrievalScope, result: 
                 snapshot = await repo.generation_scope_snapshot(space_id=scope.space_id, user_id=None, public_scope=scope)
                 return snapshot == result.scope_snapshot and await repo.validate_generation_chunks(
                     space_id=scope.space_id, public_scope=scope,
-                    chunk_ids=tuple(x.chunk_id for x in result.citations if x.chunk_id is not None))
+                    chunk_ids=tuple(
+                        x.public_answer_version_id or x.chunk_id for x in result.citations
+                        if x.public_answer_version_id is not None or x.chunk_id is not None
+                    ))
         except Exception:
             return False
     return check
@@ -657,14 +683,22 @@ async def create_public_session(
 async def get_public_space(
     scope: PublicRetrievalScope = Depends(get_public_scope),
     service: PublicSpaceServicePort = Depends(get_public_space_service),
+    conversations: ConversationServicePort = Depends(get_conversation_service),
 ) -> PublicSpaceResponse:
     try:
         space = await service.get_space(scope.space_id)
         categories = await service.list_categories(scope.space_id)
+        questions = []
+        if scope.content_mode is PublicContentMode.PUBLISHED_ANSWERS:
+            try:
+                questions = await conversations.list_public_faq_questions(scope=scope, limit=6)
+            except Exception:
+                # Suggestions are optional; preserve access to the share page if this query fails.
+                questions = []
     except Exception as error:
         _translate_conversation_error(error)
         raise
-    return _public_space_response(space, categories, scope)
+    return _public_space_response(space, categories, scope, questions)
 
 
 @router.post("/public/query", response_model=PublicAnswerResponse)

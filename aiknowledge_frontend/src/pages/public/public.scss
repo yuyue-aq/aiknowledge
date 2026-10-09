@@ -98,3 +98,8 @@
   font-size: 14px;
   line-height: 46px !important;
 }
+.public-approved-sources { display: grid; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid #E4EBF5; }
+.public-approved-sources-title { color: #667A96; font-size: 11px; font-weight: 650; }
+.public-approved-source { display: grid; gap: 4px; padding: 9px 10px; border: 1px solid #E2EAF6; border-radius: 8px; background: #F7FAFF; color: #344967; font-size: 12px; line-height: 1.6; white-space: pre-wrap; }
+.public-approved-source-title { color: #1D3A61; font-weight: 600; }
+.public-empty-faq { color: #667A96; font-size: 12px; line-height: 1.6; }

@@ -29,9 +29,40 @@ async def test_repository_round_trips_v2_evidence_labels_and_execution_metrics()
     await repo.add_case(case)
     assert (await repo.get_case(case.id)) == case
     result = EvalResult(uuid4(), uuid4(), case.id, AnswerStatus.FAILED, '模型故障', 0,
-        execution_snapshot={'retrieved_chunks': []}, retrieval_metrics={'document_hit_at_k': 0.}, failure_code='LLM_UNAVAILABLE')
+        execution_snapshot={'retrieved_chunks': []}, retrieval_metrics={'document_hit_at_k': 0.}, failure_code='LLM_UNAVAILABLE',
+        model_grade_suggestions=({'id': 'attempt-1', 'status': 'FAILED', 'failure_code': 'JUDGE_UNAVAILABLE'},))
     await repo.add_result(result)
     assert (await repo.get_result(result.id)) == result
+
+
+@pytest.mark.asyncio
+async def test_model_grade_append_uses_atomic_jsonb_array_concatenation():
+    from types import SimpleNamespace
+    from sqlalchemy.dialects import postgresql
+
+    statements = []
+
+    async def execute(statement):
+        statements.append(statement)
+        return SimpleNamespace(scalar_one_or_none=lambda: None)
+
+    session = SimpleNamespace(execute=execute, flush=lambda: _async_none())
+    repository = SqlAlchemyEvaluationRepository(session)  # type: ignore[arg-type]
+    suggestion = {'id': 'a1', 'status': 'SUCCEEDED', 'suggested_score': 1.0}
+
+    result = await repository.append_model_grade_suggestion(uuid4(), suggestion)
+
+    assert result is None
+    compiled = statements[0].compile(dialect=postgresql.dialect())
+    assert 'SET model_grade_suggestions=(eval_results.model_grade_suggestions || CAST' in str(compiled)
+    assert any(
+        isinstance(value, list) and suggestion in value
+        for value in compiled.params.values()
+    )
+
+
+async def _async_none():
+    return None
 
 
 @pytest.mark.asyncio

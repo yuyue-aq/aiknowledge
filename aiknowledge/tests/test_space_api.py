@@ -12,6 +12,7 @@ from app.domain.spaces import (
     CreatedShareLink,
     KnowledgeSpace,
     PublicQuestionRecord,
+    PublicContentMode,
     SpacePlan,
     ShareLink,
     ShareLinkStatus,
@@ -51,6 +52,7 @@ class FakeSpaceService:
             status=ShareLinkStatus.ACTIVE,
             created_at=self.now,
         )
+        self.share_options: dict[str, object] = {}
 
     async def list_spaces(self) -> list[KnowledgeSpace]:
         return [self.space]
@@ -70,8 +72,12 @@ class FakeSpaceService:
     async def create_category(self, **_: object) -> Category:
         raise SpaceRuleViolationError("只有公开空间可以创建分类。")
 
-    async def create_share_link(self, **_: object) -> CreatedShareLink:
-        return CreatedShareLink(link=self.link, token="only-returned-once-token")
+    async def create_share_link(self, **kwargs: object) -> CreatedShareLink:
+        self.share_options = kwargs
+        return CreatedShareLink(
+            link=replace(self.link, content_mode=kwargs.get("content_mode", PublicContentMode.DOCUMENTS)),
+            token="only-returned-once-token",
+        )
 
     async def list_share_links(self, _: UUID) -> list[ShareLink]:
         return [self.link]
@@ -153,6 +159,27 @@ async def test_share_link_api_returns_raw_token_once_and_never_serializes_token_
     assert listed.status_code == 200
     assert "token" not in listed.json()["items"][0]
     assert "token_hash" not in listed.json()["items"][0]
+
+
+@pytest.mark.asyncio
+async def test_share_link_api_preserves_explicit_published_answer_mode() -> None:
+    service = FakeSpaceService()
+    app = create_app(rag_service=object(), space_service_factory=lambda _: service)
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        response = await client.post(
+            f"/api/v1/spaces/{service.space.id}/share-links",
+            json={
+                "category_ids": [str(service.category.id)],
+                "content_mode": "PUBLISHED_ANSWERS",
+            },
+        )
+
+    assert response.status_code == 201
+    assert response.json()["link"]["content_mode"] == "PUBLISHED_ANSWERS"
+    assert service.share_options["content_mode"] is PublicContentMode.PUBLISHED_ANSWERS
 
 
 @pytest.mark.asyncio

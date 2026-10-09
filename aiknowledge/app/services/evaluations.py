@@ -31,6 +31,11 @@ from app.domain.rag import AnswerStatus, RagAnswer
 from app.domain.evaluation import EvidenceRef
 from app.domain.retrieval import RetrievalMetadataFilter
 from app.services.evaluation_metrics import retrieval_metrics, refusal_correct
+from app.services.evaluation_judge import (
+    EVALUATION_JUDGE_PROMPT_VERSION,
+    EvaluationJudgeError,
+    EvaluationJudgePort,
+)
 
 
 _UNSET = object()
@@ -56,6 +61,8 @@ class EvaluationRepository(Protocol):
     async def get_feedback_regression_source(self, feedback_id: UUID) -> FeedbackRegressionSource | None: ...
 
     async def list_cases(self, space_id: UUID) -> list[EvalCase]: ...
+
+    async def get_knowledge_impact(self, space_id: UUID) -> dict[str, object]: ...
 
     async def get_case(self, case_id: UUID) -> EvalCase | None: ...
 
@@ -87,6 +94,8 @@ class EvaluationRepository(Protocol):
 
     async def update_result(self, result: EvalResult) -> None: ...
 
+    async def append_model_grade_suggestion(self, result_id: UUID, suggestion: dict[str, object]) -> EvalResult | None: ...
+
     async def commit(self) -> None: ...
 
 
@@ -111,6 +120,7 @@ class EvaluationService:
         id_factory: Callable[[], UUID] = uuid4,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
         dispatcher=None,
+        judge: EvaluationJudgePort | None = None,
     ) -> None:
         self._repository = repository
         self._runner = runner
@@ -118,6 +128,7 @@ class EvaluationService:
         self._id_factory = id_factory
         self._clock = clock
         self._dispatcher = dispatcher
+        self._judge = judge
 
     async def create_case(
         self,
@@ -546,6 +557,17 @@ class EvaluationService:
         await self._require_owner_space(space_id, owner_user_id=owner_user_id)
         return await self._repository.list_runs(space_id, limit=limit)
 
+    async def get_knowledge_impact(
+        self, space_id: UUID, *, owner_user_id: UUID | None = None
+    ) -> dict[str, object]:
+        await self._require_owner_space(
+            space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.ADMIN
+        )
+        reader = getattr(self._repository, 'get_knowledge_impact', None)
+        if reader is None:
+            raise RuntimeError('当前评测存储不支持知识变更影响诊断。')
+        return await reader(space_id)
+
     async def create_version(
         self,
         *,
@@ -653,6 +675,90 @@ class EvaluationService:
             reviewer_note=self._normalize_optional(reviewer_note, maximum=1_000),
         )
         await self._repository.update_result(updated)
+        await self._repository.commit()
+        return updated
+
+    async def suggest_result_grade(self, *, result_id: UUID, owner_user_id: UUID | None = None) -> EvalResult:
+        result = await self._repository.get_result(result_id)
+        if result is None:
+            raise EvalResultNotFoundError("评测结果不存在。")
+        run = await self._repository.get_run(result.eval_run_id)
+        if run is None:
+            raise EvalResultNotFoundError("评测结果不存在。")
+        await self._require_owner_space(
+            run.space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.EDITOR
+        )
+
+        # Evaluate the immutable labels captured with the historical run. The
+        # editable live case may have changed since this answer was produced.
+        case = self._cases_from_run_snapshot(run).get(result.eval_case_id)
+
+        if any(
+            item.get("status") == "SUCCEEDED"
+            and item.get("prompt_version") == EVALUATION_JUDGE_PROMPT_VERSION
+            for item in result.model_grade_suggestions
+        ):
+            return result
+        if len(result.model_grade_suggestions) >= 20:
+            raise ValueError("该结果的模型评分建议尝试次数已达上限。")
+
+        attempt: dict[str, object] = {
+            "id": str(self._id_factory()),
+            "created_at": self._now().isoformat(),
+            "status": "FAILED",
+            "model": str(self._run_snapshot.get("chat_model") or "unknown")[:200],
+            "prompt_version": EVALUATION_JUDGE_PROMPT_VERSION,
+            "suggested_score": None,
+            "rationale": None,
+            "failure_code": None,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+        }
+
+        if case is None:
+            attempt.update(status="SKIPPED", failure_code="RUN_REFERENCE_SNAPSHOT_MISSING")
+        elif not case.expected_answer and not case.expected_behavior:
+            attempt.update(status="SKIPPED", failure_code="REFERENCE_MISSING")
+        elif result.answer_status is AnswerStatus.FAILED:
+            attempt.update(status="SKIPPED", failure_code="ANSWER_GENERATION_FAILED")
+        elif self._judge is None:
+            attempt.update(failure_code="JUDGE_NOT_CONFIGURED")
+        else:
+            try:
+                recommendation = await self._judge.suggest_grade(case=case, result=result)
+                if (
+                    isinstance(recommendation.score, bool)
+                    or recommendation.score not in {0.0, 0.5, 1.0}
+                    or not isinstance(recommendation.rationale, str)
+                    or not recommendation.rationale.strip()
+                    or len(recommendation.rationale.strip()) > 1_000
+                    or not isinstance(recommendation.model, str)
+                ):
+                    raise EvaluationJudgeError("JUDGE_OUTPUT_INVALID")
+                attempt.update(
+                    status="SUCCEEDED",
+                    model=recommendation.model[:200],
+                    prompt_version=EVALUATION_JUDGE_PROMPT_VERSION,
+                    suggested_score=float(recommendation.score),
+                    rationale=recommendation.rationale.strip(),
+                    prompt_tokens=max(0, int(recommendation.prompt_tokens)),
+                    completion_tokens=max(0, int(recommendation.completion_tokens)),
+                )
+            except EvaluationJudgeError as error:
+                attempt["failure_code"] = error.code
+            except Exception:
+                # Never persist raw upstream errors; they can contain response
+                # fragments, request identifiers, or configuration details.
+                attempt["failure_code"] = "JUDGE_UNAVAILABLE"
+
+        appender = getattr(self._repository, "append_model_grade_suggestion", None)
+        if appender is not None:
+            updated = await appender(result.id, attempt)
+            if updated is None:
+                raise EvalResultNotFoundError("评测结果不存在。")
+        else:
+            updated = replace(result, model_grade_suggestions=(*result.model_grade_suggestions, attempt))
+            await self._repository.update_result(updated)
         await self._repository.commit()
         return updated
 

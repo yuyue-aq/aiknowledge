@@ -120,6 +120,8 @@ def test_evaluation_results_retain_history_when_a_live_case_changes() -> None:
         if key.target_fullname == "eval_cases.id"
     )
     assert foreign_key.ondelete == "RESTRICT"
+    assert "model_grade_suggestions" in eval_results.c
+    assert eval_results.c.model_grade_suggestions.nullable is False
 
 
 def test_rag_runs_capture_reproducible_model_and_retrieval_snapshots() -> None:

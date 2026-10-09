@@ -17,6 +17,7 @@ from app.domain.spaces import (
     SpacePlan,
     SpaceVisibility,
 )
+from app.domain.public_answers import PublicContentMode
 from app.domain.users import SpaceMembership, SpaceRole
 from app.services.spaces import SpaceService
 
@@ -139,6 +140,45 @@ async def test_share_link_returns_raw_token_once_but_persists_only_a_hash() -> N
     assert len(created.link.token_hash) == 64
     assert repository.links[created.link.id].token_hash == created.link.token_hash
     assert not hasattr(created.link, "token")
+
+
+@pytest.mark.asyncio
+async def test_published_answer_share_mode_is_explicit_and_reaches_live_scope() -> None:
+    repository = FakeSpaceRepository()
+    service = create_service(repository)
+    space = await service.create_space(
+        name="已审核问答空间", description=None, visibility=SpaceVisibility.PUBLIC
+    )
+    category = await service.create_category(
+        space_id=space.id, name="问答", description=None, is_open=True
+    )
+
+    created = await service.create_share_link(
+        space_id=space.id, category_ids=(category.id,),
+        content_mode=PublicContentMode.PUBLISHED_ANSWERS,
+    )
+    scope = await service.resolve_public_scope(created.token)
+
+    assert created.link.content_mode is PublicContentMode.PUBLISHED_ANSWERS
+    assert scope.content_mode is PublicContentMode.PUBLISHED_ANSWERS
+
+
+@pytest.mark.asyncio
+async def test_legacy_share_link_defaults_to_document_retrieval_mode() -> None:
+    repository = FakeSpaceRepository()
+    service = create_service(repository)
+    space = await service.create_space(
+        name="原文模式空间", description=None, visibility=SpaceVisibility.PUBLIC
+    )
+    category = await service.create_category(
+        space_id=space.id, name="原文", description=None, is_open=True
+    )
+
+    created = await service.create_share_link(space_id=space.id, category_ids=(category.id,))
+    scope = await service.resolve_public_scope(created.token)
+
+    assert created.link.content_mode is PublicContentMode.DOCUMENTS
+    assert scope.content_mode is PublicContentMode.DOCUMENTS
 
 
 @pytest.mark.asyncio

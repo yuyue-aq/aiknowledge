@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
 
 from app.domain.conversations import (
+    EvalAccessDeniedError,
     EvalCase,
     EvalFeedbackAlreadyLinkedError,
     EvalResult,
@@ -16,6 +18,7 @@ from app.domain.conversations import (
     FeedbackRegressionSource,
     FeedbackReviewStatus,
 )
+from app.domain.users import SpaceRole
 from app.domain.rag import AnswerStatus, Citation, RagAnswer
 from app.domain.retrieval import RetrievalMetadataFilter
 from app.services.evaluations import EvaluationService
@@ -202,10 +205,19 @@ class FakeEvaluationRepository:
         self.results: dict[UUID, EvalResult] = {}
         self.versions: dict[UUID, EvalSetVersion] = {}
         self.feedback_sources: dict[UUID, FeedbackRegressionSource] = {}
+        self.space_roles: dict[UUID, SpaceRole] = {}
+        self.knowledge_impact = {'stale_case_count': 0, 'stale_evidence_count': 0}
         self.commits = 0
 
     async def has_active_space(self, space_id: UUID) -> bool:
         return space_id == self.space_id
+
+    async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None:
+        return self.space_roles.get(user_id) if space_id == self.space_id else None
+
+    async def get_knowledge_impact(self, space_id: UUID):
+        assert space_id == self.space_id
+        return self.knowledge_impact
 
     async def add_case(self, case: EvalCase) -> None:
         if case.source_feedback_id is not None and any(
@@ -265,6 +277,14 @@ class FakeEvaluationRepository:
     async def update_result(self, result: EvalResult) -> None:
         self.results[result.id] = result
 
+    async def append_model_grade_suggestion(self, result_id: UUID, suggestion: dict[str, object]) -> EvalResult | None:
+        result = self.results.get(result_id)
+        if result is None:
+            return None
+        updated = replace(result, model_grade_suggestions=(*result.model_grade_suggestions, suggestion))
+        self.results[result_id] = updated
+        return updated
+
     async def commit(self) -> None:
         self.commits += 1
 
@@ -295,7 +315,7 @@ class FakeEvaluationRunner:
         )
 
 
-def build_service() -> tuple[EvaluationService, FakeEvaluationRepository, FakeEvaluationRunner]:
+def build_service(judge=None) -> tuple[EvaluationService, FakeEvaluationRepository, FakeEvaluationRunner]:
     repository = FakeEvaluationRepository()
     runner = FakeEvaluationRunner()
     return (
@@ -309,10 +329,143 @@ def build_service() -> tuple[EvaluationService, FakeEvaluationRepository, FakeEv
                 "context_top_k": 4,
             },
             clock=lambda: datetime(2026, 9, 11, tzinfo=UTC),
+            judge=judge,
         ),
         repository,
         runner,
     )
+
+
+class FakeEvaluationJudge:
+    def __init__(self, *, score=0.5, error=None):
+        self.score = score
+        self.error = error
+        self.calls = []
+
+    async def suggest_grade(self, *, case, result):
+        self.calls.append((case, result))
+        if self.error is not None:
+            raise self.error
+        from types import SimpleNamespace
+        return SimpleNamespace(
+            score=self.score,
+            rationale='回答覆盖了主要事实，但遗漏一个限定条件。',
+            model='deepseek-flash',
+            prompt_version='eval-judge-v1',
+            prompt_tokens=120,
+            completion_tokens=35,
+        )
+
+
+@pytest.mark.asyncio
+async def test_model_grade_is_advisory_uses_frozen_case_and_keeps_manual_score_separate():
+    judge = FakeEvaluationJudge(score=0.5)
+    service, repository, _ = build_service(judge=judge)
+    user_id = uuid4()
+    repository.space_roles[user_id] = SpaceRole.ADMIN
+    case = await service.create_case(space_id=repository.space_id, question='问题？',
+        expected_answer='冻结的标准答案', expected_document_ids=(), scope=EvalScope.OWNER, category_ids=())
+    detail = await service.run(space_id=repository.space_id)
+    result = await service.review_result(result_id=detail.results[0].id, reviewer_score=0.0,
+        reviewer_note='人工确认回答错误。')
+    await service.update_case(case.id, expected_answer='后来编辑的答案')
+
+    suggested = await service.suggest_result_grade(result_id=result.id, owner_user_id=user_id)
+
+    assert judge.calls[0][0].expected_answer == '冻结的标准答案'
+    assert suggested.reviewer_score == 0.0
+    assert suggested.reviewer_note == '人工确认回答错误。'
+    assert suggested.model_grade_suggestions[-1]['status'] == 'SUCCEEDED'
+    assert suggested.model_grade_suggestions[-1]['suggested_score'] == 0.5
+    assert suggested.model_grade_suggestions[-1]['model'] == 'deepseek-flash'
+    assert suggested.model_grade_suggestions[-1]['prompt_version'] == 'eval-judge-v1'
+    assert suggested.model_grade_suggestions[-1]['prompt_tokens'] == 120
+    assert repository.commits >= 2
+
+    repeated = await service.suggest_result_grade(result_id=result.id, owner_user_id=user_id)
+    assert len(judge.calls) == 1
+    assert len(repeated.model_grade_suggestions) == 1
+
+
+@pytest.mark.asyncio
+async def test_model_grade_provider_failure_is_saved_and_does_not_change_human_review():
+    judge = FakeEvaluationJudge(error=RuntimeError('upstream private details'))
+    service, repository, _ = build_service(judge=judge)
+    case = await service.create_case(space_id=repository.space_id, question='问题？', expected_answer='答案',
+        expected_document_ids=(), scope=EvalScope.OWNER, category_ids=())
+    detail = await service.run(space_id=repository.space_id)
+    reviewed = await service.review_result(result_id=detail.results[0].id, reviewer_score=1.0,
+        reviewer_note='人工核验正确。')
+
+    result = await service.suggest_result_grade(result_id=reviewed.id)
+
+    attempt = result.model_grade_suggestions[-1]
+    assert attempt['status'] == 'FAILED'
+    assert attempt['failure_code'] == 'JUDGE_UNAVAILABLE'
+    assert 'private details' not in str(attempt)
+    assert result.reviewer_score == 1.0
+    assert result.reviewer_note == '人工核验正确。'
+    assert repository.results[result.id].model_grade_suggestions == result.model_grade_suggestions
+
+
+@pytest.mark.asyncio
+async def test_model_grade_without_reference_is_saved_as_skipped_without_calling_judge():
+    judge = FakeEvaluationJudge()
+    service, repository, _ = build_service(judge=judge)
+    case = await service.create_case(space_id=repository.space_id, question='没有标注的问题？', expected_answer=None,
+        expected_document_ids=(), scope=EvalScope.OWNER, category_ids=())
+    detail = await service.run(space_id=repository.space_id)
+
+    result = await service.suggest_result_grade(result_id=detail.results[0].id)
+
+    assert judge.calls == []
+    assert result.model_grade_suggestions[-1]['status'] == 'SKIPPED'
+    assert result.model_grade_suggestions[-1]['failure_code'] == 'REFERENCE_MISSING'
+
+
+@pytest.mark.asyncio
+async def test_model_grade_does_not_use_mutated_live_case_when_run_snapshot_is_missing():
+    judge = FakeEvaluationJudge()
+    service, repository, _ = build_service(judge=judge)
+    await service.create_case(space_id=repository.space_id, question='问题？', expected_answer='当前标准答案',
+        expected_document_ids=(), scope=EvalScope.OWNER, category_ids=())
+    detail = await service.run(space_id=repository.space_id)
+    repository.runs[detail.run.id] = replace(detail.run, retrieval_config_snapshot={})
+
+    result = await service.suggest_result_grade(result_id=detail.results[0].id)
+
+    assert judge.calls == []
+    assert result.model_grade_suggestions[-1]['status'] == 'SKIPPED'
+    assert result.model_grade_suggestions[-1]['failure_code'] == 'RUN_REFERENCE_SNAPSHOT_MISSING'
+
+
+@pytest.mark.asyncio
+async def test_model_grade_requires_editor_role():
+    judge = FakeEvaluationJudge()
+    service, repository, _ = build_service(judge=judge)
+    user_id = uuid4()
+    repository.space_roles[user_id] = SpaceRole.MEMBER
+    await service.create_case(space_id=repository.space_id, question='问题？', expected_answer='答案',
+        expected_document_ids=(), scope=EvalScope.OWNER, category_ids=())
+    detail = await service.run(space_id=repository.space_id)
+
+    with pytest.raises(EvalAccessDeniedError):
+        await service.suggest_result_grade(result_id=detail.results[0].id, owner_user_id=user_id)
+    assert judge.calls == []
+
+
+@pytest.mark.asyncio
+async def test_knowledge_impact_is_admin_only_and_uses_repository_diagnostics():
+    service, repository, _ = build_service()
+    user_id = uuid4()
+    repository.space_roles[user_id] = SpaceRole.EDITOR
+
+    with pytest.raises(EvalAccessDeniedError, match='权限'):
+        await service.get_knowledge_impact(repository.space_id, owner_user_id=user_id)
+
+    repository.space_roles[user_id] = SpaceRole.ADMIN
+    repository.knowledge_impact = {'stale_case_count': 2, 'stale_evidence_count': 3}
+    assert await service.get_knowledge_impact(repository.space_id, owner_user_id=user_id) == repository.knowledge_impact
 
 
 @pytest.mark.asyncio

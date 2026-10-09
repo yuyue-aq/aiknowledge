@@ -16,6 +16,13 @@ import {
   createCategory,
   createOwnerConversation,
   createShareLink,
+  createPublicAnswer,
+  updatePublicAnswer,
+  listPublicAnswers,
+  submitPublicAnswerForReview,
+  approvePublicAnswer,
+  publishPublicAnswer,
+  withdrawPublicAnswer,
   createSpace,
   getAuthUserId,
   deleteDocument,
@@ -86,6 +93,10 @@ import {
   moderatePublicQuestion,
   type PublicAnalytics,
   type PublicQuestionRecord,
+  type PublicAnswerDraft,
+  type PublicAnswerInput,
+  type PublicAnswerStatus,
+  type PublicContentMode,
 } from "../../api/client";
 import { AppShell, type WorkspacePage } from "../../components/AppShell";
 import { Icon } from "../../components/Icon";
@@ -1454,11 +1465,176 @@ function CitationPanel({
   );
 }
 
+function PublicAnswerManager({
+  space,
+  categories,
+  documents,
+  answers,
+  isOwner,
+  onSave,
+  onTransition,
+}: {
+  space: Space;
+  categories: Category[];
+  documents: KnowledgeDocument[];
+  answers: PublicAnswerDraft[];
+  isOwner: boolean;
+  onSave: (input: PublicAnswerInput, answerId?: string) => Promise<PublicAnswerDraft | null>;
+  onTransition: (answer: PublicAnswerDraft, action: 'submit' | 'approve' | 'publish' | 'withdraw') => Promise<PublicAnswerDraft | null>;
+}) {
+  const [editing, setEditing] = useState<PublicAnswerDraft | null>(null);
+  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? '');
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [sourceIds, setSourceIds] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const availableDocuments = documents.filter((document) =>
+    document.status === 'READY' && Boolean(document.active_version_id) && document.is_enabled !== false,
+  );
+  const staleSourceRefs = editing?.source_refs.filter((source) => {
+    const active = availableDocuments.find((document) => document.id === source.document_id);
+    return !active || active.active_version_id !== source.document_version_id;
+  }) ?? [];
+  useEffect(() => {
+    if (!categories.some((category) => category.id === categoryId)) {
+      setCategoryId(categories[0]?.id ?? '');
+    }
+  }, [categories, categoryId]);
+  const sourceLabel = (documentId: string) =>
+    documents.find((document) => document.id === documentId)?.original_filename ?? '来源资料已不可用';
+  const reset = () => {
+    setEditing(null);
+    setQuestion('');
+    setAnswer('');
+    setCategoryId(categories[0]?.id ?? '');
+    setSourceIds([]);
+  };
+  const edit = (item: PublicAnswerDraft) => {
+    setEditing(item);
+    setQuestion(item.question);
+    setAnswer(item.answer);
+    setCategoryId(item.category_id);
+    setSourceIds(item.source_refs.map((source) => source.document_id));
+    setError('');
+  };
+  const save = async () => {
+    if (!categoryId || !question.trim() || !answer.trim()) {
+      setError('请选择分类，并填写问题和答案。');
+      return;
+    }
+    const source_refs = sourceIds.flatMap((documentId) => {
+      const document = availableDocuments.find((item) => item.id === documentId);
+      return document?.active_version_id
+        ? [{ document_id: document.id, document_version_id: document.active_version_id }]
+        : [];
+    });
+    setBusy(true);
+    setError('');
+    try {
+      const saved = await onSave({ category_id: categoryId, question: question.trim(), answer: answer.trim(), source_refs }, editing?.id);
+      if (saved) reset();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : '保存公开稿失败，请重试。');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const transition = async (item: PublicAnswerDraft, action: 'submit' | 'approve' | 'publish' | 'withdraw') => {
+    const labels = { submit: '送审', approve: '通过审核', publish: '发布', withdraw: '撤回' };
+    setBusy(true);
+    setError('');
+    try {
+      await onTransition(item, action);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : `${labels[action]}失败，请刷新后重试。`);
+    } finally {
+      setBusy(false);
+    }
+  };
+  const statusText: Record<PublicAnswerStatus, string> = {
+    DRAFT: '草稿', IN_REVIEW: '审核中', APPROVED: '已通过', PUBLISHED: '已发布', WITHDRAWN: '已撤回',
+  };
+  const pillStatus = (status: PublicAnswerStatus) =>
+    status === 'PUBLISHED' ? 'public' : status === 'APPROVED' ? 'ready' : status === 'IN_REVIEW' ? 'processing' : status === 'WITHDRAWN' ? 'warning' : 'neutral';
+  return (
+    <View className='settings-card public-answer-manager'>
+      <View className='card-heading'>
+        <View>
+          <Text className='section-title'>已审核问答稿</Text>
+          <Text className='section-description'>公开稿独立于原文检索，审核通过后由拥有者发布。关联来源资料变更时，已发布版本会自动撤回。</Text>
+        </View>
+        <StatusPill status={answers.length ? 'ready' : 'neutral'}>{answers.length} 条</StatusPill>
+      </View>
+      <View className='public-answer-editor'>
+        <View className='editor-heading'>
+          <Text className='section-title'>{editing ? '编辑公开稿' : '新建公开稿'}</Text>
+          {editing?.status === 'PUBLISHED' && <Text className='form-hint'>保存修改会立即撤回当前发布版本，并要求重新审核。</Text>}
+        </View>
+        {categories.length > 1 ? (
+          <Picker mode='selector' range={categories.map((category) => category.display_name || category.name)} value={Math.max(0, categories.findIndex((category) => category.id === categoryId))} onChange={(event) => setCategoryId(categories[Number(event.detail.value)]?.id ?? '')}>
+            <View className='text-input public-answer-category'>{categories.find((category) => category.id === categoryId)?.display_name || categories.find((category) => category.id === categoryId)?.name || '选择公开分类'}</View>
+          </Picker>
+        ) : (
+          <Text className='form-hint'>{categories[0]?.display_name || categories[0]?.name || '请先创建公开分类。'}</Text>
+        )}
+        <Input className='text-input' value={question} placeholder='问题，例如：如何申请报销？' onInput={(event) => setQuestion(valueOf(event))} aria-label='公开问答问题' maxlength={2000} />
+        <Textarea className='text-input public-answer-textarea resize-none' value={answer} placeholder='填写审核后的标准答案' onInput={(event) => setAnswer(valueOf(event))} aria-label='公开问答答案' maxlength={20000} />
+        <View className='public-answer-sources-picker'>
+          <Text className='field-label'>关联依据（可选）</Text>
+          <Text className='form-hint'>关联资料用于追踪答案依据；资料更新或停用后，关联的发布稿将撤回复核。</Text>
+          {availableDocuments.length === 0 ? <Text className='muted-copy'>当前没有可关联的已就绪资料。</Text> : (
+            <View className='public-answer-source-options'>
+              {availableDocuments.map((document) => {
+                const selected = sourceIds.includes(document.id);
+                return <Button key={document.id} className={`outline-button compact ${selected ? 'is-selected' : ''}`} aria-pressed={selected} onClick={() => setSourceIds((items) => selected ? items.filter((id) => id !== document.id) : [...items, document.id])}>{selected ? '✓ ' : '+ '}{document.original_filename}</Button>;
+              })}
+            </View>
+          )}
+          {staleSourceRefs.length > 0 && <View className='public-answer-source-warning'><Text className='form-hint'>已有 {staleSourceRefs.length} 个来源版本已变更或不可用。请先移除旧引用，再选择当前资料版本；保存后需要重新审核。</Text><Button className='text-button compact-text-button' onClick={() => setSourceIds((items) => items.filter((id) => !staleSourceRefs.some((source) => source.document_id === id)))}>移除旧版来源</Button></View>}
+        </View>
+        {error && <Text className='form-hint form-error'>{error}</Text>}
+        <View className='public-answer-editor-actions'>
+          <Button className='primary-button' onClick={() => void save()} disabled={busy || !categories.length}>{busy ? '保存中…' : editing ? '保存修改' : '保存草稿'}</Button>
+          {editing && <Button className='outline-button compact' onClick={reset} disabled={busy}>取消编辑</Button>}
+        </View>
+      </View>
+      {answers.length === 0 ? <Text className='muted-copy'>还没有公开稿。创建后可送审，已发布内容才会进入选择了“仅已发布问答”的分享链接。</Text> : (
+        <View className='public-answer-list'>
+          {answers.map((item) => (
+            <View className='public-answer-item' key={item.id}>
+              <View className='public-answer-item-heading'>
+                <View><Text className='public-answer-question'>{item.question}</Text><Text className='public-answer-category-name'>{categories.find((category) => category.id === item.category_id)?.display_name || categories.find((category) => category.id === item.category_id)?.name || '分类已删除'}</Text></View>
+                <StatusPill status={pillStatus(item.status)}>{statusText[item.status]}</StatusPill>
+              </View>
+              <Text className='public-answer-preview'>{item.answer}</Text>
+              {item.source_refs.length > 0 && <Text className='form-hint'>关联依据：{item.source_refs.map((source) => sourceLabel(source.document_id)).join('、')}</Text>}
+              {item.withdrawal_reason && <Text className='form-hint'>撤回原因：{item.withdrawal_reason}</Text>}
+              <View className='public-answer-actions'>
+                <Button className='text-button compact-text-button' onClick={() => edit(item)} disabled={busy}>编辑</Button>
+                {(item.status === 'DRAFT' || item.status === 'WITHDRAWN') && <Button className='outline-button compact' onClick={() => void transition(item, 'submit')} disabled={busy}>送审</Button>}
+                {item.status === 'IN_REVIEW' && <Button className='outline-button compact' onClick={() => void transition(item, 'approve')} disabled={busy}>审核通过</Button>}
+                {item.status === 'APPROVED' && (isOwner ? <Button className='primary-button compact' onClick={() => void transition(item, 'publish')} disabled={busy || space.visibility !== 'PUBLIC'}>发布</Button> : <Text className='form-hint'>等待拥有者发布</Text>)}
+                {item.status === 'PUBLISHED' && isOwner && <Button className='danger-button compact' onClick={() => void transition(item, 'withdraw')} disabled={busy}>撤回发布</Button>}
+                {item.status === 'PUBLISHED' && <Text className='form-hint'>发布版本 v{item.published_version_number ?? 1}</Text>}
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
 function PublicSettingsView({
   space,
   categories,
   tags,
   links,
+  documents,
+  publicAnswers,
+  canManagePublicAnswers,
+  isSpaceOwner,
   publicQuestions,
   publicAnalytics,
   onToggle,
@@ -1468,26 +1644,35 @@ function PublicSettingsView({
   onShare,
   onRevoke,
   onModerateQuestion,
+  onSavePublicAnswer,
+  onTransitionPublicAnswer,
 }: {
   space: Space;
   categories: Category[];
   tags: KnowledgeTag[];
   links: ShareLink[];
+  documents: KnowledgeDocument[];
+  publicAnswers: PublicAnswerDraft[];
+  canManagePublicAnswers: boolean;
+  isSpaceOwner: boolean;
   publicQuestions: PublicQuestionRecord[];
   publicAnalytics: PublicAnalytics | null;
   onToggle: (category: Category) => Promise<void>;
   onCreateCategory: (name: string) => Promise<boolean>;
   onCreateTag: (name: string) => Promise<void>;
   onDeleteTag: (tag: KnowledgeTag) => Promise<void>;
-  onShare: (options?: { password?: string; visitor_question_limit?: number | null; allowed_origins?: string[] }) => Promise<CreatedShareLink | null>;
+  onShare: (options?: { password?: string; visitor_question_limit?: number | null; allowed_origins?: string[]; content_mode?: PublicContentMode }) => Promise<CreatedShareLink | null>;
   onRevoke: (link: ShareLink) => Promise<void>;
   onModerateQuestion: (item: PublicQuestionRecord) => Promise<void>;
+  onSavePublicAnswer: (input: PublicAnswerInput, answerId?: string) => Promise<PublicAnswerDraft | null>;
+  onTransitionPublicAnswer: (answer: PublicAnswerDraft, action: 'submit' | 'approve' | 'publish' | 'withdraw') => Promise<PublicAnswerDraft | null>;
 }) {
   const [categoryName, setCategoryName] = useState("");
   const [tagName, setTagName] = useState("");
   const [sharePassword, setSharePassword] = useState("");
   const [questionLimit, setQuestionLimit] = useState("");
   const [shareOrigin, setShareOrigin] = useState("");
+  const [shareContentMode, setShareContentMode] = useState<PublicContentMode>('DOCUMENTS');
   const [showSharePassword, setShowSharePassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [shareResult, setShareResult] = useState<CreatedShareLink | null>(null);
@@ -1671,6 +1856,9 @@ function PublicSettingsView({
               onInput={(event) => setShareOrigin(valueOf(event))}
               aria-label='分享链接允许来源'
             />
+            <Picker mode='selector' range={['原文资料检索（兼容默认）', '仅检索已发布问答']} value={shareContentMode === 'DOCUMENTS' ? 0 : 1} onChange={(event) => setShareContentMode(Number(event.detail.value) === 1 ? 'PUBLISHED_ANSWERS' : 'DOCUMENTS')}>
+              <View className='text-input share-mode-picker'>{shareContentMode === 'DOCUMENTS' ? '原文资料检索（兼容默认）' : '仅检索已发布问答'}</View>
+            </Picker>
           </View>
           <Button
             className='primary-button'
@@ -1681,6 +1869,7 @@ function PublicSettingsView({
                 password: sharePassword.trim() || undefined,
                 visitor_question_limit: Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : null,
                 allowed_origins: shareOrigin.trim() ? [shareOrigin.trim()] : [],
+                content_mode: shareContentMode,
               });
               if (result) setShareResult(result);
               setBusy(false);
@@ -1740,7 +1929,7 @@ function PublicSettingsView({
                 </Text>
                 <Text className='link-meta'>
                   创建于 {formatDate(link.created_at)} ·{" "}
-                  {link.category_ids.length} 个分类
+                  {link.category_ids.length} 个分类 · {link.content_mode === 'PUBLISHED_ANSWERS' ? '仅检索已发布问答' : '原文资料检索'}
                 </Text>
               </View>
               <Button
@@ -1757,6 +1946,18 @@ function PublicSettingsView({
           <Text>访客只会看到回答，不会看到文档列表、原文片段或下载入口。</Text>
         </View>
       </View>
+      {canManagePublicAnswers && (
+        <PublicAnswerManager
+          key={space.id}
+          space={space}
+          categories={categories.filter((category) => category.is_open)}
+          documents={documents}
+          answers={publicAnswers}
+          isOwner={isSpaceOwner}
+          onSave={onSavePublicAnswer}
+          onTransition={onTransitionPublicAnswer}
+        />
+      )}
       <View className='settings-card public-question-log-card'>
         <View className='card-heading'>
           <View>
@@ -2407,6 +2608,7 @@ export default function Index() {
   const [members, setMembers] = useState<SpaceMember[]>([]);
   const [usage, setUsage] = useState<SpaceUsage | null>(null);
   const [publicQuestions, setPublicQuestions] = useState<PublicQuestionRecord[]>([]);
+  const [publicAnswers, setPublicAnswers] = useState<PublicAnswerDraft[]>([]);
   const [publicAnalytics, setPublicAnalytics] = useState<PublicAnalytics | null>(null);
   const [sources, setSources] = useState<KnowledgeSource[]>([]);
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([]);
@@ -2670,6 +2872,7 @@ export default function Index() {
     setDocuments([]);
     setDocumentsError("");
     setSources([]);
+    setPublicAnswers([]);
     void restoreConversation(space.id);
     try {
       setCategories(await listCategories(space.id));
@@ -2738,6 +2941,13 @@ export default function Index() {
       setPublicQuestions(await listPublicQuestionRecords(space.id));
     } catch {
       setPublicQuestions([]);
+    }
+  }, []);
+  const loadPublicAnswers = useCallback(async (space: Space) => {
+    try {
+      setPublicAnswers(await listPublicAnswers(space.id));
+    } catch {
+      setPublicAnswers([]);
     }
   }, []);
   const loadPublicAnalytics = useCallback(async (space: Space) => {
@@ -3234,7 +3444,7 @@ export default function Index() {
     setTags((items) => items.filter((item) => item.id !== tag.id));
     setToast({ tone: "success", message: `标签“${tag.name}”已删除。` });
   }, [isDemoSpace]);
-  const handleShare = useCallback(async (options?: { password?: string; visitor_question_limit?: number | null; allowed_origins?: string[] }) => {
+  const handleShare = useCallback(async (options?: { password?: string; visitor_question_limit?: number | null; allowed_origins?: string[]; content_mode?: PublicContentMode }) => {
     if (!currentSpace) return null;
     const ids = categories
       .filter((category) => category.is_open)
@@ -3263,6 +3473,7 @@ export default function Index() {
           expires_at: null,
           visitor_question_limit: options?.visitor_question_limit ?? null,
           allowed_origins: options?.allowed_origins ?? [],
+          content_mode: options?.content_mode ?? 'DOCUMENTS',
         },
         token: "demo-share-token",
       };
@@ -3274,6 +3485,39 @@ export default function Index() {
       return created;
     }
   }, [categories, currentSpace, isDemoSpace]);
+  const handleSavePublicAnswer = useCallback(async (input: PublicAnswerInput, answerId?: string) => {
+    if (!currentSpace || isDemoSpace(currentSpace.id)) return null;
+    try {
+      const saved = answerId
+        ? await updatePublicAnswer(answerId, input)
+        : await createPublicAnswer(currentSpace.id, input);
+      setPublicAnswers((items) => [saved, ...items.filter((item) => item.id !== saved.id)]);
+      setToast({ tone: 'success', message: answerId ? '公开稿已保存。' : '公开稿草稿已创建。' });
+      return saved;
+    } catch (error) {
+      setToast({ tone: 'error', message: error instanceof ApiRequestError ? error.message : '公开稿保存失败。' });
+      throw error;
+    }
+  }, [currentSpace, isDemoSpace]);
+  const handlePublicAnswerTransition = useCallback(async (answer: PublicAnswerDraft, action: 'submit' | 'approve' | 'publish' | 'withdraw') => {
+    if (isDemoSpace(answer.space_id)) return null;
+    try {
+      const changed = action === 'submit'
+        ? await submitPublicAnswerForReview(answer.id)
+        : action === 'approve'
+          ? await approvePublicAnswer(answer.id)
+          : action === 'publish'
+            ? await publishPublicAnswer(answer.id)
+            : await withdrawPublicAnswer(answer.id);
+      setPublicAnswers((items) => [changed, ...items.filter((item) => item.id !== changed.id)]);
+      const messages = { submit: '公开稿已送审。', approve: '审核已通过，等待拥有者发布。', publish: '公开稿已发布。', withdraw: '公开稿已撤回。' };
+      setToast({ tone: 'success', message: messages[action] });
+      return changed;
+    } catch (error) {
+      setToast({ tone: 'error', message: error instanceof ApiRequestError ? error.message : '公开稿状态更新失败。' });
+      throw error;
+    }
+  }, [isDemoSpace]);
   const handleRevoke = useCallback(async (link: ShareLink) => {
     try {
       await revokeShareLink(link.id);
@@ -3469,12 +3713,21 @@ export default function Index() {
           void loadMembers(currentSpace);
           void loadPublicQuestions(currentSpace);
           void loadPublicAnalytics(currentSpace);
+          void loadPublicAnswers(currentSpace);
           void loadSources(currentSpace);
         }
     },
-    [currentSpace, loadFeedbackData, loadMembers, loadPublicAnalytics, loadPublicQuestions, loadShareLinks, loadSources],
+    [currentSpace, loadFeedbackData, loadMembers, loadPublicAnalytics, loadPublicAnswers, loadPublicQuestions, loadShareLinks, loadSources],
   );
 
+  const isSpaceOwner = Boolean(authUser && (
+    currentSpace?.owner_user_id === authUser.id || members.some(
+      (member) => member.user_id === authUser.id && member.role === 'OWNER',
+    )
+  ));
+  const canManagePublicAnswers = Boolean(isSpaceOwner || (authUser && members.some(
+    (member) => member.user_id === authUser.id && member.role === 'ADMIN',
+  )));
   const content = useMemo(() => {
     if (activePage === "spaces" || !currentSpace)
       return (
@@ -3588,6 +3841,10 @@ export default function Index() {
               categories={categories}
               tags={tags}
               links={shareLinks}
+              documents={documents}
+              publicAnswers={publicAnswers}
+              canManagePublicAnswers={canManagePublicAnswers}
+              isSpaceOwner={isSpaceOwner}
               publicQuestions={publicQuestions}
               publicAnalytics={publicAnalytics}
               onToggle={handleToggleCategory}
@@ -3597,6 +3854,8 @@ export default function Index() {
               onShare={handleShare}
               onRevoke={handleRevoke}
               onModerateQuestion={handleModerateQuestion}
+              onSavePublicAnswer={handleSavePublicAnswer}
+              onTransitionPublicAnswer={handlePublicAnswerTransition}
             />
           </>
         )}
@@ -3612,11 +3871,15 @@ export default function Index() {
     tags,
     creating,
     currentSpace,
+    authUser,
+    isSpaceOwner,
+    canManagePublicAnswers,
     documents,
     documentsError,
     feedback,
     feedbackBusy,
     members,
+    publicAnswers,
     publicQuestions,
     publicAnalytics,
     sources,
@@ -3641,6 +3904,8 @@ export default function Index() {
     handleVisibilityChange,
     handlePlanChange,
     handleModerateQuestion,
+    handleSavePublicAnswer,
+    handlePublicAnswerTransition,
     handleCreateSource,
     handleSyncSource,
     handleToggleSource,

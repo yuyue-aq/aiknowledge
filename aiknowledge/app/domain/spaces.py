@@ -5,6 +5,8 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
+from app.domain.public_answers import PublicContentMode
+
 
 class SpaceVisibility(StrEnum):
     PRIVATE = "PRIVATE"
@@ -107,6 +109,8 @@ class ShareLink:
     # Optional browser Origin allowlist for embeds. Empty means no additional
     # Origin restriction (the normal share token and session checks remain).
     allowed_origins: tuple[str, ...] = ()
+    # Legacy links default to document retrieval; curated answers are opt-in.
+    content_mode: PublicContentMode = PublicContentMode.DOCUMENTS
 
     def is_active(self, *, at: datetime) -> bool:
         return (
@@ -132,6 +136,7 @@ class PublicRetrievalScope:
     visitor_id: str | None = None
     visitor_question_limit: int | None = None
     allowed_origins: tuple[str, ...] = ()
+    content_mode: PublicContentMode = PublicContentMode.DOCUMENTS
 
 
 class PublicAccessEventType(StrEnum):

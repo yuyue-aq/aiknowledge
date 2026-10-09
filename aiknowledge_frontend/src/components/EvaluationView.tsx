@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ApiRequestError, getAuthUserId, getEvalEvidence, type EvalEvidence, listEvalCases, listEvalRuns, listEvalVersions, createEvalCase, createEvalCaseFromFeedback, updateEvalCase, deleteEvalCase,
   createEvalVersion, enqueueEvaluation, enqueueEvalVersion, getEvalRun, retryEvalRun, reviewEvalResult,
-  compareEvalRuns, searchKnowledge, listDocuments, getOwnerDocumentDetail, type KnowledgeDocument, type Category, type EvalCase, type EvalDetail, type EvalRun,
+  compareEvalRuns, searchKnowledge, listDocuments, getOwnerDocumentDetail, getKnowledgeImpact, suggestEvalResultGrade, type KnowledgeImpact, type KnowledgeDocument, type Category, type EvalCase, type EvalDetail, type EvalRun,
   type EvalRunComparison, type EvalSetVersion, type EvidenceRef, type RetrievalItem, type KnowledgeTag,
   type RetrievalMetadataFilter, emptyRetrievalMetadataFilter,
 } from '../api/client'
@@ -21,6 +21,16 @@ const newDraft = (): Draft => ({ question: '', expected_answer: '', scope: 'OWNE
   expected_behavior: 'ANSWERED', expected_document_ids: [], evidence_refs: [], source_feedback_confirmed: false })
 const failureText = (failure: unknown) => failure instanceof ApiRequestError ? failure.message : '操作暂时无法完成，请稍后重试。'
 const answerLabel: Record<string, string> = { ANSWERED: '已回答', INSUFFICIENT_EVIDENCE: '资料不足', OUT_OF_SCOPE: '范围外问题', CONFLICT: '资料冲突', FAILED: '调用失败' }
+const gradeLabel = (value: number | null | undefined) => value === 1 ? '建议正确' : value === 0.5 ? '建议部分正确' : value === 0 ? '建议错误' : '未评分'
+const gradeFailureLabel: Record<string, string> = {
+  JUDGE_UNAVAILABLE: '模型暂不可用，失败记录已保留，可稍后重试。',
+  JUDGE_NOT_CONFIGURED: '未配置评分模型，失败记录已保留。',
+  JUDGE_OUTPUT_INVALID: '模型返回格式不符合评分要求，失败记录已保留，可重试。',
+  JUDGE_INPUT_TOO_LARGE: '回答内容过长，未发送给评分模型。',
+  REFERENCE_MISSING: '题目没有标准答案或预期行为标注，无法给出建议。',
+  ANSWER_GENERATION_FAILED: '回答生成失败，本次不进行评分。',
+  RUN_REFERENCE_SNAPSHOT_MISSING: '历史运行没有冻结的标准答案，无法评分；请新建运行后重试。',
+}
 
 const draftKey = (spaceId: string) => 'zhisu.eval-draft.' + (getAuthUserId() || 'anonymous') + '.' + spaceId
 function restoredDraft(spaceId: string): Draft | null {
@@ -65,12 +75,16 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
   const [gradeEvidence, setGradeEvidence] = useState<EvalEvidence | null>(null)
   const [evidenceError, setEvidenceError] = useState('')
   const [score, setScore] = useState<0 | .5 | 1 | null>(null)
+  const [modelGradeBusy, setModelGradeBusy] = useState(false)
   const [reviewNote, setReviewNote] = useState('')
   const [baselineId, setBaselineId] = useState('')
   const [candidateId, setCandidateId] = useState('')
   const [comparison, setComparison] = useState<EvalRunComparison | null>(null)
   const [evidence, setEvidence] = useState<RetrievalItem[]>([])
   const [documents, setDocuments] = useState<KnowledgeDocument[]>([])
+  const [knowledgeImpact, setKnowledgeImpact] = useState<KnowledgeImpact | null>(null)
+  const [impactLoading, setImpactLoading] = useState(false)
+  const [impactError, setImpactError] = useState('')
   const [evidenceDocumentId, setEvidenceDocumentId] = useState('')
   const [deleting, setDeleting] = useState<EvalCase | null>(null)
   const [leavingDraft, setLeavingDraft] = useState(false)
@@ -78,6 +92,7 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
     scope: initialScope, category_ids: initialCategoryIds, source_feedback_id: initialFeedbackId }))
   const alive = useRef(true)
   const request = useRef<AbortController | null>(null)
+  const impactRequest = useRef<AbortController | null>(null)
   const mutating = useRef(false)
   useEffect(() => {
     try {
@@ -97,6 +112,29 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
     finally { if (alive.current) setLoading(false) }
   }, [spaceId])
   useEffect(() => { alive.current = true; void load(); return () => { alive.current = false; request.current?.abort() } }, [load])
+
+  const loadImpact = useCallback(async (signal: AbortSignal) => {
+    setImpactLoading(true); setImpactError('')
+    try {
+      const report = await getKnowledgeImpact(spaceId, signal)
+      if (!signal.aborted) setKnowledgeImpact(report)
+    } catch (failure) {
+      if (!signal.aborted) setImpactError(failureText(failure))
+    } finally {
+      if (!signal.aborted) setImpactLoading(false)
+    }
+  }, [spaceId])
+  const refreshImpact = useCallback(() => {
+    impactRequest.current?.abort()
+    const controller = new AbortController()
+    impactRequest.current = controller
+    void loadImpact(controller.signal)
+  }, [loadImpact])
+  useEffect(() => {
+    setKnowledgeImpact(null)
+    refreshImpact()
+    return () => impactRequest.current?.abort()
+  }, [refreshImpact])
 
   // One sequential poll, cancelled on route unmount and hidden browser tab.
   const runId = activeRun?.id
@@ -228,6 +266,53 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
   return <div className='v2-page'>
     {page === 'cases' && <>
       <V2Heading title='质量自测' description='用固定问题验证资料与回答效果。' actions={<V2Button icon='plus' onClick={() => edit()}>添加测试题</V2Button>} />
+      <V2Panel>
+        <div className='v2-row v2-between'><div><h2>资料更新影响</h2><p>查看旧版本证据、历史引用，以及冲突和资料不足的分类核对。</p></div>
+          <V2Button kind='ghost' disabled={impactLoading} onClick={refreshImpact}>{impactLoading ? '正在刷新…' : '刷新诊断'}</V2Button></div>
+        {impactLoading && !knowledgeImpact && <p role='status'>正在核对资料版本与评测记录…</p>}
+        {impactError && <V2Notice danger>{impactError} <V2Button kind='outline' disabled={impactLoading} onClick={refreshImpact}>重试</V2Button></V2Notice>}
+        {knowledgeImpact && <>
+          <div className='v2-kpis v2-impact-kpis'><div className='v2-kpi'><small>需重新确认的回归题</small><strong>{knowledgeImpact.stale_case_count}</strong></div>
+            <div className='v2-kpi'><small>受影响的证据标注</small><strong>{knowledgeImpact.stale_evidence_count}</strong></div>
+            <div className='v2-kpi'><small>需复核的历史引用</small><strong>{knowledgeImpact.updated_citation_count}</strong></div></div>
+          {knowledgeImpact.stale_cases.length > 0 ? <section className='v2-impact-section' aria-labelledby='stale-case-heading'>
+            <h3 id='stale-case-heading'>需要重新标记证据的回归题</h3>
+            {knowledgeImpact.stale_cases.map(item => <article className='v2-impact-item' key={item.eval_case_id}>
+              <div className='v2-row v2-between'><strong>{item.question}</strong>{cases.find(value => value.id === item.eval_case_id) && <V2Button kind='ghost' onClick={() => edit(cases.find(value => value.id === item.eval_case_id))}>编辑并重选证据</V2Button>}</div>
+              {item.affected_evidence.map((source, index) => <p key={`${source.document_id}-${source.labeled_version_id}-${index}`}>
+                {source.document_name} · 标注版本 {source.labeled_version_id.slice(0, 8)} · {source.status === 'VERSION_CHANGED' ? `当前版本 ${source.active_version_id?.slice(0, 8) || '未知'}` : '资料当前不可用'}
+              </p>)}
+            </article>)}
+          </section> : <V2Notice>当前回归题的证据都指向可用的活动资料版本。</V2Notice>}
+          <section className='v2-impact-section' aria-labelledby='historical-citation-heading'>
+            <h3 id='historical-citation-heading'>历史回答引用</h3>
+            {knowledgeImpact.updated_citation_count === 0 ? <p>没有检测到指向旧版本或当前不可用资料的历史引用。</p> : <>
+              <p>历史回答仍保留当时的结果；以下引用来自旧版本或当前不可用资料，仅提示复核，不会改写历史回答。</p>
+              {knowledgeImpact.updated_citations.map(item => <div className='v2-impact-item' key={`${item.document_id}-${item.cited_version_id}`}>
+                <strong>{item.document_name}</strong><p>引用版本 {item.cited_version_id.slice(0, 8)} · {item.status === 'VERSION_CHANGED' ? `当前版本 ${item.active_version_id?.slice(0, 8) || '未知'}` : '资料当前不可用'} · {item.citation_count} 条引用，涉及 {item.message_count} 条回答</p>
+              </div>)}
+              {knowledgeImpact.updated_citations_truncated && <small>仅展示引用最多的 50 组；受影响总引用数仍为 {knowledgeImpact.updated_citation_count}。</small>}
+            </>}
+          </section>
+          <section className='v2-impact-section' aria-labelledby='classification-heading'>
+            <h3 id='classification-heading'>冲突与资料不足分类</h3>
+            <p>“资料冲突”表示资料对同一事实给出不一致内容；“资料不足”表示资料没有足够依据。此核对以最近一次已完成运行中的人工预期标注为准。</p>
+            {knowledgeImpact.answer_classification ? <>
+              <small>依据 {knowledgeImpact.answer_classification.created_at ? new Date(knowledgeImpact.answer_classification.created_at).toLocaleString('zh-CN') : '时间未记录'} 的已完成评测</small>
+              <div className='v2-two'>
+                {([['预期冲突', knowledgeImpact.answer_classification.conflict], ['预期资料不足', knowledgeImpact.answer_classification.insufficient_evidence]] as const).map(([label, metric]) => <div className='v2-kpi' key={label}>
+                  <small>{label} · 标注 {metric.expected} 题</small><strong>正确 {metric.correct} · 不匹配 {metric.misclassified}</strong>
+                  <small>分类准确率 {metric.accuracy == null ? '暂无标注题' : percent(metric.accuracy)}</small>
+                </div>)}
+              </div>
+              {knowledgeImpact.answer_classification.mismatches.length > 0 && <div className='v2-impact-mismatches'>
+                <strong>需要复核</strong>{knowledgeImpact.answer_classification.mismatches.map(item => <p key={item.eval_case_id}>{item.question} · 预期{item.expected_behavior === 'CONFLICT' ? '冲突' : '资料不足'}，实际{answerLabel[item.actual_status] || item.actual_status}</p>)}
+                {knowledgeImpact.answer_classification.mismatches_truncated && <small>不匹配题超过 50 条，仅展示前 50 条。</small>}
+              </div>}
+            </> : <p>还没有已完成的评测运行，完成一次评测后会显示分类核对。</p>}
+          </section>
+        </>}
+      </V2Panel>
       <div className='v2-row'><select data-v2-control aria-label='运行题集版本' value={versionId} onChange={event => setVersionId(event.target.value)} className='v2-compact-select'>
         <option value=''>当前题集 · {cases.length} 题</option>{versions.map(version => <option key={version.id} value={version.id}>v{version.version_number} · {version.label}</option>)}</select>
         <select data-v2-control aria-label='评测检索方式' disabled={busy} className='v2-compact-select' value={strategy} onChange={event=>setStrategy(event.target.value as 'dense' | 'hybrid' | 'hybrid_rerank')}><option value='dense'>向量检索基线</option><option value='hybrid'>混合检索 · RRF</option><option value='hybrid_rerank'>混合检索 + 模型重排</option></select>
@@ -314,6 +399,7 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
 
     {page === 'grade' && <>
       <V2Heading title='人工评分' description='核对答案与证据，记录真实问题。' actions={<V2Button kind='outline' onClick={() => setPage('compare')}>运行对比</V2Button>} />
+      {detail && <V2Notice>模型建议覆盖 {percent(detail.summary.model_suggestion_coverage ?? null)} · 与人工评分一致 {percent(detail.summary.model_human_agreement_rate ?? null)}（{detail.summary.model_human_overlap_count || 0} 题重叠）。一致率只表示两种评分相同，不代表模型评分准确。生成建议会向本空间配置的评分模型发送问题、标准答案和实际回答，不会自动修改人工评分。</V2Notice>}
       <div className='v2-two v2-grade-layout'><aside className='v2-case-list'>{detail?.results.map((item, index) => <button data-native-button key={item.id} type='button' aria-pressed={selectedResult?.id === item.id}
         onClick={() => { setGradingId(item.id); setScore(item.reviewer_score as 0 | .5 | 1 | null); setReviewNote(item.reviewer_note || '') }}
       >
@@ -321,6 +407,26 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
         {selectedResult ? <V2Panel><h2>{selectedCase?.question || '历史题目'}</h2><small>{selectedCase?.scope === 'OWNER' ? '拥有者' : '公开分类'} · {answerLabel[selectedResult.answer_status]}</small>
           <hr /><strong>标准答案</strong><p>{selectedCase?.expected_answer || '未标注标准答案'}</p><hr /><strong>实际回答</strong><p className='v2-source-text'>{selectedResult.answer}</p>
           <V2Notice>文档 Recall@K：{percent(selectedResult.retrieval_metrics?.document_recall_at_k as number | null)} · 证据完整覆盖：{percent(selectedResult.retrieval_metrics?.evidence_recall_at_k as number | null)}</V2Notice>
+          {(() => {
+            const attempts = selectedResult.model_grade_suggestions || []
+            const latest = attempts[attempts.length - 1]
+            const canSuggest = !latest || latest.status === 'FAILED'
+            return <section className='v2-model-grade' aria-labelledby='model-grade-title'>
+              <div className='v2-row v2-between'><h3 id='model-grade-title'>模型评分建议</h3><small>{latest?.model || 'DeepSeek'}</small></div>
+              {latest?.status === 'SUCCEEDED' && <><strong>{gradeLabel(latest.suggested_score)}</strong><p>{latest.rationale}</p><small>版本 {latest.prompt_version} · {new Date(latest.created_at).toLocaleString('zh-CN')} · 仅供参考</small></>}
+              {(latest?.status === 'FAILED' || latest?.status === 'SKIPPED') && <V2Notice danger={latest.status === 'FAILED'}>{gradeFailureLabel[latest.failure_code || ''] || '评分未完成，失败状态已保留。'}</V2Notice>}
+              {modelGradeBusy && <p role='status'>正在请求评分建议…</p>}
+              {canSuggest && <V2Button kind='outline' disabled={busy} onClick={() => void perform(async () => {
+                setModelGradeBusy(true)
+                try {
+                  await suggestEvalResultGrade(selectedResult.id)
+                  const next = await getEvalRun(detail!.run.id)
+                  if (alive.current) setDetail(next)
+                } finally { if (alive.current) setModelGradeBusy(false) }
+              })}>{modelGradeBusy ? '正在生成建议…' : latest?.status === 'FAILED' ? '重试模型评分建议' : '生成模型评分建议'}</V2Button>}
+              {latest?.status === 'SUCCEEDED' && <V2Notice>这是模型建议。请结合标准答案、当次检索依据进行人工确认，保存人工评分后才计入答案准确率。</V2Notice>}
+            </section>
+          })()}
           <h2>当次检索依据</h2>{evidenceError && <V2Notice danger>{evidenceError}</V2Notice>}
           {!gradeEvidence && !evidenceError && <p role='status'>正在读取当次依据…</p>}
           {gradeEvidence && !gradeEvidence.snapshot_available && <V2Notice>这次历史运行未记录候选快照，无法核对检索依据。</V2Notice>}

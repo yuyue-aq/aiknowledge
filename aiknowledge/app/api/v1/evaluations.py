@@ -40,6 +40,8 @@ class EvaluationServicePort(Protocol):
 
     async def list_cases(self, space_id: UUID, **kwargs: object) -> list[EvalCase]: ...
 
+    async def get_knowledge_impact(self, space_id: UUID, **kwargs: object) -> dict[str, object]: ...
+
     async def update_case(self, case_id: UUID, **kwargs: object) -> EvalCase: ...
 
     async def delete_case(self, case_id: UUID, **kwargs: object) -> None: ...
@@ -61,6 +63,8 @@ class EvaluationServicePort(Protocol):
     async def run_version(self, version_id: UUID, **kwargs: object) -> EvaluationRunDetail: ...
 
     async def review_result(self, **kwargs: object) -> EvalResult: ...
+
+    async def suggest_result_grade(self, **kwargs: object) -> EvalResult: ...
 
 
 def get_evaluation_service(
@@ -194,6 +198,7 @@ class EvalResultResponse(BaseModel):
     execution_snapshot: dict[str, object] | None = None
     retrieval_metrics: dict[str, object] | None = None
     failure_code: str | None = None
+    model_grade_suggestions: list[dict[str, object]] = Field(default_factory=list)
 
     @classmethod
     def from_domain(cls, result: EvalResult) -> "EvalResultResponse":
@@ -208,6 +213,7 @@ class EvalResultResponse(BaseModel):
             execution_snapshot=result.execution_snapshot,
             retrieval_metrics=result.retrieval_metrics,
             failure_code=result.failure_code,
+            model_grade_suggestions=[dict(item) for item in result.model_grade_suggestions],
         )
 
 
@@ -249,6 +255,64 @@ class EvalRunListResponse(BaseModel):
     items: list[EvalRunResponse]
 
 
+class StaleEvidenceImpactResponse(BaseModel):
+    document_id: UUID
+    document_name: str
+    labeled_version_id: UUID
+    active_version_id: UUID | None
+    status: Literal['VERSION_CHANGED', 'SOURCE_UNAVAILABLE']
+
+
+class StaleEvalCaseImpactResponse(BaseModel):
+    eval_case_id: UUID
+    question: str
+    expected_behavior: str | None
+    affected_evidence: list[StaleEvidenceImpactResponse]
+
+
+class UpdatedCitationImpactResponse(BaseModel):
+    document_id: UUID
+    document_name: str
+    cited_version_id: UUID
+    active_version_id: UUID | None
+    status: Literal['VERSION_CHANGED', 'SOURCE_UNAVAILABLE']
+    citation_count: int
+    message_count: int
+
+
+class AnswerClassMetricResponse(BaseModel):
+    expected: int
+    correct: int
+    misclassified: int
+    accuracy: float | None
+
+
+class AnswerClassMismatchResponse(BaseModel):
+    eval_case_id: UUID
+    question: str
+    expected_behavior: Literal['CONFLICT', 'INSUFFICIENT_EVIDENCE']
+    actual_status: str
+
+
+class AnswerClassificationResponse(BaseModel):
+    run_id: UUID | None
+    created_at: datetime | None
+    conflict: AnswerClassMetricResponse
+    insufficient_evidence: AnswerClassMetricResponse
+    mismatches: list[AnswerClassMismatchResponse]
+    mismatches_truncated: bool
+
+
+class KnowledgeImpactResponse(BaseModel):
+    stale_case_count: int
+    stale_evidence_count: int
+    stale_cases: list[StaleEvalCaseImpactResponse]
+    updated_citation_count: int
+    updated_citations: list[UpdatedCitationImpactResponse]
+    updated_citations_truncated: bool
+    answer_classification: AnswerClassificationResponse | None
+
+
 class EvalSummaryResponse(BaseModel):
     total: int
     answered: int
@@ -271,6 +335,9 @@ class EvalSummaryResponse(BaseModel):
     evidence_recall_at_k: float | None = None
     evidence_overlap_at_k: float | None = None
     correct_refusal_rate: float | None = None
+    model_suggestion_coverage: float | None = None
+    model_human_overlap_count: int = 0
+    model_human_agreement_rate: float | None = None
 
 
 class EvalRunDetailResponse(BaseModel):
@@ -315,6 +382,9 @@ class EvalRunComparisonResponse(BaseModel):
             "answered_rate",
             "citation_rate",
             "reviewed_accuracy",
+            "model_suggestion_coverage",
+            "model_human_overlap_count",
+            "model_human_agreement_rate",
         )
         delta: dict[str, float | None] = {}
         for name in metric_names:
@@ -357,6 +427,24 @@ def _summary(detail: EvaluationRunDetail) -> EvalSummaryResponse:
         evidence_recall_at_k=mean_metric('evidence_recall_at_k'),
         evidence_overlap_at_k=mean_metric('evidence_overlap_at_k'),
         correct_refusal_rate=mean_metric('refusal_correct'),
+        model_suggestion_coverage=(
+            sum(_latest_model_score(item) is not None for item in results) / len(results)
+            if results else None
+        ),
+        model_human_overlap_count=sum(
+            result.reviewer_score is not None and _latest_model_score(result) is not None
+            for result in results
+        ),
+        model_human_agreement_rate=(
+            sum(
+                _latest_model_score(result) == result.reviewer_score
+                for result in results
+                if result.reviewer_score is not None and _latest_model_score(result) is not None
+            )
+            / sum(result.reviewer_score is not None and _latest_model_score(result) is not None for result in results)
+            if any(result.reviewer_score is not None and _latest_model_score(result) is not None for result in results)
+            else None
+        ),
         total=len(results),
         answered=sum(result.answer_status.value == "ANSWERED" for result in results),
         insufficient_evidence=sum(
@@ -399,6 +487,14 @@ def _summary(detail: EvaluationRunDetail) -> EvalSummaryResponse:
     )
 
 
+def _latest_model_score(result: EvalResult) -> float | None:
+    for attempt in reversed(result.model_grade_suggestions):
+        score = attempt.get("suggested_score")
+        if attempt.get("status") == "SUCCEEDED" and isinstance(score, (float, int)) and not isinstance(score, bool):
+            return float(score)
+    return None
+
+
 def _translate_evaluation_error(error: Exception) -> None:
     if isinstance(error, EvalAccessDeniedError):
         raise AppError(code="EVAL_ACCESS_DENIED", message=str(error), status_code=403) from error
@@ -415,6 +511,20 @@ def _translate_evaluation_error(error: Exception) -> None:
     if isinstance(error, ValueError):
         raise AppError(code="EVAL_INVALID", message=str(error), status_code=422) from error
     raise error
+
+
+@router.get('/spaces/{space_id}/knowledge-impact', response_model=KnowledgeImpactResponse)
+async def get_knowledge_impact(
+    space_id: UUID,
+    user: Annotated[User, Depends(get_current_user)],
+    service: EvaluationServicePort = Depends(get_evaluation_service),
+) -> KnowledgeImpactResponse:
+    try:
+        report = await service.get_knowledge_impact(space_id, owner_user_id=user.id)
+    except Exception as error:
+        _translate_evaluation_error(error)
+        raise
+    return KnowledgeImpactResponse.model_validate(report)
 
 
 @router.get("/spaces/{space_id}/eval-cases", response_model=EvalCaseListResponse)
@@ -711,6 +821,23 @@ async def review_evaluation_result(
         result = await service.review_result(
             result_id=result_id,
             **payload.model_dump(),
+            **({"owner_user_id": _current_user.id} if _current_user is not None else {}),
+        )
+    except Exception as error:
+        _translate_evaluation_error(error)
+        raise
+    return EvalResultResponse.from_domain(result)
+
+
+@router.post("/eval-results/{result_id}/model-grade", response_model=EvalResultResponse)
+async def suggest_evaluation_result_grade(
+    result_id: UUID,
+    service: EvaluationServicePort = Depends(get_evaluation_service),
+    _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
+) -> EvalResultResponse:
+    try:
+        result = await service.suggest_result_grade(
+            result_id=result_id,
             **({"owner_user_id": _current_user.id} if _current_user is not None else {}),
         )
     except Exception as error:

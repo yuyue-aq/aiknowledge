@@ -22,6 +22,103 @@ test('chunk preview and rebuild bind source version and explicit configuration',
   assert.equal(calls[1].data.expected_version_id,'active');assert.equal(calls[1].data.fingerprint,'proof')
 })
 
+test('knowledge impact uses the authenticated admin report endpoint', async () => {
+  const calls = []
+  const report = { stale_case_count: 2, stale_evidence_count: 3, updated_citation_count: 4 }
+  const { client } = loadClient(async options => {
+    calls.push(options)
+    return { statusCode: 200, data: report }
+  })
+  client.saveAuthSession(session('admin-token'))
+
+  const response = await client.getKnowledgeImpact('space-7')
+
+  assert.equal(response.stale_case_count, 2)
+  assert.equal(calls[0].url, '/api/v1/spaces/space-7/knowledge-impact')
+  assert.equal(calls[0].method, 'GET')
+  assert.equal(calls[0].header.Authorization, 'Bearer admin-token')
+})
+
+test('model-assisted evaluation requests an advisory grade through the product API', async () => {
+  const calls = []
+  const response = { id: 'result-1', reviewer_score: 0, reviewer_note: 'human stays separate',
+    model_grade_suggestions: [{ status: 'SUCCEEDED', suggested_score: 0.5 }] }
+  const { client } = loadClient(async options => { calls.push(options); return { statusCode: 200, data: response } })
+  client.saveAuthSession(session('admin-token'))
+
+  const result = await client.suggestEvalResultGrade('result-1')
+
+  assert.deepEqual(result, response)
+  assert.equal(calls[0].url, '/api/v1/eval-results/result-1/model-grade')
+  assert.equal(calls[0].method, 'POST')
+  assert.equal(calls[0].header.Authorization, 'Bearer admin-token')
+  assert.equal(result.reviewer_score, 0)
+})
+
+test('new share links can opt into published-answer-only retrieval', async () => {
+  const calls = []
+  const link = { id: 'link-1', space_id: 'space-1', category_ids: ['category-1'], content_mode: 'PUBLISHED_ANSWERS' }
+  const { client } = loadClient(async options => {
+    calls.push(options)
+    return { statusCode: 201, data: { link, token: 'secret-token' } }
+  })
+
+  const result = await client.createShareLink('space-1', ['category-1'], { content_mode: 'PUBLISHED_ANSWERS' })
+
+  assert.equal(result.link.content_mode, 'PUBLISHED_ANSWERS')
+  assert.equal(calls[0].url, '/api/v1/spaces/space-1/share-links')
+  assert.equal(calls[0].data.content_mode, 'PUBLISHED_ANSWERS')
+})
+
+test('public space receives safe FAQ question suggestions for curated-answer links', async () => {
+  let request
+  const { client } = loadClient(async options => {
+    request = options
+    return { statusCode: 200, data: {
+      name: '公开空间', description: null, content_mode: 'PUBLISHED_ANSWERS',
+      categories: [{ name: '制度', description: null }],
+      suggested_questions: ['如何申请？', '何时到账？']
+    } }
+  })
+
+  const result = await client.getPublicSpace()
+
+  assert.equal(request.url, '/api/v1/public/space')
+  assert.equal(result.content_mode, 'PUBLISHED_ANSWERS')
+  assert.deepEqual(result.suggested_questions, ['如何申请？', '何时到账？'])
+})
+
+test('curated public-answer lifecycle uses authenticated management endpoints', async () => {
+  const calls = []
+  const answer = { id: 'answer-1', status: 'DRAFT' }
+  const { client } = loadClient(async options => {
+    calls.push(options)
+    return { statusCode: options.method === 'POST' && options.url.endsWith('/public-answers') ? 201 : 200,
+      data: options.url.endsWith('/public-answers') && options.method === 'GET' ? { items: [answer] } : answer }
+  })
+  client.saveAuthSession(session('admin-token'))
+
+  await client.listPublicAnswers('space-1')
+  await client.createPublicAnswer('space-1', { category_id: 'cat-1', question: 'Q', answer: 'A', source_refs: [] })
+  await client.updatePublicAnswer('answer-1', { answer: 'A2' })
+  await client.submitPublicAnswerForReview('answer-1')
+  await client.approvePublicAnswer('answer-1')
+  await client.publishPublicAnswer('answer-1')
+  await client.withdrawPublicAnswer('answer-1', 'OWNER_WITHDRAWN')
+
+  assert.deepEqual(calls.map(call => [call.method, call.url]), [
+    ['GET', '/api/v1/spaces/space-1/public-answers'],
+    ['POST', '/api/v1/spaces/space-1/public-answers'],
+    ['PATCH', '/api/v1/public-answers/answer-1'],
+    ['POST', '/api/v1/public-answers/answer-1/submit-for-review'],
+    ['POST', '/api/v1/public-answers/answer-1/approve'],
+    ['POST', '/api/v1/public-answers/answer-1/publish'],
+    ['POST', '/api/v1/public-answers/answer-1/withdraw'],
+  ])
+  assert.equal(calls.every(call => call.header.Authorization === 'Bearer admin-token'), true)
+  assert.equal(JSON.stringify(calls[6].data), JSON.stringify({ reason: 'OWNER_WITHDRAWN' }))
+})
+
 function loadClient(request, extras = {}) {
   const storage = new Map()
   const taro = {

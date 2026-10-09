@@ -10,6 +10,7 @@ from sqlalchemy import (
     Boolean,
     BigInteger,
     Column,
+    CheckConstraint,
     DateTime,
     Enum,
     Float,
@@ -36,6 +37,7 @@ from app.domain.conversations import (
     MessageRole,
 )
 from app.domain.documents import DocumentFailureCode, DocumentStatus, DocumentVersionStatus
+from app.domain.public_answers import PublicAnswerStatus, PublicContentMode
 from app.domain.rag import AnswerStatus
 from app.domain.spaces import ShareLinkStatus, SpacePlan, SpaceVisibility, SpaceKind
 from app.domain.sources import SourceKind, SourceStatus
@@ -249,8 +251,100 @@ class ShareLinkRecord(Base):
     allowed_origins: Mapped[list[str]] = mapped_column(
         JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb")
     )
+    content_mode: Mapped[str] = mapped_column(
+        String(32), nullable=False, default=PublicContentMode.DOCUMENTS.value,
+        server_default=PublicContentMode.DOCUMENTS.value,
+    )
 
-    __table_args__ = (Index("ix_share_links_active", "space_id", "status"),)
+    __table_args__ = (
+        Index("ix_share_links_active", "space_id", "status"),
+        CheckConstraint("content_mode IN ('DOCUMENTS', 'PUBLISHED_ANSWERS')", name="ck_share_links_content_mode"),
+    )
+
+
+class PublicAnswerRecord(Base):
+    __tablename__ = "public_answers"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    space_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("knowledge_spaces.id", ondelete="CASCADE"), nullable=False
+    )
+    category_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False
+    )
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    answer: Mapped[str] = mapped_column(Text, nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(24), nullable=False, default=PublicAnswerStatus.DRAFT.value,
+        server_default=PublicAnswerStatus.DRAFT.value,
+    )
+    source_refs: Mapped[list[dict[str, str]]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default=text("'[]'::jsonb")
+    )
+    created_by: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    updated_by: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    reviewed_by: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    withdrawal_reason: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        Index("ix_public_answers_space_status", "space_id", "status"),
+        Index("ix_public_answers_category", "space_id", "category_id"),
+        CheckConstraint("status IN ('DRAFT', 'IN_REVIEW', 'APPROVED', 'PUBLISHED', 'WITHDRAWN')", name="ck_public_answers_status"),
+    )
+
+
+class PublicAnswerVersionRecord(Base):
+    __tablename__ = "public_answer_versions"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    answer_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("public_answers.id", ondelete="CASCADE"), nullable=False
+    )
+    space_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("knowledge_spaces.id", ondelete="CASCADE"), nullable=False
+    )
+    category_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("categories.id", ondelete="RESTRICT"), nullable=False
+    )
+    version_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    question: Mapped[str] = mapped_column(Text, nullable=False)
+    answer: Mapped[str] = mapped_column(Text, nullable=False)
+    source_count: Mapped[int] = mapped_column(Integer, nullable=False, server_default="0")
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    embedding: Mapped[list[float]] = mapped_column(AsyncpgVector(1024), nullable=False)
+    status: Mapped[str] = mapped_column(String(24), nullable=False, server_default="PUBLISHED")
+    reviewed_by: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    published_by: Mapped[UUID | None] = mapped_column(PG_UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"))
+    published_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    withdrawn_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    withdrawal_reason: Mapped[str | None] = mapped_column(String(500))
+
+    __table_args__ = (
+        UniqueConstraint("answer_id", "version_number", name="uq_public_answer_versions_number"),
+        Index("ix_public_answer_versions_scope", "space_id", "category_id", "status"),
+        Index("uq_public_answer_versions_current", "answer_id", unique=True,
+              postgresql_where=text("status = 'PUBLISHED'")),
+        CheckConstraint("status IN ('PUBLISHED', 'WITHDRAWN', 'SUPERSEDED')", name="ck_public_answer_versions_status"),
+        CheckConstraint("source_count >= 0", name="ck_public_answer_versions_source_count"),
+    )
+
+
+class PublicAnswerSourceRecord(Base):
+    __tablename__ = "public_answer_sources"
+
+    answer_version_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("public_answer_versions.id", ondelete="CASCADE"), primary_key=True
+    )
+    document_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True
+    )
+    document_version_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("document_versions.id", ondelete="CASCADE"), nullable=False
+    )
 
 
 class PublicQuestionLogRecord(Base):
@@ -638,6 +732,9 @@ class CitationRecord(Base):
     chunk_id: Mapped[UUID | None] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("chunks.id", ondelete="SET NULL"), nullable=True
     )
+    public_answer_version_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("public_answer_versions.id", ondelete="SET NULL"), nullable=True
+    )
     document_name: Mapped[str] = mapped_column(String(255), nullable=False)
     quoted_text: Mapped[str] = mapped_column(Text, nullable=False)
     page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -832,6 +929,7 @@ class EvalResultRecord(Base):
     execution_snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     retrieval_metrics: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     failure_code: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    model_grade_suggestions: Mapped[list[dict]] = mapped_column(JSONB, nullable=False, default=list, server_default='[]')
 
     __table_args__ = (
         UniqueConstraint("eval_run_id", "eval_case_id", name="uq_eval_results_run_case"),

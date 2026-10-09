@@ -95,6 +95,7 @@ class CitationSnapshot:
     ordinal: int
     score: float
     source_available: bool = True
+    public_answer_version_id: UUID | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -146,6 +147,10 @@ class RetrievedChunk:
     fusion_score: float | None = None
     rerank_rank: int | None = None
     rerank_score: float | None = None
+    source_type: str = 'DOCUMENT'
+    public_answer_version_id: UUID | None = None
+    public_answer_title: str | None = None
+    public_answer_text: str | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -312,6 +317,7 @@ class EvalResult:
     execution_snapshot: dict[str, object] | None = None
     retrieval_metrics: dict[str, object] | None = None
     failure_code: str | None = None
+    model_grade_suggestions: tuple[dict[str, object], ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

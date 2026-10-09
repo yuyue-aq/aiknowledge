@@ -18,6 +18,7 @@ from app.domain.conversations import (
 from app.domain.rag import AnswerStatus, Citation, RagAnswer
 from app.domain.retrieval import RetrievalMetadataFilter
 from app.domain.spaces import PublicRetrievalScope
+from app.domain.public_answers import PublicContentMode
 from app.services.conversations import ConversationService
 
 
@@ -164,6 +165,31 @@ def build_service() -> tuple[
         embedding,
         rag,
     )
+
+
+@pytest.mark.asyncio
+async def test_public_faq_service_is_mode_gated_and_caps_suggestions_at_six():
+    service, repository, _, _ = build_service()
+    calls = []
+
+    async def list_faq(*, scope, limit):
+        calls.append((scope, limit))
+        return ['Q1', 'Q2']
+
+    repository.list_public_faq_questions = list_faq
+    scope = PublicRetrievalScope(
+        share_link_id=uuid4(), space_id=repository.space_id, category_ids=(uuid4(),),
+        content_mode=PublicContentMode.PUBLISHED_ANSWERS,
+    )
+
+    questions = await service.list_public_faq_questions(scope=scope, limit=50)
+    document_questions = await service.list_public_faq_questions(
+        scope=replace(scope, content_mode=PublicContentMode.DOCUMENTS), limit=6,
+    )
+
+    assert questions == ['Q1', 'Q2']
+    assert calls == [(scope, 6)]
+    assert document_questions == []
 
 
 @pytest.mark.asyncio

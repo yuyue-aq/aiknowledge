@@ -7,6 +7,7 @@ from sqlalchemy import exists, insert, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.spaces import Category, KnowledgeSpace, ShareLink, ShareLinkStatus
+from app.domain.public_answers import PublicContentMode
 from app.domain.users import SpaceMembership, SpaceRole
 from app.infrastructure.database.models import (
     CategoryRecord,
@@ -192,6 +193,7 @@ class SqlAlchemySpaceRepository:
                 password_hash=link.password_hash,
                 visitor_question_limit=link.visitor_question_limit,
                 allowed_origins=list(link.allowed_origins),
+                content_mode=link.content_mode.value,
             )
         )
         # The association table has a foreign key to share_links.  Flush the
@@ -226,6 +228,7 @@ class SqlAlchemySpaceRepository:
         record.password_hash = link.password_hash
         record.visitor_question_limit = link.visitor_question_limit
         record.allowed_origins = list(link.allowed_origins)
+        record.content_mode = link.content_mode.value
         await self._session.flush()
 
     async def revoke_active_links(self, space_id: UUID, revoked_at: datetime) -> None:
@@ -290,4 +293,5 @@ class SqlAlchemySpaceRepository:
             password_hash=record.password_hash,
             visitor_question_limit=record.visitor_question_limit,
             allowed_origins=tuple(record.allowed_origins or ()),
+            content_mode=PublicContentMode(record.content_mode),
         )

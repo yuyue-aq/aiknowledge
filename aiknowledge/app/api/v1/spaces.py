@@ -25,6 +25,7 @@ from app.domain.spaces import (
     SpaceVisibility,
     PublicQuestionRecord,
 )
+from app.domain.public_answers import PublicContentMode
 from app.domain.users import User
 from app.services.public_questions import (
     PublicQuestionLogAccessDeniedError,
@@ -232,6 +233,7 @@ class ShareLinkCreateRequest(BaseModel):
     password: str | None = Field(default=None, min_length=4, max_length=128)
     visitor_question_limit: int | None = Field(default=None, ge=1, le=100_000)
     allowed_origins: list[str] = Field(default_factory=list, max_length=10)
+    content_mode: PublicContentMode = PublicContentMode.DOCUMENTS
 
 
 class ShareLinkResponse(BaseModel):
@@ -244,6 +246,7 @@ class ShareLinkResponse(BaseModel):
     expires_at: datetime | None
     visitor_question_limit: int | None
     allowed_origins: list[str]
+    content_mode: PublicContentMode
 
     @classmethod
     def from_domain(cls, link: ShareLink) -> "ShareLinkResponse":
@@ -257,6 +260,7 @@ class ShareLinkResponse(BaseModel):
             expires_at=link.expires_at,
             visitor_question_limit=link.visitor_question_limit,
             allowed_origins=list(link.allowed_origins),
+            content_mode=link.content_mode,
         )
 
 

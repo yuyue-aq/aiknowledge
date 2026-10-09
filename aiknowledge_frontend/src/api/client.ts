@@ -3,6 +3,7 @@ import Taro from '@tarojs/taro'
 export type SpaceVisibility = 'PRIVATE' | 'PUBLIC'
 export type SpaceKind = 'PERSONAL' | 'TEAM'
 export type SpacePlan = 'FREE' | 'PRO' | 'TEAM'
+export type PublicContentMode = 'DOCUMENTS' | 'PUBLISHED_ANSWERS'
 export type Space = {
   id: string
   owner_user_id?: string | null
@@ -125,6 +126,8 @@ export type ConversationDetail = {
 export type PublicSpace = {
   name: string
   description: string | null
+  content_mode?: PublicContentMode
+  suggested_questions?: string[]
   categories: Array<{ name: string; description: string | null; display_name?: string | null; display_description?: string | null; is_default?: boolean }>
 }
 
@@ -138,9 +141,36 @@ export type ShareLink = {
   expires_at: string | null
   visitor_question_limit?: number | null
   allowed_origins?: string[]
+  content_mode: PublicContentMode
 }
 
 export type CreatedShareLink = { link: ShareLink; token: string }
+
+export type PublicAnswerStatus = 'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'PUBLISHED' | 'WITHDRAWN'
+export type PublicAnswerSourceRef = { document_id: string; document_version_id: string }
+export type PublicAnswerDraft = {
+  id: string
+  space_id: string
+  category_id: string
+  question: string
+  answer: string
+  status: PublicAnswerStatus
+  source_refs: PublicAnswerSourceRef[]
+  created_at: string
+  updated_at: string
+  reviewed_by: string | null
+  reviewed_at: string | null
+  published_version_id: string | null
+  published_version_number: number | null
+  withdrawal_reason: string | null
+}
+export type PublicAnswerInput = {
+  category_id: string
+  question: string
+  answer: string
+  source_refs: PublicAnswerSourceRef[]
+}
+export type PublicApprovedSource = { title: string; content: string }
 
 export type PublicQuestionRecord = {
   id: string
@@ -184,6 +214,7 @@ export type PublicAnswer = {
   message_id: string
   status: AnswerStatus
   answer: string
+  sources?: PublicApprovedSource[]
 }
 
 export type FeedbackRating = 'UP' | 'DOWN' | 'NEEDS_CORRECTION'
@@ -311,6 +342,20 @@ export type EvalResult = {
   execution_snapshot?: Record<string, unknown> | null
   retrieval_metrics?: Record<string, number | boolean | null> | null
   failure_code?: string | null
+  model_grade_suggestions?: EvalGradeSuggestion[]
+}
+
+export type EvalGradeSuggestion = {
+  id: string
+  created_at: string
+  status: 'SUCCEEDED' | 'FAILED' | 'SKIPPED'
+  model: string
+  prompt_version: string
+  suggested_score: number | null
+  rationale: string | null
+  failure_code: string | null
+  prompt_tokens: number
+  completion_tokens: number
 }
 
 export type EvalDetail = {
@@ -352,6 +397,9 @@ export type EvalDetail = {
     evidence_recall_at_k?: number | null
     evidence_overlap_at_k?: number | null
     correct_refusal_rate?: number | null
+    model_suggestion_coverage?: number | null
+    model_human_overlap_count?: number
+    model_human_agreement_rate?: number | null
   }
 }
 
@@ -365,6 +413,47 @@ export type EvalRunComparison = {
   same_test_set: boolean
   question_changes: Array<{ eval_case_id: string; baseline_question: string | null; candidate_question: string | null;
     comparable: boolean; baseline_status: string | null; candidate_status: string | null; baseline_score: number | null; candidate_score: number | null }>
+}
+
+export type KnowledgeImpact = {
+  stale_case_count: number
+  stale_evidence_count: number
+  stale_cases: Array<{
+    eval_case_id: string
+    question: string
+    expected_behavior: string | null
+    affected_evidence: Array<{
+      document_id: string
+      document_name: string
+      labeled_version_id: string
+      active_version_id: string | null
+      status: 'VERSION_CHANGED' | 'SOURCE_UNAVAILABLE'
+    }>
+  }>
+  updated_citation_count: number
+  updated_citations: Array<{
+    document_id: string
+    document_name: string
+    cited_version_id: string
+    active_version_id: string | null
+    status: 'VERSION_CHANGED' | 'SOURCE_UNAVAILABLE'
+    citation_count: number
+    message_count: number
+  }>
+  updated_citations_truncated: boolean
+  answer_classification: null | {
+    run_id: string | null
+    created_at: string | null
+    conflict: { expected: number; correct: number; misclassified: number; accuracy: number | null }
+    insufficient_evidence: { expected: number; correct: number; misclassified: number; accuracy: number | null }
+    mismatches: Array<{
+      eval_case_id: string
+      question: string
+      expected_behavior: 'CONFLICT' | 'INSUFFICIENT_EVIDENCE'
+      actual_status: string
+    }>
+    mismatches_truncated: boolean
+  }
 }
 
 type ApiOptions = {
@@ -638,11 +727,41 @@ export async function createShareLink(spaceId: string, categoryIds: string[], op
   password?: string | null
   visitor_question_limit?: number | null
   allowed_origins?: string[]
+  content_mode?: PublicContentMode
 }): Promise<CreatedShareLink> {
   return requestJson<CreatedShareLink>(`/spaces/${spaceId}/share-links`, {
     method: 'POST',
     data: { category_ids: categoryIds, ...(options ?? {}) }
   })
+}
+
+export async function listPublicAnswers(spaceId: string): Promise<PublicAnswerDraft[]> {
+  const result = await requestJson<{ items: PublicAnswerDraft[] }>(`/spaces/${spaceId}/public-answers`)
+  return result.items
+}
+
+export function createPublicAnswer(spaceId: string, input: PublicAnswerInput): Promise<PublicAnswerDraft> {
+  return requestJson<PublicAnswerDraft>(`/spaces/${spaceId}/public-answers`, { method: 'POST', data: input })
+}
+
+export function updatePublicAnswer(answerId: string, input: Partial<PublicAnswerInput>): Promise<PublicAnswerDraft> {
+  return requestJson<PublicAnswerDraft>(`/public-answers/${answerId}`, { method: 'PATCH', data: input })
+}
+
+export function submitPublicAnswerForReview(answerId: string): Promise<PublicAnswerDraft> {
+  return requestJson<PublicAnswerDraft>(`/public-answers/${answerId}/submit-for-review`, { method: 'POST' })
+}
+
+export function approvePublicAnswer(answerId: string): Promise<PublicAnswerDraft> {
+  return requestJson<PublicAnswerDraft>(`/public-answers/${answerId}/approve`, { method: 'POST' })
+}
+
+export function publishPublicAnswer(answerId: string): Promise<PublicAnswerDraft> {
+  return requestJson<PublicAnswerDraft>(`/public-answers/${answerId}/publish`, { method: 'POST' })
+}
+
+export function withdrawPublicAnswer(answerId: string, reason = 'OWNER_WITHDRAWN'): Promise<PublicAnswerDraft> {
+  return requestJson<PublicAnswerDraft>(`/public-answers/${answerId}/withdraw`, { method: 'POST', data: { reason } })
 }
 
 export async function revokeShareLink(linkId: string): Promise<void> {
@@ -1035,6 +1154,10 @@ export async function listEvalCases(spaceId: string): Promise<EvalCase[]> {
   return result.items
 }
 
+export async function getKnowledgeImpact(spaceId: string, signal?: AbortSignal): Promise<KnowledgeImpact> {
+  return requestJson<KnowledgeImpact>(`/spaces/${spaceId}/knowledge-impact`, { signal })
+}
+
 export async function createEvalCase(spaceId: string, input: {
   question: string
   expected_answer?: string | null
@@ -1079,6 +1202,10 @@ export async function deleteEvalCase(caseId: string): Promise<void> {
 
 export async function reviewEvalResult(resultId: string, input: { reviewer_score: 0 | 0.5 | 1; reviewer_note?: string | null }): Promise<EvalResult> {
   return requestJson<EvalResult>(`/eval-results/${resultId}`, { method: 'PATCH', data: input })
+}
+
+export async function suggestEvalResultGrade(resultId: string): Promise<EvalResult> {
+  return requestJson<EvalResult>(`/eval-results/${resultId}/model-grade`, { method: 'POST' })
 }
 
 export async function runEvaluation(spaceId: string): Promise<EvalDetail> {

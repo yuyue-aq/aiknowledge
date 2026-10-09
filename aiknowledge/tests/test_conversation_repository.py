@@ -17,6 +17,7 @@ from app.domain.conversations import (
 )
 from app.domain.rag import AnswerStatus
 from app.domain.spaces import PublicRetrievalScope
+from app.domain.public_answers import PublicContentMode
 from app.infrastructure.database.conversation_repository import SqlAlchemyConversationRepository
 from app.infrastructure.database.models import (
     CitationRecord,
@@ -236,6 +237,67 @@ async def test_retrieval_queries_apply_document_and_public_scope_filters_before_
     assert "categories.deleted_at is null" in normalized_public
     assert "knowledge_spaces.visibility" in normalized_public
     assert "chunks.category_id in" in normalized_public
+
+
+@pytest.mark.asyncio
+async def test_public_answer_retrieval_uses_only_published_answer_snapshots_and_safe_source_fields() -> None:
+    session = FakeSession()
+    repository = SqlAlchemyConversationRepository(session)  # type: ignore[arg-type]
+    answer_version_id = uuid4()
+    answer_id = uuid4()
+    session.query_rows = [SimpleNamespace(
+        id=answer_version_id, document_id=answer_id, document_name='如何申请报销？',
+        content='问题：如何申请报销？\n答案：按制度提交单据。', page_number=None,
+        ordinal=2, distance=0.12, document_version_id=answer_version_id,
+        source_block_id=None, char_start=None, char_end=None, content_hash='a' * 64,
+        token_count=None, heading_path=None, page_prefix=None,
+        public_answer_version_id=answer_version_id, public_answer_title='如何申请报销？',
+        public_answer_text='按制度提交单据。', source_type='PUBLISHED_ANSWER',
+    )]
+    scope = PublicRetrievalScope(
+        share_link_id=uuid4(), space_id=uuid4(), category_ids=(uuid4(),),
+        content_mode=PublicContentMode.PUBLISHED_ANSWERS,
+    )
+
+    hits = await repository.retrieve_public(scope=scope, embedding=[1.0, 0.0], limit=5)
+
+    assert hits[0].id == answer_version_id
+    assert hits[0].public_answer_version_id == answer_version_id
+    assert hits[0].public_answer_text == '按制度提交单据。'
+    sql = str(session.executed[0].compile(dialect=postgresql.dialect())).lower()
+    assert 'public_answer_versions.status = ' in sql
+    assert 'public_answer_versions.embedding <=>' in sql
+    assert 'public_answer_versions.source_count' in sql
+    assert 'categories.is_open is true' in sql
+    assert 'documents.active_version_id' in sql
+    assert 'public_answer_sources.document_version_id' in sql
+    assert (
+        'documents.active_version_id = public_answer_sources.document_version_id' in sql
+        or 'public_answer_sources.document_version_id = documents.active_version_id' in sql
+    )
+    assert 'chunks.' not in sql
+
+
+@pytest.mark.asyncio
+async def test_public_faq_questions_reuse_share_scope_and_freshness_filters() -> None:
+    session = FakeSession()
+    repository = SqlAlchemyConversationRepository(session)  # type: ignore[arg-type]
+    scope = PublicRetrievalScope(
+        share_link_id=uuid4(), space_id=uuid4(), category_ids=(uuid4(),),
+        content_mode=PublicContentMode.PUBLISHED_ANSWERS,
+    )
+    session.query_rows = [SimpleNamespace(question='如何申请？'), SimpleNamespace(question='何时到账？')]
+
+    questions = await repository.list_public_faq_questions(scope=scope, limit=6)
+
+    assert questions == ['如何申请？', '何时到账？']
+    sql = str(session.executed[0].compile(dialect=postgresql.dialect())).lower()
+    assert 'public_answer_versions.status = ' in sql
+    assert 'public_answer_versions.source_count' in sql
+    assert 'categories.is_open is true' in sql
+    assert 'public_answer_versions.published_at desc' in sql
+    assert 'limit' in sql
+    assert 'chunks.' not in sql
 
 
 @pytest.mark.asyncio

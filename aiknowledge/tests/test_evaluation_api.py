@@ -38,14 +38,20 @@ def test_summary_keeps_unlabeled_unknown_and_reports_manual_scoring_coverage():
     from app.domain.conversations import EvaluationRunDetail, EvalResult
     service = FakeEvaluationService()
     detail = service._detail()
-    first = replace(detail.results[0], reviewer_score=1., retrieval_metrics={'document_recall_at_k': .5, 'document_hit_at_k': 1.})
-    second = replace(first, id=uuid4(), reviewer_score=.5, retrieval_metrics=None)
-    third = replace(first, id=uuid4(), reviewer_score=None, retrieval_metrics=None)
+    first = replace(detail.results[0], reviewer_score=1., retrieval_metrics={'document_recall_at_k': .5, 'document_hit_at_k': 1.},
+        model_grade_suggestions=({'status': 'SUCCEEDED', 'suggested_score': 1.},))
+    second = replace(first, id=uuid4(), reviewer_score=.5, retrieval_metrics=None,
+        model_grade_suggestions=({'status': 'SUCCEEDED', 'suggested_score': 0.},))
+    third = replace(first, id=uuid4(), reviewer_score=None, retrieval_metrics=None,
+        model_grade_suggestions=({'status': 'FAILED', 'suggested_score': None},))
     summary = _summary(EvaluationRunDetail(detail.run, (first, second, third), detail.cases_by_id))
     assert summary.document_recall_at_k == .5
     assert summary.retrieval_measured_count == 1
     assert summary.answer_accuracy == .5
     assert summary.reviewed_coverage == 2/3
+    assert summary.model_suggestion_coverage == 2/3
+    assert summary.model_human_overlap_count == 2
+    assert summary.model_human_agreement_rate == .5
     empty = _summary(EvaluationRunDetail(detail.run, (), detail.cases_by_id))
     assert empty.document_recall_at_k is None
     assert empty.answer_accuracy is None
@@ -69,6 +75,7 @@ from app.domain.conversations import (
 )
 from app.domain.rag import AnswerStatus
 from app.main import create_app
+from app.api.dependencies import get_current_user
 
 
 class FakeEvaluationService:
@@ -107,8 +114,10 @@ class FakeEvaluationService:
             completed_at=self.now,
         )
         self.reviewed = None
+        self.grade_suggestion_user_id = None
         self.run_kwargs = None
         self.feedback_case_kwargs = None
+        self.impact_user_id = None
         self.version = EvalSetVersion(
             id=uuid4(),
             space_id=self.space_id,
@@ -127,6 +136,18 @@ class FakeEvaluationService:
 
     async def list_cases(self, _space_id: UUID) -> list[EvalCase]:
         return [self.case]
+
+    async def get_knowledge_impact(self, _space_id: UUID, **kwargs):
+        self.impact_user_id = kwargs.get('owner_user_id')
+        return {
+            'stale_case_count': 0,
+            'stale_evidence_count': 0,
+            'stale_cases': [],
+            'updated_citation_count': 0,
+            'updated_citations': [],
+            'updated_citations_truncated': False,
+            'answer_classification': None,
+        }
 
     async def update_case(self, _case_id: UUID, **_kwargs: object) -> EvalCase:
         return self.case
@@ -165,11 +186,23 @@ class FakeEvaluationService:
     ) -> EvalResult:
         assert result_id == self.result_id
         self.reviewed = (reviewer_score, reviewer_note)
-        return replace(
+        self.result = replace(
             self.result,
             reviewer_score=reviewer_score,
             reviewer_note=reviewer_note,
         )
+        return self.result
+
+    async def suggest_result_grade(self, *, result_id: UUID, owner_user_id: UUID | None = None) -> EvalResult:
+        assert result_id == self.result_id
+        self.grade_suggestion_user_id = owner_user_id
+        self.result = replace(self.result, model_grade_suggestions=(*self.result.model_grade_suggestions, {
+            'id': str(uuid4()), 'status': 'SUCCEEDED', 'model': 'deepseek-flash',
+            'prompt_version': 'eval-judge-v1', 'suggested_score': 0.5,
+            'rationale': '主要事实正确，但遗漏一项。', 'failure_code': None,
+            'created_at': self.now.isoformat(), 'prompt_tokens': 100, 'completion_tokens': 30,
+        }))
+        return self.result
 
     def _detail(self) -> EvaluationRunDetail:
         return EvaluationRunDetail(
@@ -221,6 +254,7 @@ async def test_evaluation_api_exposes_cases_run_snapshot_security_summary_and_ma
             f"/api/v1/eval-results/{service.result_id}",
             json={"reviewer_score": 0.0, "reviewer_note": "越权回答。"},
         )
+        suggested = await client.post(f"/api/v1/eval-results/{service.result_id}/model-grade")
 
     assert created.status_code == 201
     assert listed.json()["items"][0]["scope"] == "OUT_OF_SCOPE"
@@ -242,7 +276,28 @@ async def test_evaluation_api_exposes_cases_run_snapshot_security_summary_and_ma
     assert version_run.status_code == 201
     assert reviewed.status_code == 200
     assert reviewed.json()["reviewer_score"] == 0.0
-    assert service.reviewed == (0.0, "越权回答。")
+    assert suggested.status_code == 200
+    assert suggested.json()["model_grade_suggestions"][0]["suggested_score"] == 0.5
+    assert suggested.json()["reviewer_score"] == 0.0
+
+
+@pytest.mark.asyncio
+async def test_knowledge_impact_requires_authenticated_admin_and_returns_typed_report():
+    from types import SimpleNamespace
+
+    service = FakeEvaluationService()
+    app = create_app(rag_service=object(), evaluation_service_factory=lambda _: service)
+    user_id = uuid4()
+    app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(id=user_id)
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url='http://testserver'
+    ) as client:
+        response = await client.get(f'/api/v1/spaces/{service.space_id}/knowledge-impact')
+
+    assert response.status_code == 200
+    assert response.json()['stale_case_count'] == 0
+    assert service.impact_user_id == user_id
 
 
 @pytest.mark.asyncio

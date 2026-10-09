@@ -44,7 +44,9 @@ def test_alembic_has_one_linear_schema_head_and_preserves_initial_revision() -> 
     config = Config(str(PROJECT_ROOT / "alembic.ini"))
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_current_head() == "20261009_0025"
+    assert script.get_current_head() == "20261009_0027"
+    assert script.get_revision("20261009_0027").down_revision == "20261009_0026"
+    assert script.get_revision("20261009_0026").down_revision == "20261009_0025"
     assert script.get_revision("20261009_0025").down_revision == "20261009_0024"
     revision = script.get_revision("20260911_0001")
     assert revision is not None
@@ -132,6 +134,38 @@ def test_feedback_regression_migration_adds_unique_source_link_with_safe_delete(
     assert "source_feedback_id" in migration
     assert 'ondelete="SET NULL"' in migration
     assert "uq_eval_cases_source_feedback_id" in migration
+
+
+def test_public_answer_migration_preserves_legacy_mode_and_withdraws_stale_source_versions():
+    from io import StringIO
+    from alembic import command
+
+    output = StringIO()
+    config = Config(str(PROJECT_ROOT / 'alembic.ini'), output_buffer=output)
+    command.upgrade(config, '20261009_0025:head', sql=True)
+    sql = output.getvalue()
+
+    assert "ADD COLUMN content_mode VARCHAR(32) DEFAULT 'DOCUMENTS' NOT NULL" in sql
+    assert 'CREATE TABLE public_answers' in sql
+    assert 'CREATE TABLE public_answer_versions' in sql
+    assert 'CREATE TABLE public_answer_sources' in sql
+    assert 'v2_withdraw_public_answers_on_source_change' in sql
+    assert "withdrawal_reason = 'SOURCE_VERSION_CHANGED'" in sql
+    assert "document_version_id IS DISTINCT FROM NEW.active_version_id" in sql
+
+
+def test_model_grade_suggestions_migration_preserves_existing_human_review_fields():
+    from io import StringIO
+    from alembic import command
+
+    output = StringIO()
+    config = Config(str(PROJECT_ROOT / 'alembic.ini'), output_buffer=output)
+    command.upgrade(config, '20261009_0026:head', sql=True)
+    sql = output.getvalue()
+
+    assert "ADD COLUMN model_grade_suggestions JSONB DEFAULT '[]'::jsonb NOT NULL" in sql
+    assert 'DROP COLUMN reviewer_score' not in sql
+    assert 'DROP COLUMN reviewer_note' not in sql
 
 
 def test_knowledge_tags_migration_creates_assignment_table() -> None:

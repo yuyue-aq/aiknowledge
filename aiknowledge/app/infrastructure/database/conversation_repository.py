@@ -19,6 +19,7 @@ from app.domain.conversations import (
     RetrievedChunk,
 )
 from app.domain.documents import DocumentStatus
+from app.domain.public_answers import PublicContentMode
 from app.domain.retrieval import RetrievalMetadataFilter
 from app.domain.spaces import PublicRetrievalScope, SpaceVisibility, ShareLinkStatus
 from app.infrastructure.database.models import (
@@ -32,6 +33,8 @@ from app.infrastructure.database.models import (
     RagRunRecord,
     SpaceMembershipRecord,
     ShareLinkRecord,
+    PublicAnswerVersionRecord,
+    PublicAnswerSourceRecord,
     TagRecord,
     DocumentVersionRecord,
     document_tags,
@@ -137,6 +140,7 @@ class SqlAlchemyConversationRepository:
                     id=citation.id,
                     message_id=citation.message_id,
                     chunk_id=citation.chunk_id,
+                    public_answer_version_id=citation.public_answer_version_id,
                     document_name=citation.document_name,
                     quoted_text=citation.quoted_text,
                     page_number=citation.page_number,
@@ -180,9 +184,13 @@ class SqlAlchemyConversationRepository:
     async def list_citations(self, message_ids: Sequence[UUID]) -> list[CitationSnapshot]:
         if not message_ids:
             return []
-        available = exists(self._base_retrieval_statement(None).where(ChunkRecord.id == CitationRecord.chunk_id).order_by(None))
+        available_document = exists(self._base_retrieval_statement(None).where(ChunkRecord.id == CitationRecord.chunk_id).order_by(None))
+        available_public_answer = exists(select(PublicAnswerVersionRecord.id).where(
+            PublicAnswerVersionRecord.id == CitationRecord.public_answer_version_id,
+            PublicAnswerVersionRecord.status == 'PUBLISHED',
+        ))
         records = await self._session.execute(
-            select(CitationRecord, available.label('source_available'))
+            select(CitationRecord, or_(available_document, available_public_answer).label('source_available'))
             .where(CitationRecord.message_id.in_(message_ids))
             .order_by(CitationRecord.ordinal, CitationRecord.id)
         )
@@ -227,6 +235,12 @@ class SqlAlchemyConversationRepository:
         limit: int,
         metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> list[RetrievedChunk]:
+        if scope.content_mode is PublicContentMode.PUBLISHED_ANSWERS:
+            statement = self._public_answer_statement(
+                scope=scope, embedding=embedding, metadata_filter=metadata_filter
+            )
+            result = await self._session.execute(statement.limit(limit))
+            return self._map_retrieval_rows(result.all())
         # An inner category join intentionally excludes unclassified data.
         # The remaining predicates execute in the same SQL statement as the
         # vector ordering; forbidden rows never become model context.
@@ -246,8 +260,30 @@ class SqlAlchemyConversationRepository:
         result = await self._session.execute(statement.limit(limit))
         return self._map_retrieval_rows(result.all())
 
+    async def list_public_faq_questions(
+        self, *, scope: PublicRetrievalScope, limit: int = 6
+    ) -> list[str]:
+        if scope.content_mode is not PublicContentMode.PUBLISHED_ANSWERS or limit <= 0:
+            return []
+        bounded_limit = min(limit, 6)
+        statement = self._public_answer_statement(scope=scope, embedding=None).with_only_columns(
+            PublicAnswerVersionRecord.question.label('question'), maintain_column_froms=True
+        ).order_by(None).order_by(
+            PublicAnswerVersionRecord.published_at.desc(), PublicAnswerVersionRecord.id
+        ).limit(bounded_limit)
+        rows = (await self._session.execute(statement)).all()
+        return [row.question for row in rows]
+
     async def keyword_corpus(self,*,space_id: UUID,public_scope: PublicRetrievalScope | None,limit: int,
         metadata_filter: RetrievalMetadataFilter | None = None):
+        if public_scope is not None and public_scope.content_mode is PublicContentMode.PUBLISHED_ANSWERS:
+            if public_scope.space_id != space_id:
+                return []
+            statement = self._public_answer_statement(
+                scope=public_scope, embedding=None, metadata_filter=metadata_filter
+            ).order_by(PublicAnswerVersionRecord.id)
+            result = await self._session.execute(statement.limit(limit))
+            return self._map_retrieval_rows(result.all())
         statement=self._base_retrieval_statement(None).where(ChunkRecord.space_id==space_id).order_by(None).order_by(ChunkRecord.id)
         if public_scope is not None:
             if public_scope.space_id!=space_id:return []
@@ -320,6 +356,7 @@ class SqlAlchemyConversationRepository:
                 statement = statement.where(exists(select(ShareLinkRecord.id).where(
                     ShareLinkRecord.id == public_scope.share_link_id, ShareLinkRecord.space_id == space_id,
                     ShareLinkRecord.status == ShareLinkStatus.ACTIVE,
+                    ShareLinkRecord.content_mode == public_scope.content_mode.value,
                     or_(ShareLinkRecord.expires_at.is_(None), ShareLinkRecord.expires_at > func.clock_timestamp()),
                 )))
             categories = select(CategoryRecord.id).where(CategoryRecord.space_id == space_id,
@@ -341,6 +378,11 @@ class SqlAlchemyConversationRepository:
         chunk_ids: tuple[UUID, ...], metadata_filter: RetrievalMetadataFilter | None = None) -> bool:
         if not chunk_ids:
             return True
+        if public_scope is not None and public_scope.content_mode is PublicContentMode.PUBLISHED_ANSWERS:
+            result = await self._session.execute(self._public_answer_statement(
+                scope=public_scope, embedding=None, metadata_filter=metadata_filter,
+            ).where(PublicAnswerVersionRecord.id.in_(chunk_ids)).order_by(None))
+            return {row.id for row in result.all()} == set(chunk_ids)
         statement = self._base_retrieval_statement(None).where(ChunkRecord.space_id == space_id, ChunkRecord.id.in_(chunk_ids)).order_by(None)
         if public_scope is not None:
             statement = statement.join(CategoryRecord, CategoryRecord.id == ChunkRecord.category_id).where(
@@ -349,6 +391,76 @@ class SqlAlchemyConversationRepository:
         statement = self._apply_metadata_filter(statement, metadata_filter or RetrievalMetadataFilter())
         rows = (await self._session.execute(statement)).all()
         return {row.id for row in rows} == set(chunk_ids)
+
+    @staticmethod
+    def _public_answer_statement(*, scope, embedding, metadata_filter=None):
+        """Build guest-safe retrieval rows from immutable published snapshots."""
+        metadata_filter = metadata_filter or RetrievalMetadataFilter()
+        allowed_category_ids = set(scope.category_ids)
+        if metadata_filter.category_ids:
+            allowed_category_ids &= set(metadata_filter.category_ids)
+        distance = (
+            PublicAnswerVersionRecord.embedding.cosine_distance(embedding)
+            if embedding is not None else literal(1.0)
+        ).label('distance')
+        valid_source_count = (
+            select(func.count(PublicAnswerSourceRecord.document_id))
+            .select_from(PublicAnswerSourceRecord)
+            .join(DocumentRecord, DocumentRecord.id == PublicAnswerSourceRecord.document_id)
+            .where(
+                PublicAnswerSourceRecord.answer_version_id == PublicAnswerVersionRecord.id,
+                PublicAnswerSourceRecord.document_version_id == DocumentRecord.active_version_id,
+                DocumentRecord.status == DocumentStatus.READY,
+                DocumentRecord.is_enabled.is_(True),
+                DocumentRecord.deleted_at.is_(None),
+                or_(DocumentRecord.effective_at.is_(None), DocumentRecord.effective_at <= func.clock_timestamp()),
+                or_(DocumentRecord.expires_at.is_(None), DocumentRecord.expires_at > func.clock_timestamp()),
+            )
+            .correlate(PublicAnswerVersionRecord)
+            .scalar_subquery()
+        )
+        content = (
+            literal('问题：') + PublicAnswerVersionRecord.question
+            + literal('\n答案：') + PublicAnswerVersionRecord.answer
+        )
+        return (
+            select(
+                PublicAnswerVersionRecord.id.label('id'),
+                PublicAnswerVersionRecord.answer_id.label('document_id'),
+                PublicAnswerVersionRecord.question.label('document_name'),
+                content.label('content'),
+                literal(None).label('page_number'),
+                PublicAnswerVersionRecord.version_number.label('ordinal'),
+                PublicAnswerVersionRecord.id.label('document_version_id'),
+                literal(None).label('source_block_id'),
+                literal(None).label('char_start'),
+                literal(None).label('char_end'),
+                PublicAnswerVersionRecord.content_hash.label('content_hash'),
+                literal(None).label('token_count'),
+                literal(None).label('heading_path'),
+                literal(None).label('page_prefix'),
+                distance,
+                PublicAnswerVersionRecord.id.label('public_answer_version_id'),
+                PublicAnswerVersionRecord.question.label('public_answer_title'),
+                PublicAnswerVersionRecord.answer.label('public_answer_text'),
+                literal('PUBLISHED_ANSWER').label('source_type'),
+            )
+            .select_from(PublicAnswerVersionRecord)
+            .join(CategoryRecord, CategoryRecord.id == PublicAnswerVersionRecord.category_id)
+            .join(KnowledgeSpaceRecord, KnowledgeSpaceRecord.id == PublicAnswerVersionRecord.space_id)
+            .where(
+                PublicAnswerVersionRecord.space_id == scope.space_id,
+                PublicAnswerVersionRecord.category_id.in_(tuple(allowed_category_ids)),
+                PublicAnswerVersionRecord.status == 'PUBLISHED',
+                PublicAnswerVersionRecord.source_count == valid_source_count,
+                CategoryRecord.space_id == scope.space_id,
+                CategoryRecord.is_open.is_(True),
+                CategoryRecord.deleted_at.is_(None),
+                KnowledgeSpaceRecord.visibility == SpaceVisibility.PUBLIC,
+                KnowledgeSpaceRecord.deleted_at.is_(None),
+            )
+            .order_by(distance, PublicAnswerVersionRecord.id)
+        )
 
     @staticmethod
     def _apply_metadata_filter(statement, metadata_filter: RetrievalMetadataFilter):
@@ -420,6 +532,10 @@ class SqlAlchemyConversationRepository:
                 content_hash=getattr(row, 'content_hash', None),
                 token_count=getattr(row, 'token_count', None),
                 heading_path=tuple(getattr(row, 'heading_path', None) or page_heading(getattr(row, 'page_prefix', None))),
+                source_type=getattr(row, 'source_type', 'DOCUMENT'),
+                public_answer_version_id=getattr(row, 'public_answer_version_id', None),
+                public_answer_title=getattr(row, 'public_answer_title', None),
+                public_answer_text=getattr(row, 'public_answer_text', None),
             )
             for row in rows
         ]
@@ -461,4 +577,5 @@ class SqlAlchemyConversationRepository:
             page_number=record.page_number,
             ordinal=record.ordinal,
             score=record.score,
+            public_answer_version_id=record.public_answer_version_id,
         )

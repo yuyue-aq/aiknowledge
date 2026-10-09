@@ -27,6 +27,7 @@ from app.domain.spaces import (
     SpaceKind,
     SpaceVisibility,
 )
+from app.domain.public_answers import PublicContentMode
 from app.domain.users import SpaceMembership, SpaceRole
 from app.services.auth import PasswordService
 
@@ -298,6 +299,7 @@ class SpaceService:
         password: str | None = None,
         visitor_question_limit: int | None = None,
         allowed_origins: Sequence[str] | None = None,
+        content_mode: PublicContentMode = PublicContentMode.DOCUMENTS,
     ) -> CreatedShareLink:
         space = await self._require_space(
             space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.OWNER
@@ -339,6 +341,7 @@ class SpaceService:
             password_hash=self._passwords.hash(password) if password else None,
             visitor_question_limit=visitor_question_limit,
             allowed_origins=normalized_origins,
+            content_mode=content_mode,
         )
         await self._repository.add_share_link(link)
         return CreatedShareLink(link=link, token=raw_token)
@@ -411,6 +414,7 @@ class SpaceService:
             category_ids=allowed,
             visitor_question_limit=link.visitor_question_limit,
             allowed_origins=link.allowed_origins,
+            content_mode=link.content_mode,
         )
 
     async def _require_space(
