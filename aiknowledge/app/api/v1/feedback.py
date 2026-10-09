@@ -80,6 +80,8 @@ class FeedbackRequest(BaseModel):
 class FeedbackResponse(BaseModel):
     question: str | None = None
     original_answer: str | None = None
+    eval_case_id: UUID | None = None
+    source_category_ids: list[UUID] = Field(default_factory=list)
     id: UUID
     message_id: UUID
     rating: FeedbackRating
@@ -112,6 +114,8 @@ class FeedbackResponse(BaseModel):
             pii_status=feedback.pii_status,
             question=feedback.question,
             original_answer=feedback.original_answer,
+            eval_case_id=feedback.eval_case_id,
+            source_category_ids=list(feedback.source_category_ids),
         )
 
 

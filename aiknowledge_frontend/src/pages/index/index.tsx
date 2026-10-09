@@ -1961,7 +1961,11 @@ function FeedbackView({
                 <View className='feedback-review-editor'>
                   <Text className='section-title'>原回答</Text><Text>{item.original_answer || "历史回答未记录"}</Text>
                   <Text className='section-title'>反馈说明</Text><Text>{item.comment || "未填写说明"}</Text>
-                  <View className='feedback-review-actions'><Button className='outline-button compact' onClick={onRepair}>补充资料</Button><Button className='outline-button compact' disabled={!item.question} onClick={() => onRetest(item)}>加入复测题集</Button></View>
+                  <View className='feedback-review-actions'><Button className='outline-button compact' onClick={onRepair}>补充资料</Button>
+                    {item.eval_case_id ? <Button className='outline-button compact' onClick={() => onRetest(item)}>查看回归题</Button> :
+                      <Button className='outline-button compact' disabled={!item.question || item.review_status !== 'FIXED' || !item.corrected_answer}
+                        onClick={() => onRetest(item)}>{item.review_status === 'FIXED' && item.corrected_answer ? '加入回归题集' : '标记修正后可加入'}</Button>}
+                  </View>
                   <textarea
                     data-feedback-answer
                     className='text-input resize-none'
@@ -2393,7 +2397,7 @@ export default function Index() {
   const [handoffQuestion, setHandoffQuestion] = useState("");
   const [handoffStrategy,setHandoffStrategy]=useState<'dense' | 'hybrid' | 'hybrid_rerank'>('dense');
   const [handoffMetadataFilter, setHandoffMetadataFilter] = useState<RetrievalMetadataFilter>(emptyRetrievalMetadataFilter)
-  const [evalDraft, setEvalDraft] = useState<{ question: string; answer: string } | null>(null);
+  const [evalDraft, setEvalDraft] = useState<{ question: string; answer: string; feedbackId: string; caseId?: string; scope: 'OWNER' | 'PUBLIC'; categoryIds: string[] } | null>(null);
   const [feedbackDraft, setFeedbackDraft] = useState<{ messageId: string; rating: FeedbackRating } | null>(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
   const [spaces, setSpaces] = useState<Space[]>([]);
@@ -3541,7 +3545,8 @@ export default function Index() {
             loading={loadingFeedback}
             onRetry={() => void loadFeedbackData()}
             onRepair={() => { setSelectedDocumentId(null); setActivePage("documents"); }}
-            onRetest={(item) => { setEvalDraft({ question: item.question || "", answer: item.corrected_answer || "" }); setActivePage("eval"); }}
+            onRetest={(item) => { setEvalDraft({ question: item.question || "", answer: item.corrected_answer || "", feedbackId: item.id,
+              caseId: item.eval_case_id || undefined, scope: item.is_guest ? 'PUBLIC' : 'OWNER', categoryIds: item.is_guest ? item.source_category_ids || [] : [] }); setActivePage("eval"); }}
             onReview={async (item, input) => {
               try {
                 const updated = await reviewFeedback(item.id, input);
@@ -3556,7 +3561,8 @@ export default function Index() {
         {activePage === "eval" && (
           <EvaluationView key={currentSpace.id}
             spaceId={currentSpace.id} categories={categories} tags={tags}
-            initialQuestion={evalDraft?.question} initialAnswer={evalDraft?.answer}
+            initialQuestion={evalDraft?.caseId ? undefined : evalDraft?.question} initialAnswer={evalDraft?.caseId ? undefined : evalDraft?.answer}
+            initialCaseId={evalDraft?.caseId} initialFeedbackId={evalDraft?.caseId ? undefined : evalDraft?.feedbackId} initialScope={evalDraft?.scope} initialCategoryIds={evalDraft?.categoryIds}
             onSeedConsumed={() => setEvalDraft(null)}
             notify={(message) => setToast({ tone: "success", message })}
           />

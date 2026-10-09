@@ -10,6 +10,7 @@ import asyncio
 from app.domain.conversations import (
     EvalAccessDeniedError,
     EvalCase,
+    EvalFeedbackAlreadyLinkedError,
     EvalCaseInUseError,
     EvalCaseNotFoundError,
     EvalResult,
@@ -18,6 +19,8 @@ from app.domain.conversations import (
     EvalRunNotFoundError,
     EvalSetVersion,
     EvalVersionNotFoundError,
+    FeedbackRegressionSource,
+    FeedbackReviewStatus,
     EvalRunStatus,
     EvalScope,
     EvaluationRunComparison,
@@ -49,6 +52,8 @@ class EvaluationRepository(Protocol):
     async def get_space_role(self, *, space_id: UUID, user_id: UUID) -> SpaceRole | None: ...
 
     async def add_case(self, case: EvalCase) -> None: ...
+
+    async def get_feedback_regression_source(self, feedback_id: UUID) -> FeedbackRegressionSource | None: ...
 
     async def list_cases(self, space_id: UUID) -> list[EvalCase]: ...
 
@@ -145,6 +150,58 @@ class EvaluationService:
             evidence_refs=tuple(evidence_refs),
         )
         await self._validate_labels(case)
+        await self._repository.add_case(case)
+        await self._repository.commit()
+        return case
+
+    async def create_case_from_feedback(
+        self,
+        *,
+        space_id: UUID,
+        feedback_id: UUID,
+        source_feedback_confirmed: bool,
+        expected_answer: str | None,
+        scope: EvalScope,
+        category_ids: Sequence[UUID],
+        answerable: bool,
+        expected_behavior: str,
+        evidence_refs: Sequence[EvidenceRef] = (),
+        owner_user_id: UUID | None = None,
+    ) -> EvalCase:
+        await self._require_owner_space(
+            space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.EDITOR
+        )
+        source_reader = getattr(self._repository, "get_feedback_regression_source", None)
+        if source_reader is None:
+            raise RuntimeError("当前评测存储不支持反馈来源关联。")
+        source = await source_reader(feedback_id)
+        if source is None or source.space_id != space_id:
+            raise EvalCaseNotFoundError("反馈记录不存在。")
+        if source.linked_eval_case_id is not None:
+            raise EvalFeedbackAlreadyLinkedError("这条反馈已经加入回归题集。")
+        if source.review_status is not FeedbackReviewStatus.FIXED or not source.corrected_answer:
+            raise ValueError("请先将反馈标记为已修正并填写标准答案。")
+        if not source_feedback_confirmed:
+            raise ValueError("请先人工确认已核对原始问题、标准答案、范围和证据。")
+
+        normalized_categories = self._validate_scope_categories(scope, category_ids)
+        normalized_answer = self._normalize_optional(expected_answer, maximum=5_000)
+
+        case = EvalCase(
+            id=self._id_factory(),
+            space_id=space_id,
+            question=self._normalize_required(source.question, field="测试问题", maximum=2_000),
+            expected_answer=normalized_answer,
+            expected_document_ids=tuple(dict.fromkeys(ref.document_id for ref in evidence_refs)),
+            scope=scope,
+            category_ids=normalized_categories,
+            created_at=self._now(),
+            answerable=answerable,
+            expected_behavior=expected_behavior,
+            evidence_refs=tuple(evidence_refs),
+            source_feedback_id=feedback_id,
+        )
+        await self._validate_labels(case, feedback_source=source)
         await self._repository.add_case(case)
         await self._repository.commit()
         return case
@@ -613,7 +670,9 @@ class EvaluationService:
             **extra,
         )
 
-    async def _validate_labels(self, case: EvalCase):
+    async def _validate_labels(
+        self, case: EvalCase, *, feedback_source: FeedbackRegressionSource | None = None
+    ):
         if case.answerable is not None and not isinstance(case.answerable, bool):
             raise ValueError('可回答性必须为布尔值。')
         if case.expected_behavior is not None and case.expected_behavior not in {'ANSWERED', 'INSUFFICIENT_EVIDENCE', 'OUT_OF_SCOPE', 'CONFLICT'}:
@@ -622,6 +681,25 @@ class EvaluationService:
             raise ValueError('不可回答的题目不能标为应回答。')
         if len(case.evidence_refs) > 100 or any(not isinstance(ref, EvidenceRef) for ref in case.evidence_refs):
             raise ValueError('证据标注无效。')
+        if case.source_feedback_id is not None:
+            source = feedback_source or await self._repository.get_feedback_regression_source(case.source_feedback_id)
+            if source is None or source.space_id != case.space_id:
+                raise EvalCaseNotFoundError('反馈来源不存在，请刷新题集后重试。')
+            if case.question != source.question.strip():
+                raise ValueError('反馈回归题必须保留原始问题。')
+            if source.is_guest:
+                if case.scope not in {EvalScope.PUBLIC, EvalScope.OUT_OF_SCOPE}:
+                    raise ValueError('测试范围必须保持在访客反馈的公开范围内。')
+                if not source.category_ids or not set(case.category_ids).issubset(source.category_ids):
+                    raise ValueError('测试分类超出该访客反馈范围（原分享分类）。')
+            elif case.scope is not EvalScope.OWNER:
+                raise ValueError('拥有者反馈只能加入内部范围题集。')
+            if case.answerable is None or case.expected_behavior is None:
+                raise ValueError('反馈回归题必须明确标注可回答性与预期行为。')
+            if case.answerable and not case.expected_answer:
+                raise ValueError('可回答的回归题必须填写人工核对的标准答案。')
+            if case.answerable and not case.evidence_refs:
+                raise ValueError('可回答的回归题至少需要一条人工确认的原文证据。')
         validator = getattr(self._repository, 'validate_case_evidence', None)
         if validator is not None and not await validator(space_id=case.space_id,
             expected_document_ids=case.expected_document_ids, evidence_refs=case.evidence_refs):
@@ -709,6 +787,7 @@ class EvaluationService:
             'answerable': case.answerable,
             'expected_behavior': case.expected_behavior,
             'evidence_refs': [ref.to_dict() for ref in case.evidence_refs],
+            'source_feedback_id': str(case.source_feedback_id) if case.source_feedback_id else None,
         }
 
     @classmethod
@@ -749,4 +828,9 @@ class EvaluationService:
             answerable=raw.get('answerable'),
             expected_behavior=raw.get('expected_behavior'),
             evidence_refs=tuple(EvidenceRef.from_dict(ref) for ref in raw.get('evidence_refs', [])),
+            source_feedback_id=(
+                UUID(str(raw['source_feedback_id']))
+                if raw.get('source_feedback_id') is not None
+                else None
+            ),
         )

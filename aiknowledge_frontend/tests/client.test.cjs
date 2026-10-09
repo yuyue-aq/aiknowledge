@@ -219,6 +219,28 @@ test('V2 retrieval sends question and K to authenticated diagnostics without gen
   assert.equal(calls.length, 1)
 })
 
+test('feedback regression conversion sends the source link and human confirmation to its dedicated endpoint', async () => {
+  const calls = []
+  const { client } = loadClient(async (request) => {
+    calls.push(request)
+    return { statusCode: 201, data: { id: 'case-1', source_feedback_id: 'feedback-1' } }
+  })
+  const input = {
+    source_feedback_confirmed: true,
+    expected_answer: '经人工核对的答案',
+    scope: 'PUBLIC',
+    category_ids: ['category-1'],
+    answerable: true,
+    expected_behavior: 'ANSWERED',
+    evidence_refs: [{ document_id: 'doc-1', source_block_id: 'block-1', char_start: 0, char_end: 2 }]
+  }
+  const result = await client.createEvalCaseFromFeedback('space-1', 'feedback-1', input)
+  assert.equal(result.source_feedback_id, 'feedback-1')
+  assert.equal(calls[0].url, '/api/v1/spaces/space-1/eval-cases/from-feedback/feedback-1')
+  assert.equal(calls[0].method, 'POST')
+  assert.deepEqual(calls[0].data, input)
+})
+
 test('keyword diagnostics transmit BM25 strategy without changing chat requests', async () => {
   const calls = []
   const { client } = loadClient(async (options) => { calls.push(options); return { statusCode: 201, data: { run_id: 'keyword' } } })

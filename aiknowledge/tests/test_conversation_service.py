@@ -274,6 +274,7 @@ async def test_owner_question_only_retrieves_current_space_and_persists_verifiab
     assert len(repository.rag_runs) == 1
     run = repository.rag_runs[0]
     assert run.message_id == answer.assistant.id
+    assert run.model_snapshot['user_message_id'] == str(answer.user.id)
     assert run.rewritten_question == "访客可以访问哪些资料？"
     assert run.retrieved_chunk_ids == (repository.candidate.id,)
     assert run.selected_chunk_ids == (repository.candidate.id,)

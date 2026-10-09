@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ApiRequestError, getAuthUserId, getEvalEvidence, type EvalEvidence, listEvalCases, listEvalRuns, listEvalVersions, createEvalCase, updateEvalCase, deleteEvalCase,
+  ApiRequestError, getAuthUserId, getEvalEvidence, type EvalEvidence, listEvalCases, listEvalRuns, listEvalVersions, createEvalCase, createEvalCaseFromFeedback, updateEvalCase, deleteEvalCase,
   createEvalVersion, enqueueEvaluation, enqueueEvalVersion, getEvalRun, retryEvalRun, reviewEvalResult,
   compareEvalRuns, searchKnowledge, listDocuments, getOwnerDocumentDetail, type KnowledgeDocument, type Category, type EvalCase, type EvalDetail, type EvalRun,
   type EvalRunComparison, type EvalSetVersion, type EvidenceRef, type RetrievalItem, type KnowledgeTag,
@@ -14,10 +14,11 @@ import './v2.scss'
 type Page = 'cases' | 'edit' | 'select' | 'run' | 'grade' | 'compare'
 type Draft = {
   id?: string; question: string; expected_answer: string; scope: EvalCase['scope']; category_ids: string[];
-  answerable: boolean; expected_behavior: string; expected_document_ids: string[]; evidence_refs: EvidenceRef[]
+  answerable: boolean; expected_behavior: string; expected_document_ids: string[]; evidence_refs: EvidenceRef[];
+  source_feedback_id?: string; source_feedback_confirmed?: boolean
 }
 const newDraft = (): Draft => ({ question: '', expected_answer: '', scope: 'OWNER', category_ids: [], answerable: true,
-  expected_behavior: 'ANSWERED', expected_document_ids: [], evidence_refs: [] })
+  expected_behavior: 'ANSWERED', expected_document_ids: [], evidence_refs: [], source_feedback_confirmed: false })
 const failureText = (failure: unknown) => failure instanceof ApiRequestError ? failure.message : '操作暂时无法完成，请稍后重试。'
 const answerLabel: Record<string, string> = { ANSWERED: '已回答', INSUFFICIENT_EVIDENCE: '资料不足', OUT_OF_SCOPE: '范围外问题', CONFLICT: '资料冲突', FAILED: '调用失败' }
 
@@ -30,18 +31,19 @@ function restoredDraft(spaceId: string): Draft | null {
   } catch { return null }
 }
 
-export function EvaluationView({ spaceId, categories, tags, notify, initialQuestion = '', initialAnswer = '', onSeedConsumed }: {
-  spaceId: string; categories: Category[]; tags: KnowledgeTag[]; notify: (message: string) => void; initialQuestion?: string; initialAnswer?: string; onSeedConsumed?: () => void
+export function EvaluationView({ spaceId, categories, tags, notify, initialQuestion = '', initialAnswer = '', initialCaseId, initialFeedbackId, initialScope = 'OWNER', initialCategoryIds = [], onSeedConsumed }: {
+  spaceId: string; categories: Category[]; tags: KnowledgeTag[]; notify: (message: string) => void; initialQuestion?: string; initialAnswer?: string;
+  initialCaseId?: string; initialFeedbackId?: string; initialScope?: EvalCase['scope']; initialCategoryIds?: string[]; onSeedConsumed?: () => void
 }) {
   const [metadataFilter, setMetadataFilter] = useState<RetrievalMetadataFilter>(emptyRetrievalMetadataFilter)
-  const [page, setPage] = useState<Page>(initialQuestion || restoredDraft(spaceId) ? 'edit' : 'cases')
+  const [page, setPage] = useState<Page>(initialCaseId ? 'cases' : initialQuestion || initialFeedbackId || restoredDraft(spaceId) ? 'edit' : 'cases')
   const seedConsumed = useRef(false)
   useEffect(() => {
-    if (initialQuestion && !seedConsumed.current) {
+    if ((initialQuestion || initialFeedbackId || initialCaseId) && !seedConsumed.current) {
       seedConsumed.current = true
       onSeedConsumed?.()
     }
-  }, [initialQuestion, onSeedConsumed])
+  }, [initialQuestion, initialFeedbackId, initialCaseId, onSeedConsumed])
   const [cases, setCases] = useState<EvalCase[]>([])
   const [runs, setRuns] = useState<EvalRun[]>([])
   const [versions, setVersions] = useState<EvalSetVersion[]>([])
@@ -49,7 +51,11 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
   const [strategy,setStrategy]=useState<'dense' | 'hybrid' | 'hybrid_rerank'>('dense')
   const [versionLabel, setVersionLabel] = useState('')
   const [query, setQuery] = useState('')
-  const [draft, setDraft] = useState<Draft>(() => initialQuestion ? { ...newDraft(), question: initialQuestion, expected_answer: initialAnswer } : restoredDraft(spaceId) || newDraft())
+  const [focusedCaseId, setFocusedCaseId] = useState(initialCaseId || '')
+  const [draft, setDraft] = useState<Draft>(() => initialQuestion || initialFeedbackId ? {
+    ...newDraft(), question: initialQuestion, expected_answer: initialAnswer, scope: initialScope,
+    category_ids: initialCategoryIds, source_feedback_id: initialFeedbackId,
+  } : restoredDraft(spaceId) || newDraft())
   const [busy, setBusy] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -68,7 +74,8 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
   const [evidenceDocumentId, setEvidenceDocumentId] = useState('')
   const [deleting, setDeleting] = useState<EvalCase | null>(null)
   const [leavingDraft, setLeavingDraft] = useState(false)
-  const initialDraft = useRef(JSON.stringify({ ...newDraft(), question: initialQuestion, expected_answer: initialAnswer }))
+  const initialDraft = useRef(JSON.stringify({ ...newDraft(), question: initialQuestion, expected_answer: initialAnswer,
+    scope: initialScope, category_ids: initialCategoryIds, source_feedback_id: initialFeedbackId }))
   const alive = useRef(true)
   const request = useRef<AbortController | null>(null)
   const mutating = useRef(false)
@@ -135,7 +142,8 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
     setError('')
     const nextDraft = item ? { id: item.id, question: item.question, expected_answer: item.expected_answer || '', scope: item.scope,
       category_ids: item.category_ids, answerable: item.answerable !== false, expected_behavior: item.expected_behavior || 'ANSWERED',
-      expected_document_ids: item.expected_document_ids, evidence_refs: item.evidence_refs || [] } : newDraft()
+      expected_document_ids: item.expected_document_ids, evidence_refs: item.evidence_refs || [], source_feedback_id: item.source_feedback_id || undefined,
+      source_feedback_confirmed: false } : newDraft()
     initialDraft.current = JSON.stringify(nextDraft)
     setDraft(nextDraft)
     setPage('edit')
@@ -147,12 +155,24 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
   const save = async () => {
     if (!draft.question.trim()) { setError('请输入测试问题。'); document.getElementById('case-question')?.focus(); return }
     if (draft.scope !== 'OWNER' && !draft.category_ids.length) { setError('请选择测试的公开分类。'); return }
+    if (draft.source_feedback_id && !draft.id && !draft.source_feedback_confirmed) { setError('请先确认已核对反馈问题、标准答案、范围和证据。'); document.getElementById('source-feedback-confirmed')?.focus(); return }
+    if (draft.source_feedback_id && draft.answerable && !draft.evidence_refs.length) { setError('反馈转回归题时，可回答问题至少要人工标记一条原文证据。'); return }
     await perform(async () => {
-      const input = { ...draft, question: draft.question.trim(), expected_answer: draft.expected_answer.trim() || null }
-      const saved = draft.id ? await updateEvalCase(draft.id, input) : await createEvalCase(spaceId, input)
+      const input = {
+        question: draft.question.trim(), expected_answer: draft.expected_answer.trim() || null,
+        expected_document_ids: draft.expected_document_ids, scope: draft.scope, category_ids: draft.category_ids,
+        answerable: draft.answerable, expected_behavior: draft.expected_behavior, evidence_refs: draft.evidence_refs,
+      }
+      const saved = draft.id ? await updateEvalCase(draft.id, input) : draft.source_feedback_id
+        ? await createEvalCaseFromFeedback(spaceId, draft.source_feedback_id, {
+          source_feedback_confirmed: true, expected_answer: input.expected_answer, scope: input.scope,
+          category_ids: input.category_ids, answerable: input.answerable, expected_behavior: input.expected_behavior,
+          evidence_refs: input.evidence_refs,
+        })
+        : await createEvalCase(spaceId, input)
       if (!alive.current) return
       setCases(items => [saved, ...items.filter(item => item.id !== saved.id)])
-      setPage('cases'); notify('测试题已保存。')
+      setPage('cases'); notify(draft.source_feedback_id ? draft.id ? '回归题已保存，可运行题集复测。' : '反馈已关联到回归题，完成题集运行后可复测。' : '测试题已保存。')
     })
   }
   const selectEvidence = async () => {
@@ -214,7 +234,8 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
         <V2Button kind='outline' disabled={busy || !(versionId ? versions.find(version => version.id === versionId)?.cases.length : cases.length)} onClick={() => void start()}>运行题集</V2Button>
         <V2Button kind='ghost' disabled={runs.length < 2} onClick={() => setPage('compare')}>基线与复测对比</V2Button></div>
       <RetrievalMetadataFilterControls value={metadataFilter} categories={categories} tags={tags} disabled={busy} onChange={setMetadataFilter} />
-      <div className='v2-row v2-between'><input data-v2-control aria-label='搜索测试问题' placeholder='搜索测试问题…' value={query} onChange={event => setQuery(event.target.value)} className='v2-search-input' />
+      {focusedCaseId && <V2Notice>{!loading && !cases.some(item => item.id === focusedCaseId) ? '关联回归题已不可用，请刷新反馈后重试。' : '当前显示来自反馈的关联回归题。'}<V2Button kind='ghost' onClick={() => setFocusedCaseId('')}>查看全部题目</V2Button></V2Notice>}
+      <div className='v2-row v2-between'><input data-v2-control aria-label='搜索测试问题' placeholder='搜索测试问题…' value={query} onChange={event => { setFocusedCaseId(''); setQuery(event.target.value) }} className='v2-search-input' />
         <form noValidate className='v2-row' onSubmit={event => { event.preventDefault(); if (versionLabel.trim()) void perform(async () => {
           const version = await createEvalVersion(spaceId, versionLabel.trim()); if (!alive.current) return
           setVersions(items => [version, ...items]); setVersionId(version.id); setVersionLabel(''); notify('题集版本已保存。')
@@ -223,7 +244,7 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
           <V2Button type='submit' kind='outline' disabled={busy || !versionLabel.trim() || !cases.length}>保存题集版本</V2Button></form></div>
       <V2Panel>{loading ? <p role='status'>正在加载题集…</p> : cases.length === 0 ? <div className='v2-empty'><h2>还没有测试题</h2><p>添加一个真实问题、标准答案和证据，开始检查资料质量。</p></div> :
         <div className='v2-table-wrap'><table className='v2-table'><thead><tr><th>问题</th><th>范围</th><th>预期行为</th><th>操作</th></tr></thead><tbody>
-          {cases.filter(item => item.question.includes(query)).map(item => <tr key={item.id}><td>{item.question}</td><td>{item.scope === 'OWNER' ? '拥有者' : '公开分类'}</td>
+          {cases.filter(item => focusedCaseId ? item.id === focusedCaseId : item.question.includes(query)).map(item => <tr key={item.id}><td>{item.question}{item.source_feedback_id && <p><small className='muted-copy'>来源反馈 · {item.source_feedback_id.slice(0, 8)}</small></p>}</td><td>{item.scope === 'OWNER' ? '拥有者' : '公开分类'}</td>
             <td>{item.answerable == null ? '待标注' : item.answerable ? '应回答' : '应拒答'}</td><td><div className='v2-row'><V2Button kind='ghost' onClick={() => edit(item)}>编辑</V2Button>
               <V2Button kind='ghost' onClick={() => setDeleting(item)}>删除</V2Button></div></td></tr>)}</tbody></table></div>}</V2Panel>
       {runs.length > 0 && <V2Panel><h2>最近运行</h2>{runs.map(run => <div key={run.id} className='v2-row v2-between'><span>{new Date(run.created_at).toLocaleString('zh-CN')} · {run.status === 'COMPLETED' ? '已完成' : run.status === 'FAILED' ? '失败' : '处理中'}</span>
@@ -233,18 +254,21 @@ export function EvaluationView({ spaceId, categories, tags, notify, initialQuest
     {page === 'edit' && <>
       <V2Heading title={draft.id ? '编辑测试题' : '添加测试题'} description='完善问题、标准答案与访问范围。' actions={<V2Button kind='outline' onClick={leaveEditor}>返回题集</V2Button>} />
       <V2Panel><form noValidate onSubmit={event => { event.preventDefault(); void save() }}>
-        <label htmlFor='case-question'>问题</label><textarea data-v2-control className='resize-none' id='case-question' maxLength={2000} value={draft.question} onChange={event => setDraft({ ...draft, question: event.target.value })} />
-        <div className='v2-two'><div><label htmlFor='case-scope'>测试范围</label><select data-v2-control id='case-scope' value={draft.scope} onChange={event => {
+        {draft.source_feedback_id && <V2Notice>来源反馈 {draft.source_feedback_id.slice(0, 8)} · 保留原始问题与来源访问范围。</V2Notice>}
+        <label htmlFor='case-question'>问题</label><textarea data-v2-control className='resize-none' id='case-question' maxLength={2000} value={draft.question} readOnly={Boolean(draft.source_feedback_id)} onChange={event => setDraft({ ...draft, question: event.target.value })} />
+        <div className='v2-two'><div><label htmlFor='case-scope'>测试范围</label><select data-v2-control id='case-scope' disabled={Boolean(draft.source_feedback_id)} value={draft.scope} onChange={event => {
           const scope = event.target.value as EvalCase['scope']; setDraft({ ...draft, scope, category_ids: scope === 'OWNER' ? [] : categories.filter(item => item.is_open).slice(0, 1).map(item => item.id) })
         }}
         ><option value='OWNER'>拥有者</option><option value='PUBLIC'>公开分类</option><option value='OUT_OF_SCOPE'>公开分类 · 范围外问题</option></select></div>
           <div><label htmlFor='case-behavior'>预期行为</label><select data-v2-control id='case-behavior' value={draft.expected_behavior} onChange={event => setDraft({ ...draft, expected_behavior: event.target.value, answerable: event.target.value === 'ANSWERED' })}>
             <option value='ANSWERED'>应回答</option><option value='INSUFFICIENT_EVIDENCE'>资料不足，应拒答</option><option value='OUT_OF_SCOPE'>范围外，应拒答</option><option value='CONFLICT'>指出资料冲突</option></select></div></div>
-        {draft.scope !== 'OWNER' && <><label htmlFor='case-category'>公开分类</label><select data-v2-control id='case-category' value={draft.category_ids[0] || ''} onChange={event => setDraft({ ...draft, category_ids: event.target.value ? [event.target.value] : [] })}>
+        {draft.scope !== 'OWNER' && !draft.source_feedback_id && <><label htmlFor='case-category'>公开分类</label><select data-v2-control id='case-category' value={draft.category_ids[0] || ''} onChange={event => setDraft({ ...draft, category_ids: event.target.value ? [event.target.value] : [] })}>
           <option value=''>请选择分类</option>{categories.map(category => <option key={category.id} value={category.id}>{category.name}{category.is_open ? '' : ' · 未开放'}</option>)}</select></>}
+        {draft.source_feedback_id && draft.scope !== 'OWNER' && <p><strong>来源公开分类：</strong>{draft.category_ids.map(id => categories.find(category => category.id === id)?.name || id).join('、') || '分类范围已变化，请返回刷新反馈后重试。'}</p>}
         <label htmlFor='case-answer'>标准答案与评分要点</label><textarea data-v2-control className='resize-none' id='case-answer' maxLength={5000} value={draft.expected_answer} onChange={event => setDraft({ ...draft, expected_answer: event.target.value })} />
         <div className='v2-row v2-between'><strong>相关证据 · {draft.evidence_refs.length} 条</strong><V2Button kind='outline' disabled={busy} onClick={() => void selectEvidence()}>选择证据</V2Button></div>
         {draft.evidence_refs.map(ref => <p key={`${ref.document_version_id}-${ref.source_block_id}-${ref.char_start}`}><small>{ref.source_block_id} · 区间 {ref.char_start}—{ref.char_end}</small></p>)}
+        {draft.source_feedback_id && !draft.id && <label className='v2-row'><input data-v2-control id='source-feedback-confirmed' type='checkbox' checked={Boolean(draft.source_feedback_confirmed)} onChange={event => setDraft({ ...draft, source_feedback_confirmed: event.currentTarget.checked })} />我已人工核对原始问题、标准答案、访问范围和所选证据，并确认用于本空间回归评测。</label>}
         <hr /><div className='v2-row'><V2Button type='submit' disabled={busy}>{busy ? '正在保存…' : '保存测试题'}</V2Button><V2Button kind='outline' onClick={leaveEditor}>取消</V2Button></div>
       </form></V2Panel>
     </>}

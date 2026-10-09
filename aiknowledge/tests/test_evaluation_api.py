@@ -15,6 +15,23 @@ def test_eval_case_api_accepts_typed_evidence_and_rejects_invalid_intervals():
         EvalCaseCreateRequest(question='问题', evidence_refs=[{**ref, 'char_end': 0}])
 
 
+def test_feedback_regression_api_requires_explicit_human_confirmation():
+    import pytest
+    from pydantic import ValidationError
+    from app.api.v1.evaluations import EvalCaseFromFeedbackRequest
+
+    payload = EvalCaseFromFeedbackRequest(
+        source_feedback_confirmed=True,
+        expected_answer='人工核对的标准答案',
+        scope='OWNER',
+        answerable=True,
+        expected_behavior='ANSWERED',
+    )
+    assert payload.source_feedback_confirmed is True
+    with pytest.raises(ValidationError):
+        EvalCaseFromFeedbackRequest(expected_answer='答案', scope='OWNER')
+
+
 def test_summary_keeps_unlabeled_unknown_and_reports_manual_scoring_coverage():
     from dataclasses import replace
     from app.api.v1.evaluations import _summary
@@ -91,6 +108,7 @@ class FakeEvaluationService:
         )
         self.reviewed = None
         self.run_kwargs = None
+        self.feedback_case_kwargs = None
         self.version = EvalSetVersion(
             id=uuid4(),
             space_id=self.space_id,
@@ -102,6 +120,10 @@ class FakeEvaluationService:
 
     async def create_case(self, **_kwargs: object) -> EvalCase:
         return self.case
+
+    async def create_case_from_feedback(self, **kwargs: object) -> EvalCase:
+        self.feedback_case_kwargs = kwargs
+        return replace(self.case, source_feedback_id=kwargs['feedback_id'])
 
     async def list_cases(self, _space_id: UUID) -> list[EvalCase]:
         return [self.case]
@@ -221,3 +243,38 @@ async def test_evaluation_api_exposes_cases_run_snapshot_security_summary_and_ma
     assert reviewed.status_code == 200
     assert reviewed.json()["reviewer_score"] == 0.0
     assert service.reviewed == (0.0, "越权回答。")
+
+
+@pytest.mark.asyncio
+async def test_evaluation_api_creates_feedback_regression_case_with_explicit_confirmation():
+    service = FakeEvaluationService()
+    app = create_app(rag_service=object(), evaluation_service_factory=lambda _: service)
+    feedback_id = uuid4()
+    evidence = {
+        "document_id": str(uuid4()),
+        "document_version_id": str(uuid4()),
+        "source_block_id": "block-1",
+        "char_start": 0,
+        "char_end": 3,
+        "text_hash": "a" * 64,
+        "required": True,
+    }
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://testserver"
+    ) as client:
+        created = await client.post(
+            f"/api/v1/spaces/{service.space_id}/eval-cases/from-feedback/{feedback_id}",
+            json={
+                "source_feedback_confirmed": True,
+                "expected_answer": "人工核对后的标准答案",
+                "scope": "OWNER",
+                "answerable": True,
+                "expected_behavior": "ANSWERED",
+                "evidence_refs": [evidence],
+            },
+        )
+
+    assert created.status_code == 201
+    assert created.json()["source_feedback_id"] == str(feedback_id)
+    assert service.feedback_case_kwargs["source_feedback_confirmed"] is True
+    assert len(service.feedback_case_kwargs["evidence_refs"]) == 1

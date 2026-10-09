@@ -11,6 +11,7 @@ from app.domain.conversations import (
     EvalRun,
     EvalRunStatus,
     EvalScope,
+    FeedbackReviewStatus,
 )
 from app.domain.rag import AnswerStatus
 from app.infrastructure.database.evaluation_repository import SqlAlchemyEvaluationRepository
@@ -31,6 +32,87 @@ async def test_repository_round_trips_v2_evidence_labels_and_execution_metrics()
         execution_snapshot={'retrieved_chunks': []}, retrieval_metrics={'document_hit_at_k': 0.}, failure_code='LLM_UNAVAILABLE')
     await repo.add_result(result)
     assert (await repo.get_result(result.id)) == result
+
+
+@pytest.mark.asyncio
+async def test_feedback_source_link_is_persisted_in_case_and_eval_set_snapshot():
+    from sqlalchemy.dialects import postgresql
+    from types import SimpleNamespace
+
+    session = FakeSession()
+    statements = []
+
+    async def execute(statement):
+        statements.append(statement)
+        return SimpleNamespace(scalar_one_or_none=lambda: case.id)
+
+    session.execute = execute
+    repo = SqlAlchemyEvaluationRepository(session)  # type: ignore[arg-type]
+    source_feedback_id = uuid4()
+    case = EvalCase(
+        id=uuid4(), space_id=uuid4(), question='原问题', expected_answer='答案',
+        expected_document_ids=(), scope=EvalScope.OWNER, category_ids=(),
+        created_at=datetime.now(UTC), source_feedback_id=source_feedback_id,
+    )
+
+    await repo.add_case(case)
+    snapshot = repo._case_to_dict(case)
+    restored = repo._case_from_dict(snapshot)
+    legacy = repo._case_from_dict({key: value for key, value in snapshot.items() if key != 'source_feedback_id'})
+
+    assert restored.source_feedback_id == source_feedback_id
+    assert legacy.source_feedback_id is None
+    sql = str(statements[0].compile(dialect=postgresql.dialect()))
+    assert 'ON CONFLICT ON CONSTRAINT uq_eval_cases_source_feedback_id DO NOTHING' in sql
+
+
+@pytest.mark.asyncio
+async def test_feedback_regression_source_preserves_question_scope_and_locks_source():
+    from types import SimpleNamespace
+
+    from sqlalchemy.dialects import postgresql
+
+    feedback_id = uuid4()
+    space_id = uuid4()
+    share_link_id = uuid4()
+    category_id = uuid4()
+    linked_case_id = uuid4()
+    statements = []
+    feedback = SimpleNamespace(
+        corrected_answer='Corrected answer',
+        is_guest=True,
+        review_status=FeedbackReviewStatus.FIXED,
+    )
+
+    async def execute(statement):
+        statements.append(statement)
+        return SimpleNamespace(one_or_none=lambda: (feedback, space_id, share_link_id, 'Original question?'))
+
+    async def scalars(statement):
+        statements.append(statement)
+        return SimpleNamespace(all=lambda: [category_id])
+
+    async def scalar(statement):
+        statements.append(statement)
+        return linked_case_id
+
+    session = SimpleNamespace(execute=execute, scalars=scalars, scalar=scalar)
+    repository = SqlAlchemyEvaluationRepository(session)  # type: ignore[arg-type]
+
+    source = await repository.get_feedback_regression_source(feedback_id)
+
+    assert source is not None
+    assert source.feedback_id == feedback_id
+    assert source.space_id == space_id
+    assert source.question == 'Original question?'
+    assert source.corrected_answer == 'Corrected answer'
+    assert source.review_status is FeedbackReviewStatus.FIXED
+    assert source.category_ids == (category_id,)
+    assert source.linked_eval_case_id == linked_case_id
+    sql = str(statements[0].compile(dialect=postgresql.dialect()))
+    assert 'FOR UPDATE OF feedback' in sql
+    assert 'model_snapshot' in sql
+    assert 'user_message_id' in statements[0].compile(dialect=postgresql.dialect()).params.values()
 
 
 class FakeSession:

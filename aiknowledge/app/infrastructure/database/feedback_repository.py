@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Sequence
 from dataclasses import replace
 from uuid import UUID
 
-from sqlalchemy import exists, or_, select
+from sqlalchemy import String, cast, exists, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import aliased
 
 from app.domain.conversations import (
     ConversationKind,
@@ -13,16 +13,53 @@ from app.domain.conversations import (
     FeedbackRating,
     FeedbackReviewStatus,
     MessageFeedbackContext,
+    MessageRole,
 )
 from app.infrastructure.database.models import (
+    EvalCaseRecord,
     FeedbackRecord,
     ConversationRecord,
     KnowledgeSpaceRecord,
     MessageRecord,
     RagRunRecord,
     SpaceMembershipRecord,
+    share_link_categories,
 )
 from app.domain.users import SpaceRole
+
+
+def original_feedback_question_expression():
+    """Prefer the persisted user/answer pair; support pre-link historical messages."""
+    paired_user = aliased(MessageRecord)
+    paired_question = (
+        select(paired_user.content)
+        .where(
+            cast(paired_user.id, String) == RagRunRecord.model_snapshot['user_message_id'].astext,
+            paired_user.conversation_id == MessageRecord.conversation_id,
+            paired_user.role == MessageRole.USER,
+        )
+        .limit(1)
+        .correlate(MessageRecord, RagRunRecord)
+        .scalar_subquery()
+    )
+    previous_user = aliased(MessageRecord)
+    previous_question = (
+        select(previous_user.content)
+        .where(
+            previous_user.conversation_id == MessageRecord.conversation_id,
+            previous_user.role == MessageRole.USER,
+            previous_user.created_at <= MessageRecord.created_at,
+        )
+        .order_by(previous_user.created_at.desc(), previous_user.id.desc())
+        .limit(1)
+        .correlate(MessageRecord)
+        .scalar_subquery()
+    )
+    return func.coalesce(
+        paired_question,
+        RagRunRecord.model_snapshot['query_diagnostics']['original_question'].astext,
+        previous_question,
+    )
 
 
 class SqlAlchemyFeedbackRepository:
@@ -128,13 +165,24 @@ class SqlAlchemyFeedbackRepository:
         rating: FeedbackRating | None = None,
         is_guest: bool | None = None,
     ) -> list[Feedback]:
+        original_question = original_feedback_question_expression()
         statement = (
-            select(FeedbackRecord, RagRunRecord.rewritten_question, MessageRecord.content)
+            select(
+                FeedbackRecord,
+                func.coalesce(original_question, RagRunRecord.rewritten_question),
+                MessageRecord.content,
+                EvalCaseRecord.id,
+                ConversationRecord.share_link_id,
+            )
             .join(MessageRecord, FeedbackRecord.message_id == MessageRecord.id)
             .outerjoin(RagRunRecord, RagRunRecord.message_id == MessageRecord.id)
             .join(
                 ConversationRecord,
                 MessageRecord.conversation_id == ConversationRecord.id,
+            )
+            .outerjoin(
+                EvalCaseRecord,
+                EvalCaseRecord.source_feedback_id == FeedbackRecord.id,
             )
             .where(ConversationRecord.space_id == space_id)
             .order_by(FeedbackRecord.created_at.desc())
@@ -146,21 +194,47 @@ class SqlAlchemyFeedbackRepository:
         if is_guest is not None:
             statement = statement.where(FeedbackRecord.is_guest == is_guest)
         records = await self._session.execute(statement)
-        return [replace(self._to_feedback(record, space_id=space_id), question=question, original_answer=answer)
-            for record, question, answer in records.all()]
+        rows = records.all()
+        categories_by_link = await self._category_ids_by_share_links(
+            {share_link_id for _, _, _, _, share_link_id in rows if share_link_id is not None}
+        )
+        return [
+            replace(
+                self._to_feedback(record, space_id=space_id),
+                question=question,
+                original_answer=answer,
+                eval_case_id=eval_case_id,
+                source_category_ids=categories_by_link.get(share_link_id, ()),
+            )
+            for record, question, answer, eval_case_id, share_link_id in rows
+        ]
 
     async def get_feedback(self, feedback_id: UUID) -> Feedback | None:
-        record = await self._session.get(FeedbackRecord, feedback_id)
-        if record is None:
-            return None
-        context = await self._session.scalar(
-            select(ConversationRecord.space_id)
-            .join(MessageRecord, MessageRecord.conversation_id == ConversationRecord.id)
-            .where(MessageRecord.id == record.message_id)
+        result = await self._session.execute(
+            select(
+                FeedbackRecord,
+                ConversationRecord.space_id,
+                EvalCaseRecord.id,
+                ConversationRecord.share_link_id,
+            )
+            .select_from(FeedbackRecord)
+            .join(MessageRecord, FeedbackRecord.message_id == MessageRecord.id)
+            .join(ConversationRecord, MessageRecord.conversation_id == ConversationRecord.id)
+            .outerjoin(EvalCaseRecord, EvalCaseRecord.source_feedback_id == FeedbackRecord.id)
+            .where(FeedbackRecord.id == feedback_id)
         )
-        if context is None:
+        row = result.one_or_none()
+        if row is None:
             return None
-        return self._to_feedback(record, space_id=context)
+        record, space_id, eval_case_id, share_link_id = row
+        categories_by_link = await self._category_ids_by_share_links(
+            {share_link_id} if share_link_id is not None else set()
+        )
+        return replace(
+            self._to_feedback(record, space_id=space_id),
+            eval_case_id=eval_case_id,
+            source_category_ids=categories_by_link.get(share_link_id, ()),
+        )
 
     async def update_feedback_review(self, feedback_id: UUID, **changes: object) -> Feedback | None:
         record = await self._session.get(FeedbackRecord, feedback_id, with_for_update=True)
@@ -193,3 +267,18 @@ class SqlAlchemyFeedbackRepository:
             data_usage_scope=record.data_usage_scope,
             pii_status=record.pii_status,
         )
+
+    async def _category_ids_by_share_links(
+        self, share_link_ids: set[UUID]
+    ) -> dict[UUID, tuple[UUID, ...]]:
+        if not share_link_ids:
+            return {}
+        result = await self._session.execute(
+            select(share_link_categories.c.share_link_id, share_link_categories.c.category_id)
+            .where(share_link_categories.c.share_link_id.in_(share_link_ids))
+            .order_by(share_link_categories.c.category_id)
+        )
+        grouped: dict[UUID, list[UUID]] = {}
+        for link_id, category_id in result.all():
+            grouped.setdefault(link_id, []).append(category_id)
+        return {link_id: tuple(category_ids) for link_id, category_ids in grouped.items()}

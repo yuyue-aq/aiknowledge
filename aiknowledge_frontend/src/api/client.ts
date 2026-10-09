@@ -196,6 +196,8 @@ export type FeedbackReason =
 export type Feedback = {
   question?: string | null
   original_answer?: string | null
+    eval_case_id?: string | null
+    source_category_ids?: string[]
   id: string
   message_id: string
   rating: FeedbackRating
@@ -286,6 +288,7 @@ export type EvalCase = {
   answerable?: boolean | null
   expected_behavior?: string | null
   evidence_refs?: EvidenceRef[]
+    source_feedback_id?: string | null
 }
 
 export type EvalSetVersion = {
@@ -1043,6 +1046,18 @@ export async function createEvalCase(spaceId: string, input: {
   evidence_refs?: EvidenceRef[]
 }): Promise<EvalCase> {
   return requestJson<EvalCase>(`/spaces/${spaceId}/eval-cases`, { method: 'POST', data: input })
+}
+
+export async function createEvalCaseFromFeedback(spaceId: string, feedbackId: string, input: {
+  source_feedback_confirmed: true
+  expected_answer?: string | null
+  scope: EvalCase['scope']
+  category_ids?: string[]
+  answerable: boolean
+  expected_behavior: string
+  evidence_refs?: EvidenceRef[]
+}): Promise<EvalCase> {
+  return requestJson<EvalCase>(`/spaces/${spaceId}/eval-cases/from-feedback/${feedbackId}`, { method: 'POST', data: input })
 }
 
 export async function updateEvalCase(caseId: string, input: Partial<{

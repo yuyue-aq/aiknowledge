@@ -80,8 +80,11 @@ async def test_owner_feedback_list_includes_saved_question_and_original_answer()
         review_status='PENDING', data_usage_scope='INTERNAL_ONLY', pii_status='UNKNOWN')
     async def execute(statement):
         assert 'rag_runs' in str(statement)
-        return SimpleNamespace(all=lambda: [(record, '试用多久？', '旧回答')])
+        assert 'eval_cases' in str(statement)
+        assert 'messages' in str(statement)
+        return SimpleNamespace(all=lambda: [(record, '用户原始问题？', '旧回答', uuid4(), None)])
     session.execute = execute
     result = await SqlAlchemyFeedbackRepository(session).list_feedback(uuid4())
-    assert result[0].question == '试用多久？'
+    assert result[0].question == '用户原始问题？'
     assert result[0].original_answer == '旧回答'
+    assert result[0].eval_case_id is not None

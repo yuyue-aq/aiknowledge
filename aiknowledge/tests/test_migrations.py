@@ -44,8 +44,8 @@ def test_alembic_has_one_linear_schema_head_and_preserves_initial_revision() -> 
     config = Config(str(PROJECT_ROOT / "alembic.ini"))
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_current_head() == "20261007_0023"
-    assert script.get_revision("20261007_0023").down_revision == "20261002_0022"
+    assert script.get_current_head() == "20261009_0025"
+    assert script.get_revision("20261009_0025").down_revision == "20261009_0024"
     revision = script.get_revision("20260911_0001")
     assert revision is not None
     assert revision.down_revision is None
@@ -123,6 +123,15 @@ def test_feedback_review_migration_adds_review_and_governance_fields() -> None:
     assert "corrected_answer" in migration
     assert "data_usage_scope" in migration
     assert "pii_status" in migration
+
+
+def test_feedback_regression_migration_adds_unique_source_link_with_safe_delete() -> None:
+    migration = (
+        PROJECT_ROOT / "migrations" / "versions" / "20261009_0025_feedback_eval_link.py"
+    ).read_text(encoding="utf-8")
+    assert "source_feedback_id" in migration
+    assert 'ondelete="SET NULL"' in migration
+    assert "uq_eval_cases_source_feedback_id" in migration
 
 
 def test_knowledge_tags_migration_creates_assignment_table() -> None:

@@ -7,14 +7,28 @@ from sqlalchemy import exists, or_, select, update, func, and_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.conversations import EvalCase, EvalResult, EvalRun, EvalSetVersion, EvalScope
+from app.domain.conversations import (
+    EvalCase,
+    EvalFeedbackAlreadyLinkedError,
+    EvalResult,
+    EvalRun,
+    EvalRunStatus,
+    EvalScope,
+    EvalSetVersion,
+    FeedbackRegressionSource,
+)
 from app.infrastructure.database.models import (
     EvalCaseRecord,
     EvalResultRecord,
     EvalRunRecord,
     EvalSetVersionRecord,
+    FeedbackRecord,
+    ConversationRecord,
     KnowledgeSpaceRecord,
+    MessageRecord,
+    RagRunRecord,
     SpaceMembershipRecord,
+    share_link_categories,
 )
 from app.domain.users import SpaceRole
 from app.domain.evaluation import EvidenceRef
@@ -22,8 +36,8 @@ from app.infrastructure.database.models import ChunkRecord, DocumentRecord
 from app.infrastructure.database.conversation_repository import SqlAlchemyConversationRepository
 from app.services.evaluation_metrics import evidence_coverage
 from app.services.evaluation_snapshot import knowledge_manifest
-from app.domain.conversations import EvalRunStatus
 from app.infrastructure.database.models import DocumentVersionRecord
+from app.infrastructure.database.feedback_repository import original_feedback_question_expression
 
 
 class SqlAlchemyEvaluationRepository:
@@ -78,22 +92,81 @@ class SqlAlchemyEvaluationRepository:
         return value is not None
 
     async def add_case(self, case: EvalCase) -> None:
-        self._session.add(
-            EvalCaseRecord(
-                id=case.id,
-                space_id=case.space_id,
-                question=case.question,
-                expected_answer=case.expected_answer,
-                expected_document_ids=[str(value) for value in case.expected_document_ids],
-                scope=case.scope,
-                category_ids=[str(value) for value in case.category_ids],
-                created_at=case.created_at,
-                answerable=case.answerable,
-                expected_behavior=case.expected_behavior,
-                evidence_refs=[ref.to_dict() for ref in case.evidence_refs],
-            )
+        values = {
+            "id": case.id,
+            "space_id": case.space_id,
+            "source_feedback_id": case.source_feedback_id,
+            "question": case.question,
+            "expected_answer": case.expected_answer,
+            "expected_document_ids": [str(value) for value in case.expected_document_ids],
+            "scope": case.scope,
+            "category_ids": [str(value) for value in case.category_ids],
+            "created_at": case.created_at,
+            "answerable": case.answerable,
+            "expected_behavior": case.expected_behavior,
+            "evidence_refs": [ref.to_dict() for ref in case.evidence_refs],
+        }
+        if case.source_feedback_id is None:
+            self._session.add(EvalCaseRecord(**values))
+            await self._session.flush()
+            return
+
+        statement = (
+            pg_insert(EvalCaseRecord)
+            .values(**values)
+            .on_conflict_do_nothing(constraint="uq_eval_cases_source_feedback_id")
+            .returning(EvalCaseRecord.id)
         )
-        await self._session.flush()
+        result = await self._session.execute(statement)
+        if result.scalar_one_or_none() is None:
+            raise EvalFeedbackAlreadyLinkedError("这条反馈已经加入回归题集。")
+
+    async def get_feedback_regression_source(
+        self, feedback_id: UUID
+    ) -> FeedbackRegressionSource | None:
+        original_question = original_feedback_question_expression()
+        result = await self._session.execute(
+            select(
+                FeedbackRecord,
+                ConversationRecord.space_id,
+                ConversationRecord.share_link_id,
+                original_question,
+            )
+            .select_from(FeedbackRecord)
+            .join(MessageRecord, FeedbackRecord.message_id == MessageRecord.id)
+            .outerjoin(RagRunRecord, RagRunRecord.message_id == MessageRecord.id)
+            .join(ConversationRecord, MessageRecord.conversation_id == ConversationRecord.id)
+            .where(FeedbackRecord.id == feedback_id)
+            .with_for_update(of=FeedbackRecord)
+        )
+        row = result.one_or_none()
+        if row is None:
+            return None
+        feedback, space_id, share_link_id, question = row
+        if not isinstance(question, str) or not question.strip():
+            return None
+
+        category_ids: tuple[UUID, ...] = ()
+        if feedback.is_guest and share_link_id is not None:
+            categories = await self._session.scalars(
+                select(share_link_categories.c.category_id)
+                .where(share_link_categories.c.share_link_id == share_link_id)
+                .order_by(share_link_categories.c.category_id)
+            )
+            category_ids = tuple(categories.all())
+        linked_case_id = await self._session.scalar(
+            select(EvalCaseRecord.id).where(EvalCaseRecord.source_feedback_id == feedback_id)
+        )
+        return FeedbackRegressionSource(
+            feedback_id=feedback_id,
+            space_id=space_id,
+            question=question.strip(),
+            corrected_answer=feedback.corrected_answer,
+            is_guest=feedback.is_guest,
+            review_status=feedback.review_status,
+            category_ids=category_ids,
+            linked_eval_case_id=linked_case_id,
+        )
 
     async def list_cases(self, space_id: UUID) -> list[EvalCase]:
         records = await self._session.scalars(
@@ -371,6 +444,7 @@ class SqlAlchemyEvaluationRepository:
             answerable=record.answerable,
             expected_behavior=record.expected_behavior,
             evidence_refs=tuple(EvidenceRef.from_dict(ref) for ref in (record.evidence_refs or [])),
+            source_feedback_id=record.source_feedback_id,
         )
 
     @staticmethod
@@ -417,6 +491,7 @@ class SqlAlchemyEvaluationRepository:
             'answerable': case.answerable,
             'expected_behavior': case.expected_behavior,
             'evidence_refs': [ref.to_dict() for ref in case.evidence_refs],
+            'source_feedback_id': str(case.source_feedback_id) if case.source_feedback_id else None,
         }
 
     @classmethod
@@ -449,4 +524,9 @@ class SqlAlchemyEvaluationRepository:
             answerable=item.get('answerable'),
             expected_behavior=item.get('expected_behavior'),
             evidence_refs=tuple(EvidenceRef.from_dict(ref) for ref in item.get('evidence_refs', [])),
+            source_feedback_id=(
+                UUID(str(item['source_feedback_id']))
+                if item.get('source_feedback_id') is not None
+                else None
+            ),
         )

@@ -13,6 +13,7 @@ from app.core.errors import AppError
 from app.domain.conversations import (
     EvalCase,
     EvalAccessDeniedError,
+    EvalFeedbackAlreadyLinkedError,
     EvalCaseNotFoundError,
     EvalResult,
     EvalResultNotFoundError,
@@ -34,6 +35,8 @@ router = APIRouter(tags=["evaluations"])
 
 class EvaluationServicePort(Protocol):
     async def create_case(self, **kwargs: object) -> EvalCase: ...
+
+    async def create_case_from_feedback(self, **kwargs: object) -> EvalCase: ...
 
     async def list_cases(self, space_id: UUID, **kwargs: object) -> list[EvalCase]: ...
 
@@ -80,6 +83,21 @@ class EvalCaseCreateRequest(BaseModel):
     evidence_refs: list[EvidenceRef] = Field(default_factory=list, max_length=100)
 
 
+class EvalCaseFromFeedbackRequest(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
+
+    source_feedback_confirmed: bool = Field(strict=True)
+    expected_answer: str | None = Field(default=None, max_length=5_000)
+    scope: EvalScope = EvalScope.OWNER
+    category_ids: list[UUID] = Field(default_factory=list, max_length=100)
+    answerable: bool = Field(default=True, strict=True)
+    expected_behavior: str = Field(
+        default="ANSWERED",
+        pattern='^(ANSWERED|INSUFFICIENT_EVIDENCE|OUT_OF_SCOPE|CONFLICT)$',
+    )
+    evidence_refs: list[EvidenceRef] = Field(default_factory=list, max_length=100)
+
+
 class EvalCaseUpdateRequest(BaseModel):
     model_config = ConfigDict(str_strip_whitespace=True)
 
@@ -105,6 +123,7 @@ class EvalCaseResponse(BaseModel):
     answerable: bool | None = None
     expected_behavior: str | None = None
     evidence_refs: list[EvidenceRef] = Field(default_factory=list)
+    source_feedback_id: UUID | None = None
 
     @classmethod
     def from_domain(cls, case: EvalCase) -> "EvalCaseResponse":
@@ -120,6 +139,7 @@ class EvalCaseResponse(BaseModel):
             answerable=case.answerable,
             expected_behavior=case.expected_behavior,
             evidence_refs=list(case.evidence_refs),
+            source_feedback_id=case.source_feedback_id,
         )
 
 
@@ -390,6 +410,8 @@ def _translate_evaluation_error(error: Exception) -> None:
         raise AppError(code="EVAL_RESULT_NOT_FOUND", message=str(error), status_code=404) from error
     if isinstance(error, EvalVersionNotFoundError):
         raise AppError(code="EVAL_VERSION_NOT_FOUND", message=str(error), status_code=404) from error
+    if isinstance(error, EvalFeedbackAlreadyLinkedError):
+        raise AppError(code="FEEDBACK_ALREADY_IN_EVAL", message=str(error), status_code=409) from error
     if isinstance(error, ValueError):
         raise AppError(code="EVAL_INVALID", message=str(error), status_code=422) from error
     raise error
@@ -429,6 +451,32 @@ async def create_eval_case(
         if _current_user is not None:
             kwargs["owner_user_id"] = _current_user.id
         case = await service.create_case(**kwargs)
+    except Exception as error:
+        _translate_evaluation_error(error)
+        raise
+    return EvalCaseResponse.from_domain(case)
+
+
+@router.post(
+    "/spaces/{space_id}/eval-cases/from-feedback/{feedback_id}",
+    status_code=status.HTTP_201_CREATED,
+    response_model=EvalCaseResponse,
+)
+async def create_eval_case_from_feedback(
+    space_id: UUID,
+    feedback_id: UUID,
+    payload: EvalCaseFromFeedbackRequest,
+    service: EvaluationServicePort = Depends(get_evaluation_service),
+    _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
+) -> EvalCaseResponse:
+    try:
+        kwargs = payload.model_dump()
+        kwargs["space_id"] = space_id
+        kwargs["feedback_id"] = feedback_id
+        kwargs["evidence_refs"] = tuple(payload.evidence_refs)
+        if _current_user is not None:
+            kwargs["owner_user_id"] = _current_user.id
+        case = await service.create_case_from_feedback(**kwargs)
     except Exception as error:
         _translate_evaluation_error(error)
         raise

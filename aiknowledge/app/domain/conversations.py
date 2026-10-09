@@ -208,6 +208,20 @@ class Feedback:
     pii_status: str = "UNKNOWN"
     question: str | None = None
     original_answer: str | None = None
+    eval_case_id: UUID | None = None
+    source_category_ids: tuple[UUID, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class FeedbackRegressionSource:
+    feedback_id: UUID
+    space_id: UUID
+    question: str
+    corrected_answer: str | None
+    is_guest: bool
+    review_status: FeedbackReviewStatus
+    category_ids: tuple[UUID, ...] = ()
+    linked_eval_case_id: UUID | None = None
 
 
 class EvalCaseNotFoundError(LookupError):
@@ -216,6 +230,10 @@ class EvalCaseNotFoundError(LookupError):
 
 class EvalCaseInUseError(ValueError):
     """Raised when deleting a live case would destroy historical results."""
+
+
+class EvalFeedbackAlreadyLinkedError(RuntimeError):
+    """Raised when a feedback item already has a regression case."""
 
 
 class EvalAccessDeniedError(PermissionError):
@@ -247,6 +265,7 @@ class EvalCase:
     answerable: bool | None = None
     expected_behavior: str | None = None
     evidence_refs: tuple[EvidenceRef, ...] = ()
+    source_feedback_id: UUID | None = None
 
 
 @dataclass(frozen=True, slots=True)

@@ -7,11 +7,14 @@ import pytest
 
 from app.domain.conversations import (
     EvalCase,
+    EvalFeedbackAlreadyLinkedError,
     EvalResult,
     EvalRun,
     EvalRunStatus,
     EvalScope,
     EvalSetVersion,
+    FeedbackRegressionSource,
+    FeedbackReviewStatus,
 )
 from app.domain.rag import AnswerStatus, Citation, RagAnswer
 from app.domain.retrieval import RetrievalMetadataFilter
@@ -71,6 +74,99 @@ async def test_case_rejects_unavailable_or_cross_space_evidence_before_write():
 
 
 @pytest.mark.asyncio
+async def test_feedback_conversion_requires_review_confirmation_and_preserves_public_scope_and_source():
+    service, repo, _ = build_service()
+    feedback_id, category_id = uuid4(), uuid4()
+    evidence = EvidenceRef(uuid4(), uuid4(), 'block-1', 0, 3, 'a' * 64)
+    repo.feedback_sources[feedback_id] = FeedbackRegressionSource(
+        feedback_id=feedback_id,
+        space_id=repo.space_id,
+        question='访客原始问题？',
+        corrected_answer='人工修正的标准答案',
+        is_guest=True,
+        review_status=FeedbackReviewStatus.FIXED,
+        category_ids=(category_id,),
+    )
+    repo.validate_case_evidence = lambda **_: _async_true()
+
+    with pytest.raises(ValueError, match='确认'):
+        await service.create_case_from_feedback(
+            space_id=repo.space_id, feedback_id=feedback_id, source_feedback_confirmed=False,
+            expected_answer='人工修正的标准答案',
+            scope=EvalScope.PUBLIC, category_ids=(category_id,), answerable=True,
+            expected_behavior='ANSWERED', evidence_refs=(evidence,),
+        )
+
+    case = await service.create_case_from_feedback(
+        space_id=repo.space_id, feedback_id=feedback_id, source_feedback_confirmed=True,
+        expected_answer='人工修正的标准答案',
+        scope=EvalScope.PUBLIC, category_ids=(category_id,), answerable=True,
+        expected_behavior='ANSWERED', evidence_refs=(evidence,),
+    )
+    assert case.question == '访客原始问题？'
+    assert case.source_feedback_id == feedback_id
+    assert case.scope is EvalScope.PUBLIC
+    assert case.category_ids == (category_id,)
+
+    with pytest.raises(ValueError, match='反馈范围'):
+        await service.update_case(case.id, category_ids=(uuid4(),))
+    with pytest.raises(ValueError, match='证据'):
+        await service.update_case(case.id, evidence_refs=())
+
+    frozen = service._case_from_snapshot(service._case_to_snapshot(case))
+    assert frozen.source_feedback_id == feedback_id
+
+    with pytest.raises(EvalFeedbackAlreadyLinkedError):
+        await service.create_case_from_feedback(
+            space_id=repo.space_id, feedback_id=feedback_id, source_feedback_confirmed=True,
+            expected_answer='人工修正的标准答案',
+            scope=EvalScope.PUBLIC, category_ids=(category_id,), answerable=True,
+            expected_behavior='ANSWERED', evidence_refs=(evidence,),
+        )
+
+
+@pytest.mark.asyncio
+async def test_feedback_conversion_rejects_unreviewed_missing_evidence_and_scope_expansion():
+    service, repo, _ = build_service()
+    feedback_id, allowed_category, private_category = uuid4(), uuid4(), uuid4()
+    repo.feedback_sources[feedback_id] = FeedbackRegressionSource(
+        feedback_id=feedback_id, space_id=repo.space_id, question='问题？',
+        corrected_answer='已修正', is_guest=True, review_status=FeedbackReviewStatus.PENDING,
+        category_ids=(allowed_category,),
+    )
+    with pytest.raises(ValueError, match='已修正'):
+        await service.create_case_from_feedback(
+            space_id=repo.space_id, feedback_id=feedback_id, source_feedback_confirmed=True,
+            expected_answer='答案', scope=EvalScope.PUBLIC,
+            category_ids=(allowed_category,), answerable=True, expected_behavior='ANSWERED', evidence_refs=(),
+        )
+
+    repo.feedback_sources[feedback_id] = FeedbackRegressionSource(
+        feedback_id=feedback_id, space_id=repo.space_id, question='问题？',
+        corrected_answer='已修正', is_guest=True, review_status=FeedbackReviewStatus.FIXED,
+        category_ids=(allowed_category,),
+    )
+    with pytest.raises(ValueError, match='证据'):
+        await service.create_case_from_feedback(
+            space_id=repo.space_id, feedback_id=feedback_id, source_feedback_confirmed=True,
+            expected_answer='答案', scope=EvalScope.PUBLIC,
+            category_ids=(allowed_category,), answerable=True, expected_behavior='ANSWERED', evidence_refs=(),
+        )
+    with pytest.raises(ValueError, match='反馈范围'):
+        await service.create_case_from_feedback(
+            space_id=repo.space_id, feedback_id=feedback_id, source_feedback_confirmed=True,
+            expected_answer='答案', scope=EvalScope.PUBLIC,
+            category_ids=(private_category,), answerable=True, expected_behavior='ANSWERED',
+            evidence_refs=(EvidenceRef(uuid4(), uuid4(), 'block-1', 0, 1, 'a' * 64),),
+        )
+    assert not repo.cases
+
+
+async def _async_true():
+    return True
+
+
+@pytest.mark.asyncio
 async def test_run_metrics_use_same_execution_candidates_and_known_manifest():
     from app.domain.conversations import RetrievedChunk
     from hashlib import sha256
@@ -105,13 +201,21 @@ class FakeEvaluationRepository:
         self.runs: dict[UUID, EvalRun] = {}
         self.results: dict[UUID, EvalResult] = {}
         self.versions: dict[UUID, EvalSetVersion] = {}
+        self.feedback_sources: dict[UUID, FeedbackRegressionSource] = {}
         self.commits = 0
 
     async def has_active_space(self, space_id: UUID) -> bool:
         return space_id == self.space_id
 
     async def add_case(self, case: EvalCase) -> None:
+        if case.source_feedback_id is not None and any(
+            item.source_feedback_id == case.source_feedback_id for item in self.cases.values()
+        ):
+            raise EvalFeedbackAlreadyLinkedError('这条反馈已经加入回归题集。')
         self.cases[case.id] = case
+
+    async def get_feedback_regression_source(self, feedback_id: UUID):
+        return self.feedback_sources.get(feedback_id)
 
     async def list_cases(self, space_id: UUID) -> list[EvalCase]:
         return [case for case in self.cases.values() if case.space_id == space_id]

@@ -725,6 +725,11 @@ class EvalCaseRecord(Base):
         ForeignKey("knowledge_spaces.id", ondelete="CASCADE"),
         nullable=False,
     )
+    source_feedback_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("feedback.id", name="fk_eval_cases_source_feedback", ondelete="SET NULL"),
+        nullable=True,
+    )
     question: Mapped[str] = mapped_column(Text, nullable=False)
     expected_answer: Mapped[str | None] = mapped_column(Text, nullable=True)
     expected_document_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
@@ -737,6 +742,10 @@ class EvalCaseRecord(Base):
     category_ids: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("source_feedback_id", name="uq_eval_cases_source_feedback_id"),
     )
 
 

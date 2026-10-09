@@ -511,6 +511,7 @@ class ConversationService:
                 prompt_version=self._prompt_version,
                 rewritten_question=rewritten_question,
                 model_snapshot={**self._rag_snapshot,
+                    'user_message_id': str(user_message.id),
                     'reranker':(answer.execution_snapshot or {}).get('retrieval_config',{}).get('reranker',{}).get('model','disabled-for-rrf') if (answer.execution_snapshot or {}).get('retrieval_strategy') in ('hybrid','hybrid_rerank') else self._rag_snapshot.get('reranker','lexical-dense-v1'),
                     'execution_timings_ms':(answer.execution_snapshot or {}).get('timings_ms',{}),
                     'context_chunk_ids':(answer.execution_snapshot or {}).get('context_chunk_ids',[]),
