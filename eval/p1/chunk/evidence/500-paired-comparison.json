@@ -1,0 +1,263 @@
+{
+  "notes": "同一固定500题、标答及原始资料内容；D使用独立空间与结构重建版本，知识清单和片段ID不同。单轮模型辅助评分，同源偏差仍存在。不是严格同知识清单的因果或生产性能结论。",
+  "new_summary": {
+    "total": 500,
+    "complete": 492,
+    "partial": 4,
+    "incorrect": 4,
+    "strict_pass_rate": 0.984,
+    "by_kind": {
+      "事实": {
+        "total": 81,
+        "complete": 81,
+        "partial": 0,
+        "incorrect": 0,
+        "strict_pass_rate": 1.0
+      },
+      "拒答": {
+        "total": 50,
+        "complete": 50,
+        "partial": 0,
+        "incorrect": 0,
+        "strict_pass_rate": 1.0
+      },
+      "综合": {
+        "total": 194,
+        "complete": 189,
+        "partial": 3,
+        "incorrect": 2,
+        "strict_pass_rate": 0.9742268041237113
+      },
+      "计算": {
+        "total": 100,
+        "complete": 100,
+        "partial": 0,
+        "incorrect": 0,
+        "strict_pass_rate": 1.0
+      },
+      "追问": {
+        "total": 75,
+        "complete": 72,
+        "partial": 1,
+        "incorrect": 2,
+        "strict_pass_rate": 0.96
+      }
+    },
+    "by_format": {
+      "pdf": {
+        "total": 167,
+        "complete": 166,
+        "partial": 1,
+        "incorrect": 0,
+        "strict_pass_rate": 0.9940119760479041
+      },
+      "md": {
+        "total": 167,
+        "complete": 161,
+        "partial": 3,
+        "incorrect": 3,
+        "strict_pass_rate": 0.9640718562874252
+      },
+      "txt": {
+        "total": 166,
+        "complete": 165,
+        "partial": 0,
+        "incorrect": 1,
+        "strict_pass_rate": 0.9939759036144579
+      }
+    },
+    "negative_refusal_status_correct": 50,
+    "citation_source_checks": 848,
+    "source_integrity": "PASSED",
+    "input_tokens": 1510532,
+    "output_tokens": 68202,
+    "product_actions": 575,
+    "prompt_versions": [
+      "rag-prompt-v2-multitask-assumptions"
+    ],
+    "grader_usage": {
+      "input_tokens": 200981,
+      "output_tokens": 16327,
+      "calls": 63,
+      "model": "deepseek-flash"
+    },
+    "assistant_overrides": 1,
+    "latency_p50_seconds": 2.0330000000000004,
+    "latency_p95_seconds": 5.437,
+    "latency_max_seconds": 10.855,
+    "target_met": true
+  },
+  "comparisons": {
+    "dense": {
+      "baseline_summary": {
+        "total": 500,
+        "complete": 488,
+        "partial": 8,
+        "incorrect": 4,
+        "strict_pass_rate": 0.976,
+        "by_kind": {
+          "事实": {
+            "total": 81,
+            "complete": 81,
+            "partial": 0,
+            "incorrect": 0,
+            "strict_pass_rate": 1.0
+          },
+          "拒答": {
+            "total": 50,
+            "complete": 50,
+            "partial": 0,
+            "incorrect": 0,
+            "strict_pass_rate": 1.0
+          },
+          "综合": {
+            "total": 194,
+            "complete": 185,
+            "partial": 8,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9536082474226805
+          },
+          "计算": {
+            "total": 100,
+            "complete": 100,
+            "partial": 0,
+            "incorrect": 0,
+            "strict_pass_rate": 1.0
+          },
+          "追问": {
+            "total": 75,
+            "complete": 72,
+            "partial": 0,
+            "incorrect": 3,
+            "strict_pass_rate": 0.96
+          }
+        },
+        "by_format": {
+          "pdf": {
+            "total": 167,
+            "complete": 166,
+            "partial": 0,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9940119760479041
+          },
+          "md": {
+            "total": 167,
+            "complete": 157,
+            "partial": 8,
+            "incorrect": 2,
+            "strict_pass_rate": 0.9401197604790419
+          },
+          "txt": {
+            "total": 166,
+            "complete": 165,
+            "partial": 0,
+            "incorrect": 1,
+            "strict_pass_rate": 0.9939759036144579
+          }
+        },
+        "negative_refusal_status_correct": 50,
+        "citation_source_checks": 905,
+        "source_integrity": "PASSED",
+        "input_tokens": 1612119,
+        "output_tokens": 69060,
+        "product_actions": 575,
+        "prompt_versions": [
+          "rag-prompt-v2-multitask-assumptions"
+        ],
+        "grader_usage": {
+          "input_tokens": 225206,
+          "output_tokens": 16040,
+          "calls": 77,
+          "model": "deepseek-flash"
+        },
+        "assistant_overrides": 1,
+        "latency_p50_seconds": 4.1495,
+        "latency_p95_seconds": 14.684,
+        "latency_max_seconds": 17.192,
+        "target_met": true
+      },
+      "became_complete": [
+        "T128",
+        "T146",
+        "T221",
+        "T230",
+        "T269"
+      ],
+      "lost_complete": [
+        "T089"
+      ],
+      "score_changes": [
+        {
+          "id": "T089",
+          "before": 2,
+          "after": 1,
+          "before_reason": "三项均正确完整：版本1.0、接受PDF/Markdown/TXT、排序前先限定空间与资料状态。",
+          "after_reason": "档案版本和排序前过滤范围正确，但项目A接受PDF、Markdown、TXT资料已明确记录，回答却称未提供，遗漏必答事实。"
+        },
+        {
+          "id": "T104",
+          "before": 1,
+          "after": 0,
+          "before_reason": "第2、3项正确，但第1项错误：资料明确记载Redis用于热点库存查询缓存、不承担最终库存一致性判断，回答却称未提供。",
+          "after_reason": "第1项错误：资料明确记载Redis用于热点库存查询缓存、不承担最终库存一致性判断，回答却称资料未提供，属有资料却整体拒答该必答事实。"
+        },
+        {
+          "id": "T128",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第1项错误拒答，资料明确项目A接受PDF、Markdown、TXT；第2、3项正确。",
+          "after_reason": "三项均正确：PDF、Markdown、TXT；管理资料、查看原文引用、检索测试、管理评测；14天与30天且为虚构测试事实、与真实套餐无关。"
+        },
+        {
+          "id": "T146",
+          "before": 1,
+          "after": 2,
+          "before_reason": "前两项正确，但第三项遗漏了资料中明确记录的“数据库事务与行级锁”并发控制方案，错误称资料未提供。",
+          "after_reason": "三项均正确完整：Embedding模型、1024维、数据库事务与行级锁，并补充了顺序细节，无错误。"
+        },
+        {
+          "id": "T200",
+          "before": 1,
+          "after": 0,
+          "before_reason": "项目B后端与公开问答资料范围正确，但当前城市应为南京，回答错误称资料未提供。",
+          "after_reason": "第1项错误：资料明确记载当前所在地为南京，回答却称未提供。"
+        },
+        {
+          "id": "T209",
+          "before": 0,
+          "after": 1,
+          "before_reason": "第1项错误：资料明确项目A使用余弦相似度，回答却称未提供，属主要事实错误。",
+          "after_reason": "第2、3项正确，但第1项错误：资料明确项目A使用余弦相似度，回答却称未记录。"
+        },
+        {
+          "id": "T221",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第2项遗漏“数据库事务与行级锁”这一必答事实，仅称未记录，属主要事实遗漏。",
+          "after_reason": "三项均正确完整：Markdown按标题分段、数据库事务与行级锁、以已生效新版本为依据。"
+        },
+        {
+          "id": "T230",
+          "before": 1,
+          "after": 2,
+          "before_reason": "库存非负整数和停用后不能继续使用正确；并发出库控制答成幂等键与回滚，遗漏核心的数据库事务与行级锁。",
+          "after_reason": "三项均正确：非负整数；数据库事务与行级锁；停用后不能继续使用。"
+        },
+        {
+          "id": "T269",
+          "before": 1,
+          "after": 2,
+          "before_reason": "第1、3项正确；第2项错误，资料明确记载Redis用于热点库存查询缓存、不承担最终库存一致性判断，却答资料未记录。",
+          "after_reason": "三项均正确：2021年9月至2025年6月；Redis热点库存查询缓存且不承担最终一致性判断；撤销后不能继续提问。"
+        },
+        {
+          "id": "T439",
+          "before": 0,
+          "after": 1,
+          "before_reason": "问题要求比较两个示例时间相差多久，标答为约100秒（160秒与60秒前端等待上限之差），回答错误地计算为160秒与1.8秒之差约158.2秒。",
+          "after_reason": "正确推算出首次加载比60秒上限多约100秒，但错误引入项目开发时间作为比较对象，造成混淆；核心推算结果正确但表述有范围问题。"
+        }
+      ]
+    }
+  }
+}

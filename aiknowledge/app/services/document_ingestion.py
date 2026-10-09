@@ -56,7 +56,26 @@ class DocumentIngestionService:
         self._chunker = chunker
         self._expected_embedding_dimension = expected_embedding_dimension
 
-    async def prepare(self, document: ParsedDocument) -> PreparedDocument:
+    async def prepare(self, document: ParsedDocument, *, chunk_config: dict[str,object]|None=None) -> PreparedDocument:
+        if chunk_config is not None:
+            from app.services.chunk_plan import ChunkConfig,plan_chunks
+            try:
+                config=ChunkConfig.from_dict(chunk_config)
+                budget=await self._embedding_client.document_token_budget()
+                import asyncio
+                planned=await asyncio.to_thread(plan_chunks,document,budget,config)
+            except (ValueError,AttributeError) as exc:
+                raise DocumentIngestionError('分块配置或模型容量无效。') from exc
+            vectors=await self._embedding_client.embed_documents([x.content for x in planned])
+            if len(vectors)!=len(planned):raise DocumentIngestionError('Embedding response count does not match chunk count.')
+            result=[]
+            for chunk,vector in zip(planned,vectors):
+                values=[float(x) for x in vector]
+                if len(values)!=self._expected_embedding_dimension or not all(math.isfinite(x) for x in values) or math.hypot(*values)==0:
+                    raise DocumentIngestionError('Embedding must have valid dimensions and finite non-zero values.')
+                result.append(PreparedChunk(chunk.ordinal,chunk.content,chunk.heading_path,chunk.page_number,values,
+                    chunk.source_block_id,chunk.char_start,chunk.char_end,chunk.content_hash,chunk.token_count))
+            return PreparedDocument(tuple(result))
         pending_chunks = []
         for block in document.blocks:
             splitter = getattr(self._embedding_client, 'split_document_text', None)

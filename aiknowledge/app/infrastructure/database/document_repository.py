@@ -137,13 +137,19 @@ class SqlAlchemyDocumentRepository:
         await self._session.flush()
         return self._to_document(document), self._to_version(version)
 
-    async def retry_failed_version(self, document_id: UUID, version_id: UUID) -> tuple[StoredDocument, StoredDocumentVersion] | None:
+    async def retry_failed_version(self, document_id: UUID, version_id: UUID, *, requested_by_user_id: UUID | None = None) -> tuple[StoredDocument, StoredDocumentVersion] | None:
         document = await self._session.get(DocumentRecord, document_id, with_for_update=True, populate_existing=True)
         if document is None or document.deleted_at is not None or document.status is DocumentStatus.DELETED:
             return None
         version = await self._session.get(DocumentVersionRecord, version_id, with_for_update=True, populate_existing=True)
         if version is None or version.document_id != document_id or version.status is not DocumentVersionStatus.FAILED:
             return None
+        if version.chunk_config.get('strategy_version')=='source-paragraph-token-v1':
+            from app.domain.documents import DocumentPermissionDeniedError
+            role=await self.get_space_role(space_id=document.space_id,user_id=requested_by_user_id) if requested_by_user_id else None
+            if role not in (SpaceRole.OWNER,SpaceRole.ADMIN):raise DocumentPermissionDeniedError('你没有重试分块重建的权限。')
+            if (version.source_snapshot or {}).get('base_active_version_id')!=str(document.active_version_id):return None
+            version.source_snapshot={**(version.source_snapshot or {}),'requested_by_user_id':str(requested_by_user_id)}
         if document.active_version_id is not None and not (version.source_snapshot or {}).get('storage_key'):
             return None
         pending = await self._session.scalar(select(DocumentVersionRecord.id).where(
@@ -236,6 +242,12 @@ class SqlAlchemyDocumentRepository:
         current = await self._session.get(DocumentRecord, document.id, with_for_update=True, populate_existing=True)
         if current is None or current.deleted_at is not None or current.active_version_id != document.active_version_id:
             raise DocumentVersionConflictError('资料版本已变化，请刷新后重试。')
+        if version.chunk_config.get('strategy_version')=='source-paragraph-token-v1':
+            from app.domain.documents import DocumentPermissionDeniedError
+            actor=(version.source_snapshot or {}).get('requested_by_user_id')
+            role=await self.get_space_role(space_id=document.space_id,user_id=UUID(actor)) if actor else None
+            if role not in (SpaceRole.OWNER,SpaceRole.ADMIN):
+                raise DocumentPermissionDeniedError('分块重建权限已变化，请重新确认。')
         pending = await self._session.scalar(select(DocumentVersionRecord.id).where(
             DocumentVersionRecord.document_id == document.id, DocumentVersionRecord.status == DocumentVersionStatus.PROCESSING).limit(1))
         if pending is not None:
@@ -270,13 +282,17 @@ class SqlAlchemyDocumentRepository:
 
     async def activate_processed_version(
         self, *, version_id: UUID, chunks: tuple[PersistedChunk, ...]
-    ) -> None:
+    ) -> bool:
         version = await self._session.get(DocumentVersionRecord, version_id)
         if version is None or version.status != DocumentVersionStatus.PROCESSING:
-            return
-        document = await self._session.get(DocumentRecord, version.document_id)
+            return False
+        document = await self._session.get(DocumentRecord, version.document_id,with_for_update=True,populate_existing=True)
+        version = await self._session.get(DocumentVersionRecord,version_id,with_for_update=True,populate_existing=True)
+        if version is None or version.status!=DocumentVersionStatus.PROCESSING:return False
         if document is None or document.status == DocumentStatus.DELETED:
-            return
+            return False
+        if version.chunk_config.get('strategy_version')=='source-paragraph-token-v1' and (version.source_snapshot or {}).get('base_active_version_id')!=str(document.active_version_id):
+            raise DocumentVersionConflictError('重建依据的活动版本已变化。')
         await self._session.execute(
             update(ChunkRecord)
             .where(
@@ -319,6 +335,7 @@ class SqlAlchemyDocumentRepository:
         document.failure_message = None
         document.updated_at = now
         await self._session.flush()
+        return True
 
     async def fail_processing_version(
         self, *, version_id: UUID, code: DocumentFailureCode, message: str

@@ -108,6 +108,7 @@ class DocumentVersionResponse(BaseModel):
     parser_version: str
     embedding_model: str
     embedding_dimension: int
+    chunk_config: dict[str,object] = Field(default_factory=dict)
     created_at: datetime
 
 

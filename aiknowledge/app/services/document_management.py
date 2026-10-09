@@ -132,8 +132,15 @@ class DocumentManagementService:
         return retried
 
     async def retry_version(self, document_id: UUID, version_id: UUID, *, owner_user_id: UUID | None = None) -> DocumentSubmission:
-        await self._get_mutable_document(document_id, owner_user_id=owner_user_id)
-        retried = await self._repository.retry_failed_version(document_id, version_id)
+        document=await self._get_mutable_document(document_id, owner_user_id=owner_user_id)
+        reader=getattr(self._repository,'get_processing_context',None)
+        context=await reader(version_id) if callable(reader) else None
+        configured=context is not None and context[1].chunk_config.get('strategy_version')=='source-paragraph-token-v1'
+        if configured:
+            role=await self._repository.get_space_role(space_id=document.space_id,user_id=owner_user_id) if owner_user_id else None
+            if context[1].document_id!=document_id or role not in (SpaceRole.OWNER,SpaceRole.ADMIN):
+                raise DocumentPermissionDeniedError('你没有重试分块重建的权限。')
+        retried = await self._repository.retry_failed_version(document_id,version_id,**({'requested_by_user_id':owner_user_id} if configured else {}))
         if retried is None:
             raise DocumentRetryNotAllowedError("只有失败且没有其他处理任务的版本可以重试。")
         await self._repository.commit()

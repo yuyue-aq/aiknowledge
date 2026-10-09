@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-09",
+  "cases": 50,
+  "split": {
+    "tune": 40,
+    "holdout": 10
+  },
+  "gold_sha256": "f2d889d24b332c8466f28a71394f7b634c6c28add20f12d2d0675c39ba5a67e9",
+  "material_sha256": {
+    "01-青桥.pdf": "707c539d3d69d83bd765e456bfdc68673f0153b701782171173a6f5310cb4b62",
+    "01-青桥.md": "be894be789d3d6e562323b0f010d476bc369472c7bd139d4e1adc037989eca9d",
+    "01-青桥.txt": "c7d4308765657f9a608a1a0846252073e25abb7f740357d78df34f740d81b218",
+    "02-星埠.pdf": "dd9b2a254704b917b6099f1097ee12a497370b452266a393e826bf1cc67e1cd0",
+    "02-星埠.md": "ec62025cab91e328401556826d74d581f077675b9111844fa2f4a7aa285e21d6",
+    "02-星埠.txt": "cb10ae9da219f18dd4fe27e6b2354a6c30c668264f481bddb6fca4225afc2640",
+    "03-海栈.pdf": "1d6bc4f222d841314732aba3cd055e6ad28cafd83917361a48bf4dfeb113fb1a",
+    "03-海栈.md": "4ae34ce1fb5b1ad068ce4336486b6638f0f284a75742c2796860065a021ccfb6",
+    "03-海栈.txt": "2f70917f3de1b162caaf78768195502632df7f3cc85ca6f2fcec5067c6ec8b27",
+    "04-云港.pdf": "b690704f0bdbfcc69748d6b09d6adbe949e4c14cf3c47a04eebad2acbbd6f2c5",
+    "04-云港.md": "a67a4759ebff6a8cb78a92fd76b29aab7076877d8c515c3e9a8b218b3636577c",
+    "04-云港.txt": "5cbe9c4211739696c8c9b26e72389c8b0f76f81d36bf1420fb1e1d44a2b00023",
+    "05-风禾.pdf": "d23f64b9ec4be4bf70ded244cdefa1c4cebd1503457ca9e75f326f50ef467e52",
+    "05-风禾.md": "3a0967fd56c1cc4f2a211dac3bd1b40fed309b40f8e9380af785d4c00889a5ef",
+    "05-风禾.txt": "645b2e08b7c08973f1963ec805e454f5b09d14bf023943ad3e6b891886f7f302"
+  },
+  "frozen_before_live_ranking": true,
+  "notes": "Five newly synthetic services, three formats, independent spaces per format. Literal evidence coverage is not semantic answer accuracy; numeric questions derive values; five missing-price questions must refuse. Holdout includes diverse factual, numeric, composite and refusal cases."
+}

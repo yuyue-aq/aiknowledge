@@ -11,6 +11,17 @@ const compiled = ts.transpileModule(source, {
 }).outputText
 const session = (token = 'old') => ({ user: { id: 'owner' }, tokens: { access_token: token, refresh_token: 'refresh' } })
 
+test('chunk preview and rebuild bind source version and explicit configuration', async () => {
+  const calls=[]
+  const {client}=loadClient(async options=>{calls.push(options);return {statusCode:options.url.endsWith('/rechunk') ? 202 : 200,data:{fingerprint:'proof',version_id:'new',processing_enqueued:true}}})
+  await client.previewDocumentChunks('space','doc',{strategy:'structure',max_tokens:384,overlap_characters:80,offset:12,limit:12})
+  await client.rebuildDocumentChunks('space','doc',{strategy:'structure',max_tokens:384,overlap_characters:80,expected_version_id:'active',fingerprint:'proof'})
+  assert.equal(calls[0].url,'/api/v1/owner/spaces/space/documents/doc/chunk-preview')
+  assert.equal(calls[0].method,'POST');assert.equal(calls[0].data.offset,12)
+  assert.equal(calls[1].url,'/api/v1/owner/spaces/space/documents/doc/rechunk')
+  assert.equal(calls[1].data.expected_version_id,'active');assert.equal(calls[1].data.fingerprint,'proof')
+})
+
 function loadClient(request, extras = {}) {
   const storage = new Map()
   const taro = {

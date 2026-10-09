@@ -1,0 +1,135 @@
+[
+  {
+    "id": "T083",
+    "facts": [
+      {
+        "literal": "BAAI/bge-large-zh-v1.5",
+        "evidence_ids": [
+          "a90bd575-9cb6-4020-b960-eef82196ce54"
+        ],
+        "in_saved_candidates": true,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T089",
+    "facts": [
+      {
+        "literal": "PDF、Markdown和TXT",
+        "evidence_ids": [
+          "67c84bac-5fe6-48eb-8e7a-140f813d8d49"
+        ],
+        "in_saved_candidates": true,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T104",
+    "facts": [
+      {
+        "literal": "Redis用于热点库存查询缓存",
+        "evidence_ids": [
+          "6b00d07e-af01-41bb-9803-9deecc4697fd"
+        ],
+        "in_saved_candidates": true,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T184",
+    "classification": "rubric_review_complete",
+    "reason": "档案更新时间2026-10-03正确；答案明确称“示例 Recall@5”为0.86，已限定为示例而非当前实测。与既定B轮T141口径一致，不要求重复字面“虚构”。保留原模型1分，仅作助手规则复核。"
+  },
+  {
+    "id": "T200",
+    "facts": [
+      {
+        "literal": "当前所在地：南京",
+        "evidence_ids": [
+          "9a22a140-8f1b-4dd9-994a-8e07a5774ee2"
+        ],
+        "in_saved_candidates": true,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T209",
+    "facts": [
+      {
+        "literal": "系统使用余弦相似度衡量相关性",
+        "evidence_ids": [
+          "a90bd575-9cb6-4020-b960-eef82196ce54"
+        ],
+        "in_saved_candidates": true,
+        "in_context": false
+      }
+    ],
+    "classification": "target_evidence_not_selected_in_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T420",
+    "facts": [
+      {
+        "literal": "分享范围内已授权且已启用",
+        "evidence_ids": [
+          "2a9ab37f-ad38-442c-80d3-e7cca0f81c4b"
+        ],
+        "in_saved_candidates": true,
+        "in_context": true
+      }
+    ],
+    "classification": "generation_or_reference_failure_with_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T428",
+    "facts": [
+      {
+        "literal": "TXT先按空行",
+        "evidence_ids": [
+          "dd0b4ad0-845e-48d3-9e57-6c12c304257a"
+        ],
+        "in_saved_candidates": true,
+        "in_context": true
+      }
+    ],
+    "classification": "generation_or_reference_failure_with_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  },
+  {
+    "id": "T439",
+    "facts": [
+      {
+        "literal": "160秒",
+        "evidence_ids": [
+          "ebaa1fcd-b9fe-4e6d-944e-937e8fd88033"
+        ],
+        "in_saved_candidates": true,
+        "in_context": true
+      },
+      {
+        "literal": "60秒",
+        "evidence_ids": [
+          "ebaa1fcd-b9fe-4e6d-944e-937e8fd88033"
+        ],
+        "in_saved_candidates": true,
+        "in_context": true
+      }
+    ],
+    "classification": "generation_or_reference_failure_with_context",
+    "notes": "仅对缺失事实作明确词句定位，不改变原始答案、标准或分数。"
+  }
+]

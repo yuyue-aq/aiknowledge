@@ -1,0 +1,8 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "Expired and future-effective sources denied without text",
+    "Cross-space source denied before original file access",
+    "Deleted synthetic document never exposed by preview"
+  ]
+}

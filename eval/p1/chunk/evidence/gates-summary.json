@@ -1,0 +1,16 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "Pending real rebuild retains old active index and duplicate submission is rejected",
+    "Worker activates actual preview strategy/configuration and new chunk count",
+    "Old preview cannot overwrite a newer active version",
+    "Corrupted frozen config fails real processing; old active version is retained",
+    "Team admin may preview; downgraded editor cannot preview or retry admin rebuild",
+    "Owner retry recovers real failed version with frozen configuration",
+    "Disabled source cannot be read through preview",
+    "Anonymous visitor cannot preview private text or trigger rebuild"
+  ],
+  "space_id": "8072abac-a9cc-4e08-b6ac-53a29aa541a6",
+  "document_id": "ae39ec1a-1abf-4fc6-a8b2-2285b8018f72",
+  "isolated_synthetic_only": true
+}

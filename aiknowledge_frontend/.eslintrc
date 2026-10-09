@@ -5,7 +5,7 @@
     "react/react-in-jsx-scope": "off"
   },
   "overrides": [{
-    "files": ["src/components/EvaluationView.tsx", "src/components/RetrievalView.tsx"],
+    "files": ["src/components/EvaluationView.tsx", "src/components/RetrievalView.tsx", "src/components/ChunkPreviewView.tsx"],
     "rules": { "react/forbid-elements": "off" }
   }]
 }

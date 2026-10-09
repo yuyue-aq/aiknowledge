@@ -1,0 +1,18 @@
+{
+  "status": "PASSED",
+  "documents_checked": 15,
+  "paired_cases": 50,
+  "notes": "Literal evidence coverage, not semantic answer accuracy. MD parser already splits headings; no benefit is presumed.",
+  "by_split": {
+    "tune": {
+      "positive": 37,
+      "before_full_coverage5": 37,
+      "after_full_coverage5": 37
+    },
+    "holdout": {
+      "positive": 8,
+      "before_full_coverage5": 8,
+      "after_full_coverage5": 8
+    }
+  }
+}

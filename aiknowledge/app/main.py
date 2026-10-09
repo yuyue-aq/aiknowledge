@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.model import router as model_router
 from app.api.v1.retrieval import router as retrieval_router
+from app.api.v1.chunking import router as chunking_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.memberships import router as memberships_router
 from app.api.v1.conversations import router as conversations_router
@@ -352,6 +353,15 @@ def create_app(
         reranker=app.state.neural_reranker,
     ))
     app.include_router(retrieval_router, prefix='/api/v1')
+    from app.services.document_chunking import DocumentChunkingService
+    from app.services.document_parsing import DocumentParser
+    def chunking_factory(session):
+        return DocumentChunkingService(owner_retrieval=app.state.retrieval_service_factory(session),
+            document_repository=SqlAlchemyDocumentRepository(session),storage=storage,
+            embedding_client=app.state.query_embedding_client,
+            uploader=app.state.document_service_factory(session)._upload_service,parser=DocumentParser(),model_name=settings.bge_model_name)
+    app.state.chunking_service_factory=chunking_factory
+    app.include_router(chunking_router,prefix='/api/v1')
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(memberships_router, prefix="/api/v1")
     app.include_router(spaces_router, prefix="/api/v1")

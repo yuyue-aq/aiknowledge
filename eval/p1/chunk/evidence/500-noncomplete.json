@@ -1,0 +1,297 @@
+[
+  {
+    "id": "T083",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）实习单位叫什么；2）项目A的Embedding模型是什么；3）停用文档后新检索与问答能否再用它。",
+    "expected_answer": "青禾软件工作室，虚构单位；BAAI/bge-large-zh-v1.5；不能继续使用",
+    "response": {
+      "message_id": "19f93808-9e4a-4a65-8357-a50ea763bc52",
+      "status": "ANSWERED",
+      "answer": "1）实习单位是虚构的青禾软件工作室（2025年7月至2026年2月，担任后端开发实习生）。2）资料未记录项目A的Embedding模型具体名称；仅记录林知远实现了Embedding环节，以及他了解Embedding相关技术。3）停用资料后，后续检索与问答不得继续使用该资料；林知远也通过过滤停用资料，防止检索继续返回旧内容。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "2025 年 7 月至 2026 年 2 月，在虚构的青禾软件工作室担任后端开发实习生，参与接口开发、日志排查和自动化测试。团队规模、主管姓名和离职原因均未记录。",
+          "page_number": null,
+          "ordinal": 6,
+          "score": 0.61001
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "林知远实现了文档上传、解析、分块、Embedding、Top K 检索、答案引用、文档停用和空间权限校验。检索阶段先限定空间与资料状态，再进行向量相似度排序。",
+          "page_number": null,
+          "ordinal": 10,
+          "score": 0.495189
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "上传新版本后，系统应以已生效的新版本作为依据。停用资料后，后续检索与问答不得继续使用该资料。旧会话中的历史回答不等于当前资料仍可作为依据。",
+          "page_number": null,
+          "ordinal": 24,
+          "score": 0.665649
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "首次模型加载曾耗时约 160 秒，超过前端 60 秒等待上限。林知远为检索请求设置单独的等待时间，并区分超时与普通网络错误。另通过过滤停用资料，防止检索继续返回旧内容。",
+          "page_number": null,
+          "ordinal": 14,
+          "score": 0.43296
+        }
+      ]
+    },
+    "review": {
+      "score": 1,
+      "reason": "实习单位和停用规则正确，但项目A的Embedding模型BAAI/bge-large-zh-v1.5资料已明确记录，回答却称未记录，遗漏必答事实。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T089",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）档案版本是什么；2）项目A接受哪些文件格式；3）项目A排序前先过滤哪些范围。",
+    "expected_answer": "1.0；PDF、Markdown、TXT；空间与资料状态",
+    "response": {
+      "message_id": "14a64f76-7bca-4b4e-8424-73bdee196c9c",
+      "status": "ANSWERED",
+      "answer": "1）档案版本为 1.0（资料编号 RAG-DEMO-001，更新时间 2026-10-03）。2）资料未提供项目 A 接受的文件格式信息。3）项目 A 在检索排序前先限定空间与资料状态，再进行向量相似度排序。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "本资料中的人物、学校、公司、项目与指标均为虚构，仅用于知识库功能验收。资料编号：RAG-DEMO-001。版本：1.0。更新时间：2026-10-03。",
+          "page_number": null,
+          "ordinal": 2,
+          "score": 0.678748
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "虚构测试资料 | RAG-DEMO-001 | 版本 1.0 | 更新于 2026-10-03",
+          "page_number": null,
+          "ordinal": 1,
+          "score": 0.564192
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "林知远实现了文档上传、解析、分块、Embedding、Top K 检索、答案引用、文档停用和空间权限校验。检索阶段先限定空间与资料状态，再进行向量相似度排序。",
+          "page_number": null,
+          "ordinal": 10,
+          "score": 0.591131
+        }
+      ]
+    },
+    "review": {
+      "score": 1,
+      "reason": "档案版本和排序前过滤范围正确，但项目A接受PDF、Markdown、TXT资料已明确记录，回答却称未提供，遗漏必答事实。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T104",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目B的Redis负责什么且不负责什么；2）团队空间拥有者与管理员的数量规则是什么；3）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "热点库存查询缓存，不承担最终库存一致性判断；一个拥有者，多个管理员；14天、30天，虚构测试事实，与真实套餐无关",
+    "response": {
+      "message_id": "ce890e41-94ca-4790-bc64-77ee2ea2392d",
+      "status": "ANSWERED",
+      "answer": "1）证据仅记载项目B（仓流库存管理）后端采用 Python、FastAPI、PostgreSQL 和 Redis，未说明 Redis 具体负责什么、不负责什么，该信息资料未提供。2）团队空间有一个拥有者，可以有多个管理员。3）版本 1.0 的测试事实为：知识库试用期 14 天，资料保留周期 30 天；这两项与实际产品套餐和运营规则无关。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "项目面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计。后端采用 Python、FastAPI、PostgreSQL 和 Redis；前端由另一位成员使用 Vue 开发。项目 B 没有使用 pgvector，也没有使用 Embedding 或 RAG。",
+          "page_number": null,
+          "ordinal": 16,
+          "score": 0.560808
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "个人空间仅由拥有者管理。团队空间有一个拥有者，可以有多个管理员。团队管理员可管理资料、查看原文引用、使用检索测试并管理评测；成员管理、拥有权转移、删除空间和公开分享配置由拥有者执行。",
+          "page_number": null,
+          "ordinal": 21,
+          "score": 0.660652
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "知识库试用期为 14 天。资料保留周期为 30 天。这两项是版本 1.0 的测试事实，与实际产品套餐和运营规则无关。",
+          "page_number": null,
+          "ordinal": 25,
+          "score": 0.807564
+        }
+      ]
+    },
+    "review": {
+      "score": 0,
+      "reason": "第1项错误：资料明确记载Redis用于热点库存查询缓存、不承担最终库存一致性判断，回答却称资料未提供，属有资料却整体拒答该必答事实。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T200",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）他当前位于哪座城市；2）项目B后端技术是什么；3）公开问答可以使用哪些资料。",
+    "expected_answer": "南京；Python、FastAPI、PostgreSQL、Redis；分享范围内已授权且已启用资料，不能返回私密资料",
+    "response": {
+      "message_id": "4ba093d9-491b-4003-a03f-33acfc575acb",
+      "status": "ANSWERED",
+      "answer": "1）资料未提供林知远当前所在城市的信息。2）项目B（仓流库存管理）的后端采用 Python、FastAPI、PostgreSQL 和 Redis。3）公开问答仅能使用分享范围内已授权且已启用的资料；私密资料不得通过公开链接返回。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "本资料没有记录林知远的工资、英语考试分数、具体家庭住址或项目 A 的真实公网地址。也没有记录 2027 年发生的项目、在其他公司任职的情况或项目 B 的 AI 模型供应商。",
+          "page_number": null,
+          "ordinal": 26,
+          "score": 0.59324
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "项目面向虚构的晨星文具仓库，管理商品入库、出库、库存查询与操作审计。后端采用 Python、FastAPI、PostgreSQL 和 Redis；前端由另一位成员使用 Vue 开发。项目 B 没有使用 pgvector，也没有使用 Embedding 或 RAG。",
+          "page_number": null,
+          "ordinal": 16,
+          "score": 0.551179
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "公开问答仅能使用分享范围内已授权且已启用的资料。私密资料不得通过公开链接返回。链接撤销后，访客不能继续使用该链接提问。",
+          "page_number": null,
+          "ordinal": 22,
+          "score": 0.713722
+        }
+      ]
+    },
+    "review": {
+      "score": 0,
+      "reason": "第1项错误：资料明确记载当前所在地为南京，回答却称未提供。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T209",
+    "question": "请逐项回答以下问题，不遗漏任何一项：1）项目A使用什么相似度；2）团队管理员可以做哪些管理工作；3）版本1.0试用期与资料保留周期是什么。",
+    "expected_answer": "余弦相似度；管理资料、查看原文引用、检索测试、管理评测；14天、30天，虚构测试事实，与真实套餐无关",
+    "response": {
+      "message_id": "220da5f1-1876-4c12-aba7-1da8fbba2e17",
+      "status": "ANSWERED",
+      "answer": "1）证据未记录项目A使用的相似度。证据C8提到林知远了解余弦相似度，但未说明项目A使用该相似度。\n2）团队管理员可管理资料、查看原文引用、使用检索测试并管理评测；成员管理、拥有权转移、删除空间和公开分享配置由拥有者执行。\n3）知识库试用期为14天，资料保留周期为30天；这两项是版本1.0的测试事实，与实际产品套餐和运营规则无关。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "熟悉 Python、FastAPI、PostgreSQL、Redis 和 Docker；能够使用 React 与 TypeScript 开发管理页面；了解 PDF 解析、文本分块、Embedding、余弦相似度、向量检索与引用生成。",
+          "page_number": null,
+          "ordinal": 5,
+          "score": 0.4923
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "个人空间仅由拥有者管理。团队空间有一个拥有者，可以有多个管理员。团队管理员可管理资料、查看原文引用、使用检索测试并管理评测；成员管理、拥有权转移、删除空间和公开分享配置由拥有者执行。",
+          "page_number": null,
+          "ordinal": 21,
+          "score": 0.569652
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "知识库试用期为 14 天。资料保留周期为 30 天。这两项是版本 1.0 的测试事实，与实际产品套餐和运营规则无关。",
+          "page_number": null,
+          "ordinal": 25,
+          "score": 0.703876
+        }
+      ]
+    },
+    "review": {
+      "score": 1,
+      "reason": "第2、3项正确，但第1项错误：资料明确项目A使用余弦相似度，回答却称未记录。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T420",
+    "question": "接着上一问，那访客证据必须符合哪三条件？",
+    "expected_answer": "分享范围内、已授权、已启用",
+    "response": {
+      "message_id": "753c58f4-e1c3-4e3a-bc74-0efecf9f78df",
+      "status": "INSUFFICIENT_EVIDENCE",
+      "answer": "资料未提供相关信息。证据中关于公开分享边界仅说明：公开问答仅能使用分享范围内已授权且已启用的资料，私密资料不得通过公开链接返回，链接撤销后访客不能继续使用该链接提问；并未记载访客证据必须符合的“三条件”。",
+      "model": "deepseek-flash",
+      "citations": []
+    },
+    "review": {
+      "score": 0,
+      "reason": "资料明确记载公开问答仅能使用分享范围内已授权且已启用的资料，即三条件，回答却称未提供并拒答，属有资料却整体拒答。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T428",
+    "question": "接着上一问，第三个先按什么分段？",
+    "expected_answer": "TXT空行",
+    "response": {
+      "message_id": "bc3352e2-5af6-48a1-8769-fc24adb0c9a5",
+      "status": "ANSWERED",
+      "answer": "按证据中的顺序，第三个是 PDF：PDF 保存页码后按段落切分。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.md",
+          "quoted_text": "Markdown 先按标题分段；TXT 先按空行划分段落；PDF 保存页码后按段落切分。目标片段长度为 400 至 700 个汉字，重叠长度为 80 个汉字。项目经历按项目名称分别组织，避免把整份简历作为一个片段。默认 Top K 为 5。",
+          "page_number": null,
+          "ordinal": 11,
+          "score": 0.608434
+        }
+      ]
+    },
+    "review": {
+      "score": 0,
+      "reason": "前置问题指定顺序为PDF、Markdown、TXT，第三个应为TXT按空行分段；回答错误地称第三个是PDF。",
+      "method": "model-assisted"
+    }
+  },
+  {
+    "id": "T439",
+    "question": "接着上一问，这两个示例时间相差多久？",
+    "expected_answer": "约100秒，推算",
+    "response": {
+      "message_id": "5a11172f-4b7d-456d-a910-9ac385f19006",
+      "status": "ANSWERED",
+      "answer": "按题设推算：知舟私有知识库的开发时间为 2026 年 3 月至 2026 年 6 月，首次模型加载耗时约 160 秒（即约 2 分 40 秒）。若将“这两个示例时间”理解为项目开发时间与首次加载耗时，二者量纲不同，不能直接相减得出有意义的时长差；若仅比较首次加载耗时与前端 60 秒等待上限，则首次加载比上限多约 100 秒（约 1 分 40 秒）。",
+      "model": "deepseek-flash",
+      "citations": [
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "02 项目经历：知舟私有知识库\n林知远项目档案与知识库规则 | 虚构资料 | RAG-DEMO-001 | 版本 1.0\n项目时间与角色\n项目名称：知舟私有知识库。项目编号：PRJ-A。开发时间：2026 年 3 月至 2026 年 6 月。林知远担任独立开\n发者，负责需求分析、前后端实现、测试与部署。\n项目目标与技术栈\n项目服务于个人学习资料整理，支持上传 PDF、Markdown 和 TXT 后进行有依据问答。后端采用 Python 与\nFastAPI，前端采用 React 与 TypeScript；PostgreSQL 保存业务数据，pgvector 保存向量，Redis 管理异步任务，\nDocker Compose 用于本地部署。\n个人职责\n林知远实现了文档上传、解析、分块、Embedding、Top K 检索、答案引用、文档停用和空间权限校验。检索\n阶段先限定空间与资料状态，再进行向量相似度排序。\n分块与检索策略\nMarkdown 先按标题分段；TXT 先按空行划分段落；PDF 保存页码后按段落切分。目标片段长度为 400 至\n700 个汉字，重叠长度为 80 个汉字。项目经历按项目名称分别组织，避免把整份简历作为一个片段。默认\nTop K 为 5。\n模型与回答规则\nEmbedding 使用 BAAI/bge-large-zh-v1.5，向量维度为 1024。系统使用余弦相似度衡量相关性。答案必须依据\n当前空间内已启用的资料；证据不足时应明确拒答，不得补造事实。检索测试只返回片段，不调用生成模型。\n测试结果与限制\n",
+          "page_number": 2,
+          "ordinal": 4,
+          "score": 0.544721
+        },
+        {
+          "source_available": true,
+          "document_name": "01-项目档案-v1.pdf",
+          "quoted_text": "；TXT 先按空行划分段落；PDF 保存页码后按段落切分。目标片段长度为 400 至\n700 个汉字，重叠长度为 80 个汉字。项目经历按项目名称分别组织，避免把整份简历作为一个片段。默认\nTop K 为 5。\n模型与回答规则\nEmbedding 使用 BAAI/bge-large-zh-v1.5，向量维度为 1024。系统使用余弦相似度衡量相关性。答案必须依据\n当前空间内已启用的资料；证据不足时应明确拒答，不得补造事实。检索测试只返回片段，不调用生成模型。\n测试结果与限制\n在虚构的 50 道测试题和 200 份中文文档上，Recall@5 为 0.86。模型预热后，单次检索 P95 耗时为 1.8 秒；该\n指标不包括模型冷启动和答案生成。人工答案正确率为 0.90。这些指标仅是本测试资料中的示例数据，并非\n当前知溯系统的测量结果。\n解决的问题\n首次模型加载曾耗时约 160 秒，超过前端 60 秒等待上限。林知远为检索请求设置单独的等待时间，并区分超\n时与普通网络错误。另通过过滤停用资料，防止检索继续返回旧内容。",
+          "page_number": 2,
+          "ordinal": 5,
+          "score": 0.513445
+        }
+      ]
+    },
+    "review": {
+      "score": 1,
+      "reason": "正确推算出首次加载比60秒上限多约100秒，但错误引入项目开发时间作为比较对象，造成混淆；核心推算结果正确但表述有范围问题。",
+      "method": "model-assisted"
+    }
+  }
+]

@@ -52,7 +52,7 @@ class TokenBudget:
             # Prefer a sentence boundary when it leaves a reasonably full block.
             segment = text[start:end]
             boundary = max(segment.rfind(c) for c in ('。', '！', '？', '\n'))+1
-            if boundary >= best//2 and boundary > 0 and start+boundary > covered_end:
+            if boundary >= best//2 and boundary > 0 and start+boundary > covered_end and self.count(text[start:start+boundary])<=self.capacity:
                 end = start+boundary
             content = text[start:end]
             result.append(TokenSlice(content, start, end, self.count(content)))

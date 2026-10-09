@@ -38,6 +38,7 @@ class BgeEmbeddingClient:
         timeout_seconds: float = 600.0,
         max_retries: int = 1,
         model_factory: ModelFactory | None = None,
+        token_budget_factory: Callable | None = None,
     ) -> None:
         if expected_dimension <= 0:
             raise ValueError("expected_dimension must be positive")
@@ -60,6 +61,9 @@ class BgeEmbeddingClient:
         self._initialization_lock = asyncio.Lock()
         self._encoding_lock = asyncio.Lock()
         self._encoding_task: asyncio.Task | None = None
+        self._document_budget = None
+        self._document_budget_task = None
+        self._budget_factory = token_budget_factory or (None if self._custom_factory else self._local_token_budget)
 
     async def embed_queries(self, texts: Sequence[str]) -> list[list[float]]:
         return await self._embed(texts, encoder_name="encode_queries")
@@ -73,6 +77,32 @@ class BgeEmbeddingClient:
         if budget is None:
             raise EmbeddingBackendUnavailable('模型没有提供 tokenizer，无法验证资料长度。')
         return await asyncio.to_thread(budget.split, text, overlap_characters=240)
+
+    async def document_token_budget(self) -> TokenBudget:
+        if self._budget_factory is None:
+            budget=self._token_budget(await self._get_model())
+            if budget is None:raise EmbeddingBackendUnavailable('模型没有提供 tokenizer，无法验证资料长度。')
+            return budget
+        if self._document_budget is not None:return self._document_budget
+        if self._document_budget_task is None:
+            self._document_budget_task=asyncio.create_task(asyncio.to_thread(self._budget_factory,model_name=self._model_name))
+            self._document_budget_task.add_done_callback(lambda task:task.exception() if not task.cancelled() else None)
+        try:
+            result=await asyncio.wait_for(asyncio.shield(self._document_budget_task),timeout=self._timeout_seconds)
+            if not isinstance(result,TokenBudget):raise ValueError('Invalid tokenizer budget')
+            self._document_budget=result
+            return result
+        except asyncio.CancelledError:raise
+        except Exception as exc:
+            if self._document_budget_task.done():self._document_budget_task=None
+            raise EmbeddingBackendUnavailable('本地 tokenizer 暂时不可用，请稍后重试。') from exc
+
+    @staticmethod
+    def _local_token_budget(*,model_name):
+        from transformers import AutoConfig,AutoTokenizer
+        config=AutoConfig.from_pretrained(model_name,local_files_only=True,trust_remote_code=False)
+        tokenizer=AutoTokenizer.from_pretrained(model_name,local_files_only=True,trust_remote_code=False)
+        return TokenBudget(tokenizer,capacity=min(512,int(getattr(config,'max_position_embeddings',512))))
 
     def _token_budget(self, model: object) -> TokenBudget | None:
         tokenizer = getattr(model, 'tokenizer', None)

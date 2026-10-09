@@ -1,0 +1,10 @@
+{
+  "status": "PASSED",
+  "checked_cases": 500,
+  "fingerprints": {
+    "pdf": "989717c68e40ed3416cb23bc94524d8553424197309170d5946ad1bb2992fcbc",
+    "md": "946ed7f40941f8630baf81a00d37d688538befc4b37345c12814c297dd9a0b50",
+    "txt": "986275d8a78a33a2eb202498d27757f9eca1f439c0f669e07006a2d4b85776cd"
+  },
+  "original_14_30": true
+}

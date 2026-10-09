@@ -1,0 +1,122 @@
+[
+  {
+    "document": "01-青桥.pdf",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "dad495bd-6650-43a8-817e-1324468bfde2",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "02-星埠.pdf",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "bba8e67d-f659-4bd9-ae7c-e02a0acc670d",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "03-海栈.pdf",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "4f11d319-2a41-4f95-ab2a-a07520526926",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "04-云港.pdf",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "b6031522-9316-4ffc-95b9-c856c7f19c0f",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "05-风禾.pdf",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "3279b7bf-e73a-4769-bda2-50e5656c5d6b",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "01-青桥.md",
+    "before_chunks": 10,
+    "after_chunks": 10,
+    "new_version_id": "fac389f7-a91d-40cc-941b-f916876b5468",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "02-星埠.md",
+    "before_chunks": 10,
+    "after_chunks": 10,
+    "new_version_id": "2581fb74-b257-4ddd-b55e-d0f929375d81",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "03-海栈.md",
+    "before_chunks": 10,
+    "after_chunks": 10,
+    "new_version_id": "0e474226-7ed5-4f7e-96f3-c2e1e3fd20ad",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "04-云港.md",
+    "before_chunks": 10,
+    "after_chunks": 10,
+    "new_version_id": "0634979e-ae67-41e7-b935-62a12ab624a8",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "05-风禾.md",
+    "before_chunks": 10,
+    "after_chunks": 10,
+    "new_version_id": "3665bd89-c695-46aa-9072-a8779690cf81",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "01-青桥.txt",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "57d4ad29-2748-4f1c-8be2-e9cfa38adf5c",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "02-星埠.txt",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "b0b26616-692a-41cf-be13-a1d410d53ebc",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "03-海栈.txt",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "c0e223bb-0704-49fb-b59b-b534223ed78d",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "04-云港.txt",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "b84df700-0def-4663-8c79-f9eef6f11c81",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  },
+  {
+    "document": "05-风禾.txt",
+    "before_chunks": 1,
+    "after_chunks": 11,
+    "new_version_id": "1087d81a-d61d-4198-ab12-8beea2ab42da",
+    "exact_span_and_budget": "PASSED",
+    "preview_equals_persisted": "PASSED"
+  }
+]

@@ -1,0 +1,652 @@
+[
+  {
+    "id": "D001",
+    "split": "tune",
+    "format": "pdf",
+    "service": "青桥",
+    "document": "01-青桥.pdf",
+    "question": "青桥能试用多少天？",
+    "expected_answer": "16天",
+    "answerable": true,
+    "evidence_literals": [
+      "16天"
+    ]
+  },
+  {
+    "id": "D002",
+    "split": "holdout",
+    "format": "md",
+    "service": "青桥",
+    "document": "01-青桥.md",
+    "question": "青桥停用之后，资料还保留多久？",
+    "expected_answer": "46天",
+    "answerable": true,
+    "evidence_literals": [
+      "46天"
+    ]
+  },
+  {
+    "id": "D003",
+    "split": "tune",
+    "format": "txt",
+    "service": "青桥",
+    "document": "01-青桥.txt",
+    "question": "青桥一个文件的容量限制是多少？",
+    "expected_answer": "5MB",
+    "answerable": true,
+    "evidence_literals": [
+      "5MB"
+    ]
+  },
+  {
+    "id": "D004",
+    "split": "tune",
+    "format": "pdf",
+    "service": "青桥",
+    "document": "01-青桥.pdf",
+    "question": "青桥同步异常的标识是什么？",
+    "expected_answer": "DQ-101",
+    "answerable": true,
+    "evidence_literals": [
+      "DQ-101"
+    ]
+  },
+  {
+    "id": "D005",
+    "split": "tune",
+    "format": "md",
+    "service": "青桥",
+    "document": "01-青桥.md",
+    "question": "谁有权审批青桥的范围修改？",
+    "expected_answer": "资料管理员",
+    "answerable": true,
+    "evidence_literals": [
+      "资料管理员"
+    ]
+  },
+  {
+    "id": "D006",
+    "split": "tune",
+    "format": "txt",
+    "service": "青桥",
+    "document": "01-青桥.txt",
+    "question": "青桥重复使用同步请求标识会重复导入吗？",
+    "expected_answer": "不会重复导入",
+    "answerable": true,
+    "evidence_literals": [
+      "重复标识不重复导入"
+    ]
+  },
+  {
+    "id": "D007",
+    "split": "tune",
+    "format": "pdf",
+    "service": "青桥",
+    "document": "01-青桥.pdf",
+    "question": "青桥的访客能下载原始文件吗？",
+    "expected_answer": "没有原始文件下载入口",
+    "answerable": true,
+    "evidence_literals": [
+      "没有原始文件下载入口"
+    ]
+  },
+  {
+    "id": "D008",
+    "split": "holdout",
+    "format": "md",
+    "service": "青桥",
+    "document": "01-青桥.md",
+    "question": "青桥的保留周期比试用期限多多少天？",
+    "expected_answer": "推算相差30天",
+    "answerable": true,
+    "evidence_literals": [
+      "16天",
+      "46天"
+    ]
+  },
+  {
+    "id": "D009",
+    "split": "tune",
+    "format": "txt",
+    "service": "青桥",
+    "document": "01-青桥.txt",
+    "question": "请分别列出青桥的试用期限和资料保留周期。",
+    "expected_answer": "16天；46天",
+    "answerable": true,
+    "evidence_literals": [
+      "16天",
+      "46天"
+    ]
+  },
+  {
+    "id": "D010",
+    "split": "tune",
+    "format": "pdf",
+    "service": "青桥",
+    "document": "01-青桥.pdf",
+    "question": "青桥的订阅价格多少钱？",
+    "expected_answer": "资料未记录，不应猜测",
+    "answerable": false,
+    "evidence_literals": []
+  },
+  {
+    "id": "D011",
+    "split": "tune",
+    "format": "md",
+    "service": "星埠",
+    "document": "02-星埠.md",
+    "question": "星埠能试用多少天？",
+    "expected_answer": "22天",
+    "answerable": true,
+    "evidence_literals": [
+      "22天"
+    ]
+  },
+  {
+    "id": "D012",
+    "split": "tune",
+    "format": "txt",
+    "service": "星埠",
+    "document": "02-星埠.txt",
+    "question": "星埠停用之后，资料还保留多久？",
+    "expected_answer": "62天",
+    "answerable": true,
+    "evidence_literals": [
+      "62天"
+    ]
+  },
+  {
+    "id": "D013",
+    "split": "holdout",
+    "format": "pdf",
+    "service": "星埠",
+    "document": "02-星埠.pdf",
+    "question": "星埠一个文件的容量限制是多少？",
+    "expected_answer": "7MB",
+    "answerable": true,
+    "evidence_literals": [
+      "7MB"
+    ]
+  },
+  {
+    "id": "D014",
+    "split": "tune",
+    "format": "md",
+    "service": "星埠",
+    "document": "02-星埠.md",
+    "question": "星埠同步异常的标识是什么？",
+    "expected_answer": "DQ-202",
+    "answerable": true,
+    "evidence_literals": [
+      "DQ-202"
+    ]
+  },
+  {
+    "id": "D015",
+    "split": "tune",
+    "format": "txt",
+    "service": "星埠",
+    "document": "02-星埠.txt",
+    "question": "谁有权审批星埠的范围修改？",
+    "expected_answer": "空间拥有者",
+    "answerable": true,
+    "evidence_literals": [
+      "空间拥有者"
+    ]
+  },
+  {
+    "id": "D016",
+    "split": "tune",
+    "format": "pdf",
+    "service": "星埠",
+    "document": "02-星埠.pdf",
+    "question": "星埠重复使用同步请求标识会重复导入吗？",
+    "expected_answer": "不会重复导入",
+    "answerable": true,
+    "evidence_literals": [
+      "重复标识不重复导入"
+    ]
+  },
+  {
+    "id": "D017",
+    "split": "tune",
+    "format": "md",
+    "service": "星埠",
+    "document": "02-星埠.md",
+    "question": "星埠的访客能下载原始文件吗？",
+    "expected_answer": "没有原始文件下载入口",
+    "answerable": true,
+    "evidence_literals": [
+      "没有原始文件下载入口"
+    ]
+  },
+  {
+    "id": "D018",
+    "split": "tune",
+    "format": "txt",
+    "service": "星埠",
+    "document": "02-星埠.txt",
+    "question": "星埠的保留周期比试用期限多多少天？",
+    "expected_answer": "推算相差40天",
+    "answerable": true,
+    "evidence_literals": [
+      "22天",
+      "62天"
+    ]
+  },
+  {
+    "id": "D019",
+    "split": "holdout",
+    "format": "pdf",
+    "service": "星埠",
+    "document": "02-星埠.pdf",
+    "question": "请分别列出星埠的试用期限和资料保留周期。",
+    "expected_answer": "22天；62天",
+    "answerable": true,
+    "evidence_literals": [
+      "22天",
+      "62天"
+    ]
+  },
+  {
+    "id": "D020",
+    "split": "tune",
+    "format": "md",
+    "service": "星埠",
+    "document": "02-星埠.md",
+    "question": "星埠的订阅价格多少钱？",
+    "expected_answer": "资料未记录，不应猜测",
+    "answerable": false,
+    "evidence_literals": []
+  },
+  {
+    "id": "D021",
+    "split": "holdout",
+    "format": "txt",
+    "service": "海栈",
+    "document": "03-海栈.txt",
+    "question": "海栈能试用多少天？",
+    "expected_answer": "28天",
+    "answerable": true,
+    "evidence_literals": [
+      "28天"
+    ]
+  },
+  {
+    "id": "D022",
+    "split": "tune",
+    "format": "pdf",
+    "service": "海栈",
+    "document": "03-海栈.pdf",
+    "question": "海栈停用之后，资料还保留多久？",
+    "expected_answer": "88天",
+    "answerable": true,
+    "evidence_literals": [
+      "88天"
+    ]
+  },
+  {
+    "id": "D023",
+    "split": "tune",
+    "format": "md",
+    "service": "海栈",
+    "document": "03-海栈.md",
+    "question": "海栈一个文件的容量限制是多少？",
+    "expected_answer": "9MB",
+    "answerable": true,
+    "evidence_literals": [
+      "9MB"
+    ]
+  },
+  {
+    "id": "D024",
+    "split": "tune",
+    "format": "txt",
+    "service": "海栈",
+    "document": "03-海栈.txt",
+    "question": "海栈同步异常的标识是什么？",
+    "expected_answer": "DQ-303",
+    "answerable": true,
+    "evidence_literals": [
+      "DQ-303"
+    ]
+  },
+  {
+    "id": "D025",
+    "split": "tune",
+    "format": "pdf",
+    "service": "海栈",
+    "document": "03-海栈.pdf",
+    "question": "谁有权审批海栈的范围修改？",
+    "expected_answer": "技术维护员",
+    "answerable": true,
+    "evidence_literals": [
+      "技术维护员"
+    ]
+  },
+  {
+    "id": "D026",
+    "split": "tune",
+    "format": "md",
+    "service": "海栈",
+    "document": "03-海栈.md",
+    "question": "海栈重复使用同步请求标识会重复导入吗？",
+    "expected_answer": "不会重复导入",
+    "answerable": true,
+    "evidence_literals": [
+      "重复标识不重复导入"
+    ]
+  },
+  {
+    "id": "D027",
+    "split": "holdout",
+    "format": "txt",
+    "service": "海栈",
+    "document": "03-海栈.txt",
+    "question": "海栈的访客能下载原始文件吗？",
+    "expected_answer": "没有原始文件下载入口",
+    "answerable": true,
+    "evidence_literals": [
+      "没有原始文件下载入口"
+    ]
+  },
+  {
+    "id": "D028",
+    "split": "tune",
+    "format": "pdf",
+    "service": "海栈",
+    "document": "03-海栈.pdf",
+    "question": "海栈的保留周期比试用期限多多少天？",
+    "expected_answer": "推算相差60天",
+    "answerable": true,
+    "evidence_literals": [
+      "28天",
+      "88天"
+    ]
+  },
+  {
+    "id": "D029",
+    "split": "tune",
+    "format": "md",
+    "service": "海栈",
+    "document": "03-海栈.md",
+    "question": "请分别列出海栈的试用期限和资料保留周期。",
+    "expected_answer": "28天；88天",
+    "answerable": true,
+    "evidence_literals": [
+      "28天",
+      "88天"
+    ]
+  },
+  {
+    "id": "D030",
+    "split": "tune",
+    "format": "txt",
+    "service": "海栈",
+    "document": "03-海栈.txt",
+    "question": "海栈的订阅价格多少钱？",
+    "expected_answer": "资料未记录，不应猜测",
+    "answerable": false,
+    "evidence_literals": []
+  },
+  {
+    "id": "D031",
+    "split": "tune",
+    "format": "pdf",
+    "service": "云港",
+    "document": "04-云港.pdf",
+    "question": "云港能试用多少天？",
+    "expected_answer": "34天",
+    "answerable": true,
+    "evidence_literals": [
+      "34天"
+    ]
+  },
+  {
+    "id": "D032",
+    "split": "tune",
+    "format": "md",
+    "service": "云港",
+    "document": "04-云港.md",
+    "question": "云港停用之后，资料还保留多久？",
+    "expected_answer": "104天",
+    "answerable": true,
+    "evidence_literals": [
+      "104天"
+    ]
+  },
+  {
+    "id": "D033",
+    "split": "tune",
+    "format": "txt",
+    "service": "云港",
+    "document": "04-云港.txt",
+    "question": "云港一个文件的容量限制是多少？",
+    "expected_answer": "11MB",
+    "answerable": true,
+    "evidence_literals": [
+      "11MB"
+    ]
+  },
+  {
+    "id": "D034",
+    "split": "holdout",
+    "format": "pdf",
+    "service": "云港",
+    "document": "04-云港.pdf",
+    "question": "云港同步异常的标识是什么？",
+    "expected_answer": "DQ-404",
+    "answerable": true,
+    "evidence_literals": [
+      "DQ-404"
+    ]
+  },
+  {
+    "id": "D035",
+    "split": "tune",
+    "format": "md",
+    "service": "云港",
+    "document": "04-云港.md",
+    "question": "谁有权审批云港的范围修改？",
+    "expected_answer": "知识管理员",
+    "answerable": true,
+    "evidence_literals": [
+      "知识管理员"
+    ]
+  },
+  {
+    "id": "D036",
+    "split": "tune",
+    "format": "txt",
+    "service": "云港",
+    "document": "04-云港.txt",
+    "question": "云港重复使用同步请求标识会重复导入吗？",
+    "expected_answer": "不会重复导入",
+    "answerable": true,
+    "evidence_literals": [
+      "重复标识不重复导入"
+    ]
+  },
+  {
+    "id": "D037",
+    "split": "tune",
+    "format": "pdf",
+    "service": "云港",
+    "document": "04-云港.pdf",
+    "question": "云港的访客能下载原始文件吗？",
+    "expected_answer": "没有原始文件下载入口",
+    "answerable": true,
+    "evidence_literals": [
+      "没有原始文件下载入口"
+    ]
+  },
+  {
+    "id": "D038",
+    "split": "tune",
+    "format": "md",
+    "service": "云港",
+    "document": "04-云港.md",
+    "question": "云港的保留周期比试用期限多多少天？",
+    "expected_answer": "推算相差70天",
+    "answerable": true,
+    "evidence_literals": [
+      "34天",
+      "104天"
+    ]
+  },
+  {
+    "id": "D039",
+    "split": "tune",
+    "format": "txt",
+    "service": "云港",
+    "document": "04-云港.txt",
+    "question": "请分别列出云港的试用期限和资料保留周期。",
+    "expected_answer": "34天；104天",
+    "answerable": true,
+    "evidence_literals": [
+      "34天",
+      "104天"
+    ]
+  },
+  {
+    "id": "D040",
+    "split": "holdout",
+    "format": "pdf",
+    "service": "云港",
+    "document": "04-云港.pdf",
+    "question": "云港的订阅价格多少钱？",
+    "expected_answer": "资料未记录，不应猜测",
+    "answerable": false,
+    "evidence_literals": []
+  },
+  {
+    "id": "D041",
+    "split": "tune",
+    "format": "md",
+    "service": "风禾",
+    "document": "05-风禾.md",
+    "question": "风禾能试用多少天？",
+    "expected_answer": "40天",
+    "answerable": true,
+    "evidence_literals": [
+      "40天"
+    ]
+  },
+  {
+    "id": "D042",
+    "split": "tune",
+    "format": "txt",
+    "service": "风禾",
+    "document": "05-风禾.txt",
+    "question": "风禾停用之后，资料还保留多久？",
+    "expected_answer": "130天",
+    "answerable": true,
+    "evidence_literals": [
+      "130天"
+    ]
+  },
+  {
+    "id": "D043",
+    "split": "tune",
+    "format": "pdf",
+    "service": "风禾",
+    "document": "05-风禾.pdf",
+    "question": "风禾一个文件的容量限制是多少？",
+    "expected_answer": "13MB",
+    "answerable": true,
+    "evidence_literals": [
+      "13MB"
+    ]
+  },
+  {
+    "id": "D044",
+    "split": "tune",
+    "format": "md",
+    "service": "风禾",
+    "document": "05-风禾.md",
+    "question": "风禾同步异常的标识是什么？",
+    "expected_answer": "DQ-505",
+    "answerable": true,
+    "evidence_literals": [
+      "DQ-505"
+    ]
+  },
+  {
+    "id": "D045",
+    "split": "holdout",
+    "format": "txt",
+    "service": "风禾",
+    "document": "05-风禾.txt",
+    "question": "谁有权审批风禾的范围修改？",
+    "expected_answer": "高级协作者",
+    "answerable": true,
+    "evidence_literals": [
+      "高级协作者"
+    ]
+  },
+  {
+    "id": "D046",
+    "split": "tune",
+    "format": "pdf",
+    "service": "风禾",
+    "document": "05-风禾.pdf",
+    "question": "风禾重复使用同步请求标识会重复导入吗？",
+    "expected_answer": "不会重复导入",
+    "answerable": true,
+    "evidence_literals": [
+      "重复标识不重复导入"
+    ]
+  },
+  {
+    "id": "D047",
+    "split": "tune",
+    "format": "md",
+    "service": "风禾",
+    "document": "05-风禾.md",
+    "question": "风禾的访客能下载原始文件吗？",
+    "expected_answer": "没有原始文件下载入口",
+    "answerable": true,
+    "evidence_literals": [
+      "没有原始文件下载入口"
+    ]
+  },
+  {
+    "id": "D048",
+    "split": "tune",
+    "format": "txt",
+    "service": "风禾",
+    "document": "05-风禾.txt",
+    "question": "风禾的保留周期比试用期限多多少天？",
+    "expected_answer": "推算相差90天",
+    "answerable": true,
+    "evidence_literals": [
+      "40天",
+      "130天"
+    ]
+  },
+  {
+    "id": "D049",
+    "split": "tune",
+    "format": "pdf",
+    "service": "风禾",
+    "document": "05-风禾.pdf",
+    "question": "请分别列出风禾的试用期限和资料保留周期。",
+    "expected_answer": "40天；130天",
+    "answerable": true,
+    "evidence_literals": [
+      "40天",
+      "130天"
+    ]
+  },
+  {
+    "id": "D050",
+    "split": "holdout",
+    "format": "md",
+    "service": "风禾",
+    "document": "05-风禾.md",
+    "question": "风禾的订阅价格多少钱？",
+    "expected_answer": "资料未记录，不应猜测",
+    "answerable": false,
+    "evidence_literals": []
+  }
+]

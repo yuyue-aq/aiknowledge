@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ApiRequestError, deleteDocument, formatFileSize, getOwnerDocumentDetail, retryDocumentVersion, uploadDocumentVersion, type OwnerDocumentDetail, type RetrievalItem } from '../api/client'
 import { ConfirmDialog } from './ConfirmDialog'
+import { ChunkPreviewView } from './ChunkPreviewView'
 import { V2Button, V2Heading, V2Notice, V2Panel } from './V2UI'
 import './v2.scss'
 
@@ -16,6 +17,7 @@ export function DocumentDetailView({ spaceId, documentId, onBack, onAsk, onRetri
   const [progress, setProgress] = useState<number | null>(null)
   const [attempt, setAttempt] = useState(0)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
   const upload = useRef<AbortController | null>(null)
   const alive = useRef(true)
@@ -51,6 +53,9 @@ export function DocumentDetailView({ spaceId, documentId, onBack, onAsk, onRetri
     finally { mutation.current = false; if (alive.current) { setBusy(false); setProgress(null) } }
   }
   const pending = detail?.versions.some(version => version.status === 'PROCESSING') || false
+  if (previewing && detail) return <ChunkPreviewView spaceId={spaceId} documentId={documentId} filename={detail.document.original_filename}
+    onBack={() => setPreviewing(false)} onRebuilt={enqueued => { setPreviewing(false); setNotice(enqueued ? '分块重建已提交，新版本可用前继续使用旧版本。' : '重建未入队，旧版本仍可用，请查看失败版本并重试。'); setAttempt(value => value + 1) }}
+  />
   return <div className='v2-page'>
     <V2Heading title='资料详情' description={detail?.document.original_filename || '查看当前资料与版本记录。'}
       actions={<><V2Button kind='outline' onClick={onBack}>返回资料</V2Button><V2Button onClick={onAsk} disabled={detail?.document.status !== 'READY'}>开始提问</V2Button></>}
@@ -62,7 +67,8 @@ export function DocumentDetailView({ spaceId, documentId, onBack, onAsk, onRetri
       <V2Panel><h2>当前活动版本</h2><div className='v2-row'><strong>{detail.document.status === 'READY' ? '可用于问答' : detail.document.status === 'FAILED' ? '处理失败' : '处理中'}</strong>
         <small>{formatFileSize(detail.document.size_bytes)} · {detail.chunks.length} 个当前可用片段</small></div>
         {detail.document.failure_message && <V2Notice danger>{detail.document.failure_message}</V2Notice>}
-        <p>{detail.document.original_filename}</p><V2Button kind='outline' onClick={onRetrieve}>检索测试</V2Button>
+        <p>{detail.document.original_filename}</p><div className='v2-row'><V2Button kind='outline' onClick={onRetrieve}>检索测试</V2Button>
+          <V2Button kind='outline' disabled={pending || detail.document.status !== 'READY' || !detail.chunks.length} onClick={() => setPreviewing(true)}>结构分块预览</V2Button></div>
       </V2Panel>
       <V2Panel><h2>原文片段</h2>{!detail.chunks.length ? <p>当前没有可用片段，请检查处理状态、启用状态与有效时间。</p> : <>
         <div className='v2-row'>{detail.chunks.map(item => <V2Button key={item.chunk_id} kind='outline' pressed={selected?.chunk_id === item.chunk_id} onClick={() => setSelected(item)}>片段 {item.ordinal}</V2Button>)}</div>

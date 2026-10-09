@@ -19,6 +19,7 @@ from app.domain.documents import (
     PersistedChunk,
     StoredDocument,
     StoredDocumentVersion,
+    DocumentVersionConflictError,
     validate_document_availability,
 )
 from app.services.document_ingestion import DocumentIngestionError, PreparedDocument
@@ -67,7 +68,7 @@ class DocumentRepository(Protocol):
 
     async def activate_processed_version(
         self, *, version_id: UUID, chunks: tuple[PersistedChunk, ...]
-    ) -> None: ...
+    ) -> bool | None: ...
 
     async def fail_processing_version(
         self, *, version_id: UUID, code: DocumentFailureCode, message: str
@@ -175,7 +176,13 @@ class DocumentUploadService:
         expires_at: datetime | None = None,
         owner_user_id: UUID | None = None,
         _replacing_document: StoredDocument | None = None,
+        _chunk_config: dict[str,object] | None = None,
     ) -> DocumentSubmission:
+        if _chunk_config is not None:
+            from app.services.chunk_plan import ChunkConfig
+            ChunkConfig.from_dict(_chunk_config)
+            if _replacing_document is None or owner_user_id is None:
+                raise DocumentPermissionDeniedError('分块重建需要已授权的资料管理员。')
         validate_document_availability(
             effective_at=effective_at,
             expires_at=expires_at,
@@ -191,7 +198,7 @@ class DocumentUploadService:
             role_reader = getattr(self._repository, "get_space_role", None)
             role = await role_reader(space_id=space_id, user_id=owner_user_id) if role_reader else None
             if role_reader is not None and role is not None:
-                if not self._role_at_least(role, SpaceRole.EDITOR):
+                if not self._role_at_least(role, SpaceRole.ADMIN if _chunk_config is not None else SpaceRole.EDITOR):
                     raise DocumentPermissionDeniedError("你没有上传或编辑此空间文档的权限。")
             else:
                 checker = getattr(self._repository, "has_space_access", None)
@@ -204,9 +211,10 @@ class DocumentUploadService:
                 space_id, owner_user_id=owner_user_id
             )
         source_hash = hashlib.sha256(content).hexdigest()
-        if await self._repository.find_active_document_by_hash(
+        existing = await self._repository.find_active_document_by_hash(
             space_id=space_id, sha256=source_hash
-        ):
+        )
+        if existing and not (_chunk_config is not None and _replacing_document is not None and existing.id==_replacing_document.id):
             raise DocumentAlreadyExistsError("该空间中已存在相同内容的活动文档。")
 
         now = self._now()
@@ -254,6 +262,10 @@ class DocumentUploadService:
             source_snapshot={'storage_key': storage_key, 'original_filename': safe_filename, 'mime_type': resolved_mime,
                 'size_bytes': len(content), 'sha256': source_hash},
         )
+        if _chunk_config is not None:
+            from dataclasses import replace
+            version=replace(version,chunk_config=dict(_chunk_config),source_snapshot={**version.source_snapshot,
+                'requested_by_user_id':str(owner_user_id),'base_active_version_id':str(_replacing_document.active_version_id)})
         await self._storage.put_bytes(
             object_key=storage_key,
             data=content,
@@ -417,7 +429,10 @@ class DocumentProcessingService:
         try:
             source = await self._storage.get_bytes(document.storage_key)
             parsed = self._parser.parse(filename=document.original_filename, content=source)
-            prepared = await self._ingestion_service.prepare(parsed)
+            if version.chunk_config.get('strategy_version')=='source-paragraph-token-v1' or 'strategy' in version.chunk_config:
+                prepared = await self._ingestion_service.prepare(parsed,chunk_config=version.chunk_config)
+            else:
+                prepared = await self._ingestion_service.prepare(parsed)
         except DocumentParseError as error:
             await self._repository.fail_processing_version(
                 version_id=version.id, code=error.code, message=str(error)
@@ -457,6 +472,12 @@ class DocumentProcessingService:
             )
             for chunk in prepared.chunks
         )
-        await self._repository.activate_processed_version(version_id=version.id, chunks=chunks)
+        try:
+            activated=await self._repository.activate_processed_version(version_id=version.id, chunks=chunks)
+        except DocumentVersionConflictError:
+            await self._repository.fail_processing_version(version_id=version.id,code=DocumentFailureCode.EMBEDDING_FAILED,
+                message='重建所依据的版本已变化，请重新预览并创建新版本。')
+            await self._repository.commit()
+            return ProcessingOutcome.FAILED
         await self._repository.commit()
-        return ProcessingOutcome.ACTIVATED
+        return ProcessingOutcome.SKIPPED if activated is False else ProcessingOutcome.ACTIVATED

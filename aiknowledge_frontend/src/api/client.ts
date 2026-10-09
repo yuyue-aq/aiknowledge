@@ -1121,12 +1121,25 @@ export type RetrievalRun = {
 export type OwnerDocumentDetail = {
   document: KnowledgeDocument
   versions: Array<{ id: string; version_number: number; status: string; parser_version: string;
-    embedding_model: string; embedding_dimension: number; created_at: string }>
+    embedding_model: string; embedding_dimension: number; created_at: string; chunk_config?: Record<string, unknown> }>
   chunks: RetrievalItem[]
 }
 
 export async function getOwnerDocumentDetail(spaceId: string, documentId: string, signal?: AbortSignal): Promise<OwnerDocumentDetail> {
   return requestJson<OwnerDocumentDetail>(`/owner/spaces/${spaceId}/documents/${documentId}`, { signal })
+}
+
+export type ChunkOptions = { strategy: 'legacy' | 'structure'; max_tokens: number; overlap_characters: number }
+export type PreviewChunk = { ordinal: number; content: string; heading_path: string[]; page_number: number | null;
+  source_block_id: string | null; char_start: number | null; char_end: number | null; content_hash: string | null; token_count: number | null }
+export type ChunkPreview = { document_id: string; document_version_id: string; source_sha256: string; fingerprint: string;
+  embedding_model: string; current_config: Record<string, unknown>; candidate_config: Record<string, unknown>;
+  current_total: number; candidate_total: number; offset: number; limit: number; current: PreviewChunk[]; candidate: PreviewChunk[] }
+export function previewDocumentChunks(spaceId: string, documentId: string, input: ChunkOptions & { offset?: number; limit?: number }, signal?: AbortSignal): Promise<ChunkPreview> {
+  return requestJson(`/owner/spaces/${spaceId}/documents/${documentId}/chunk-preview`, { method: 'POST', data: input, signal, timeoutMs: 660000 })
+}
+export function rebuildDocumentChunks(spaceId: string, documentId: string, input: ChunkOptions & { expected_version_id: string; fingerprint: string }, signal?: AbortSignal): Promise<DocumentSubmission> {
+  return requestJson(`/owner/spaces/${spaceId}/documents/${documentId}/rechunk`, { method: 'POST', data: input, signal })
 }
 
 export type EvalEvidence = { items: RetrievalItem[]; unavailable_chunk_ids: string[]; snapshot_available: boolean }

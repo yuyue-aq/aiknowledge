@@ -1,0 +1,18 @@
+{
+  "status": "PASSED",
+  "checks": [
+    "Document detail entry and initial empty state",
+    "Native select opens and keyboard changes budget",
+    "Actual two-column preview and complete selected source",
+    "Explicit paging and totals",
+    "Config editing cancels old requests and clears stale previews",
+    "Controlled failure and retry using real model tokenizer",
+    "390px columns stack; long fingerprints and source remain usable",
+    "App confirmation Escape cancels without mutation and restores focus",
+    "Explicit rebuild returns to detail and real Worker activates selected config"
+  ],
+  "accepted_version_id": "358393f9-ed42-4d4b-b641-6569f6521d52",
+  "browser": "real Edge",
+  "mocked_success": false,
+  "controlled_fault": "503 and delayed request only"
+}

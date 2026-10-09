@@ -58,7 +58,7 @@ class SqlAlchemyRetrievalRepository:
 
     async def get_document_detail(self, *, scope: RetrievalScope, document_id: UUID):
         document = await self._session.scalar(select(DocumentRecord).where(DocumentRecord.id == document_id,
-            DocumentRecord.space_id == scope.space_id, DocumentRecord.deleted_at.is_(None)))
+            DocumentRecord.space_id == scope.space_id, DocumentRecord.deleted_at.is_(None)).execution_options(populate_existing=True))
         if document is None:
             return None
         versions = (await self._session.scalars(select(DocumentVersionRecord).where(
