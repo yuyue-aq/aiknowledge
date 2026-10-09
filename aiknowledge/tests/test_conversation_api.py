@@ -20,7 +20,7 @@ from app.domain.rag import AnswerStatus
 from app.domain.spaces import Category, KnowledgeSpace, PublicRetrievalScope, SpaceVisibility
 from app.core.config import Settings
 from app.main import create_app
-from app.api.v1.conversations import OwnerAnswerResponse, _as_sse
+from app.api.v1.conversations import OwnerAnswerResponse, OwnerConversationDetailResponse, PublicAnswerResponse, _as_sse
 
 
 @pytest.mark.asyncio
@@ -458,3 +458,50 @@ async def test_sse_generator_stops_before_final_events_when_client_disconnects()
     assert "event: delta" in body
     assert "event: answer" not in body
     assert "event: done" not in body
+
+
+def test_query_diagnostics_are_serialized_for_owners_and_omitted_from_public_response() -> None:
+    now = datetime(2026, 10, 9, tzinfo=UTC)
+    user = ConversationMessage(
+        id=uuid4(), conversation_id=uuid4(), role=MessageRole.USER,
+        content='原问题', created_at=now,
+    )
+    assistant = ConversationMessage(
+        id=uuid4(), conversation_id=user.conversation_id, role=MessageRole.ASSISTANT,
+        content='有依据的回答', answer_status=AnswerStatus.ANSWERED,
+        model='deepseek-v4-flash', created_at=now,
+    )
+    diagnostic = {
+        'original_question': '原问题',
+        'retrieval_question': '改写后的检索问题',
+        'was_rewritten': True,
+        'queries': [{
+            'kind': 'primary', 'query': '改写后的检索问题', 'evidence': [{
+                'chunk_id': str(uuid4()), 'document_name': '内部资料.txt',
+                'ordinal': 3, 'rank': 1, 'score': .91,
+                'score_kind': 'cosine', 'selected_for_context': True,
+            }],
+        }],
+    }
+    answer = ConversationAnswer(
+        user=user, assistant=assistant, citations=(), query_diagnostics=diagnostic,
+    )
+
+    owner_payload = OwnerAnswerResponse.from_domain(answer).model_dump(mode='json')
+    public_payload = PublicAnswerResponse.from_domain(answer).model_dump(mode='json')
+
+    assert owner_payload['query_diagnostics']['original_question'] == '原问题'
+    assert owner_payload['query_diagnostics']['queries'][0]['evidence'][0]['document_name'] == '内部资料.txt'
+    assert 'query_diagnostics' not in public_payload
+    assert '内部资料.txt' not in str(public_payload)
+
+    conversation = Conversation(
+        id=user.conversation_id, space_id=uuid4(), kind=ConversationKind.OWNER,
+        share_link_id=None, title='检索诊断', created_at=now, updated_at=now,
+    )
+    detail = ConversationDetail(
+        conversation=conversation, messages=(user, assistant), citations_by_message={},
+        query_diagnostics_by_message={assistant.id: diagnostic},
+    )
+    history_payload = OwnerConversationDetailResponse.from_domain(detail).model_dump(mode='json')
+    assert history_payload['messages'][1]['query_diagnostics']['original_question'] == '原问题'

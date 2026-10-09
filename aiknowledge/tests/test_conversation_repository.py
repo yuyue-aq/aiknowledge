@@ -162,6 +162,27 @@ async def test_conversation_repository_persists_conversation_messages_and_citati
 
 
 @pytest.mark.asyncio
+async def test_repository_reads_owner_query_diagnostics_from_rag_run_snapshots() -> None:
+    session = FakeSession()
+    message_id = uuid4()
+    diagnostic = {
+        'original_question': '原问题',
+        'retrieval_question': '补全指代后的问题',
+        'was_rewritten': True,
+        'queries': [],
+    }
+    session.query_rows = [SimpleNamespace(
+        message_id=message_id,
+        model_snapshot={'query_diagnostics': diagnostic},
+    )]
+
+    result = await SqlAlchemyConversationRepository(session).list_query_diagnostics([message_id])
+
+    assert result == {message_id: diagnostic}
+    assert 'rag_runs.message_id IN' in str(session.executed[0])
+
+
+@pytest.mark.asyncio
 async def test_retrieval_queries_apply_document_and_public_scope_filters_before_vector_ordering() -> None:
     session = FakeSession()
     repository = SqlAlchemyConversationRepository(session)  # type: ignore[arg-type]

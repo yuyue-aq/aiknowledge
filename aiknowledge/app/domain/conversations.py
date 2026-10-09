@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
@@ -154,6 +154,7 @@ class ConversationAnswer:
     assistant: ConversationMessage
     citations: tuple[CitationSnapshot, ...]
     scope_snapshot: tuple[int, int] | None = None
+    query_diagnostics: dict[str, object] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -161,6 +162,7 @@ class ConversationDetail:
     conversation: Conversation
     messages: tuple[ConversationMessage, ...]
     citations_by_message: dict[UUID, tuple[CitationSnapshot, ...]]
+    query_diagnostics_by_message: dict[UUID, dict[str, object]] = field(default_factory=dict)
 
 
 class FeedbackMessageNotFoundError(LookupError):

@@ -72,6 +72,7 @@ import {
   getSpaceUsage,
   type SpaceUsage,
   type RetrievalMetadataFilter,
+  type QueryDiagnostics,
   emptyRetrievalMetadataFilter,
   createSource,
   listSources,
@@ -114,6 +115,7 @@ type LocalMessage = {
   status?: AnswerStatus;
   model?: string | null;
   citations: Citation[];
+  query_diagnostics?: QueryDiagnostics | null;
   created_at: string;
 };
 
@@ -135,6 +137,7 @@ function toLocalMessages(detail: ConversationDetail): LocalMessage[] {
     status: message.status ?? undefined,
     model: message.model,
     citations: message.citations,
+    query_diagnostics: message.query_diagnostics,
     created_at: message.created_at,
   }));
 }
@@ -1304,6 +1307,52 @@ function MessageBubble({
         </Text>
         <Text className='message-content'>{message.content}</Text>
         {!!message.citations.length && <div className='v2-row'>{message.citations.map(citation => <V2Button key={citation.ordinal} kind='ghost' onClick={() => onCitation(message, citation.ordinal)}>[{citation.ordinal}] {citation.document_name}</V2Button>)}</div>}
+        {message.query_diagnostics && (
+          <details className='query-diagnostics'>
+            <summary>查看问题改写与子问题证据</summary>
+            <div className='query-diagnostics-body'>
+              <div className='query-diagnostic-question'>
+                <Text className='query-diagnostic-label'>用户原问题</Text>
+                <Text>{message.query_diagnostics.original_question}</Text>
+              </div>
+              <div className='query-diagnostic-question'>
+                <Text className='query-diagnostic-label'>
+                  实际检索问题 · {message.query_diagnostics.was_rewritten ? '已补全指代' : '沿用原问题'}
+                </Text>
+                <Text>{message.query_diagnostics.retrieval_question}</Text>
+              </div>
+              {message.query_diagnostics.queries.map((trace, index) => (
+                <div className='query-trace' key={`${trace.kind}-${index}`}>
+                  <Text className='query-trace-title'>
+                    {trace.kind === 'primary' ? '主问题检索' : `拆分问题 ${index}`}
+                  </Text>
+                  <Text className='query-trace-question'>{trace.query}</Text>
+                  {trace.evidence.length ? (
+                    <div className='query-evidence-list'>
+                      {trace.evidence.map((evidence) => (
+                        <div className='query-evidence-row' key={`${trace.kind}-${index}-${evidence.chunk_id}`}>
+                          <div className='query-evidence-source'>
+                            <Text className='query-evidence-rank'>#{evidence.rank}</Text>
+                            <Text className='query-evidence-name' aria-label={`${evidence.document_name}，片段 ${evidence.ordinal}`}>
+                              {evidence.document_name} · 片段 {evidence.ordinal}
+                            </Text>
+                          </div>
+                          <Text className={evidence.selected_for_context ? 'query-context-status is-selected' : 'query-context-status'}>
+                            {evidence.selected_for_context ? '已进入回答上下文' : '未进入回答上下文'}
+                          </Text>
+                          <Text className='query-evidence-score'>排序分数 {evidence.score.toFixed(3)} · {evidence.score_kind}</Text>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <Text className='query-evidence-empty'>未命中片段</Text>
+                  )}
+                </div>
+              ))}
+              <Text className='query-diagnostics-note'>排序分数不代表答案正确率；进入回答上下文也不等于最终引用。</Text>
+            </div>
+          </details>
+        )}
         <Text className='message-time'>
           {formatTime(message.created_at)} ·{" "}
           {message.model || (message.status === "FAILED" ? "未生成回答" : "模型信息未记录")}
@@ -2757,6 +2806,7 @@ export default function Index() {
             status: answer.status,
             model: answer.model,
             citations: answer.citations,
+            query_diagnostics: answer.query_diagnostics,
             created_at: now(),
           },
         ]);

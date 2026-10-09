@@ -188,6 +188,19 @@ class SqlAlchemyConversationRepository:
         )
         return [replace(self._to_citation(record), source_available=bool(current)) for record, current in records.all()]
 
+    async def list_query_diagnostics(self, message_ids: Sequence[UUID]) -> dict[UUID, dict[str, object]]:
+        if not message_ids:
+            return {}
+        records = await self._session.scalars(
+            select(RagRunRecord).where(RagRunRecord.message_id.in_(message_ids))
+        )
+        diagnostics = {}
+        for record in records.all():
+            value = record.model_snapshot.get('query_diagnostics')
+            if isinstance(value, dict):
+                diagnostics[record.message_id] = value
+        return diagnostics
+
     async def delete_conversation(self, conversation_id: UUID) -> None:
         record = await self._session.get(ConversationRecord, conversation_id)
         if record is None:

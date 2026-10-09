@@ -165,6 +165,27 @@ test('SSE parser handles split CRLF frames', async () => {
   assert.deepEqual(updates, ['中文', '中文回答'])
 })
 
+test('owner answer keeps query diagnostics returned by the API', async () => {
+  const diagnostics = {
+    original_question: '那关闭之后呢？',
+    retrieval_question: '上一轮问题：开放分类规则\n本轮追问：那关闭之后呢？',
+    was_rewritten: true,
+    queries: [{
+      kind: 'primary', query: '上一轮问题：开放分类规则\n本轮追问：那关闭之后呢？',
+      evidence: [{ chunk_id: 'chunk-1', document_name: '规则.txt', ordinal: 2,
+        rank: 1, score: 0.93, score_kind: 'cosine', selected_for_context: true }]
+    }]
+  }
+  const { client } = loadClient(async () => ({ statusCode: 200, data: {
+    answer: '关闭后不再检索。', status: 'ANSWERED', message_id: 'message-1',
+    model: 'deepseek-v4-flash', citations: [], query_diagnostics: diagnostics
+  } }))
+
+  const answer = await client.streamOwnerAnswer('conversation-1', '那关闭之后呢？', () => {})
+
+  assert.deepEqual(answer.query_diagnostics, diagnostics)
+})
+
 test('share URLs use the configured H5 page and encode the token', () => {
   const { client } = loadClient(async () => {})
   const url = new URL(client.publicShareUrl('token&x=1', 'https://example.com/'))

@@ -85,6 +85,13 @@ class FakeConversationRepository:
     async def list_citations(self, message_ids: list[UUID]):
         return [citation for citation in self.citations if citation.message_id in message_ids]
 
+    async def list_query_diagnostics(self, message_ids: list[UUID]):
+        return {
+            run.message_id: run.model_snapshot['query_diagnostics']
+            for run in self.rag_runs
+            if run.message_id in message_ids and isinstance(run.model_snapshot.get('query_diagnostics'), dict)
+        }
+
     async def delete_conversation(self, conversation_id: UUID) -> None:
         self.deleted = conversation_id
         self.conversations.pop(conversation_id, None)
@@ -133,6 +140,7 @@ class FakeRagService:
                 )
             ],
             model="deepseek-v4-flash",
+            execution_snapshot={'context_chunk_ids': [chunks[0].source.id]},
         )
 
 
@@ -456,6 +464,73 @@ async def test_subqueries_reuse_original_scoped_retriever_and_account_for_planni
     assert len(repository.owner_queries)==3
     assert all(x[0]==repository.space_id for x in repository.owner_queries)
     assert repository.rag_runs[-1].input_tokens==5
+
+
+@pytest.mark.asyncio
+async def test_owner_query_diagnostics_track_subquery_hits_and_selected_context():
+    from app.services.query_planning import QueryPlan
+
+    service, repository, _, rag = build_service()
+    primary = replace(repository.candidate, id=uuid4(), document_name='主问题.txt', ordinal=1)
+    first_subquery = replace(repository.candidate, id=uuid4(), document_name='子问题甲.txt', ordinal=2)
+    second_subquery = replace(repository.candidate, id=uuid4(), document_name='子问题乙.txt', ordinal=3)
+    results = [primary, first_subquery, second_subquery]
+    original_retrieve = repository.retrieve_owner
+    calls = 0
+
+    async def retrieve_owner(**kwargs):
+        nonlocal calls
+        repository.candidates = [results[calls]]
+        calls += 1
+        return await original_retrieve(**kwargs)
+
+    repository.retrieve_owner = retrieve_owner
+
+    async def plan(question, chunks):
+        return QueryPlan(('系统甲职责', '系统乙职责'))
+
+    rag.plan_retrieval = plan
+    conversation = await service.create_owner_conversation(space_id=repository.space_id)
+    answer = await service.ask_owner(conversation_id=conversation.id, question='分别介绍两个系统的职责。')
+
+    diagnostics = answer.query_diagnostics
+    assert diagnostics is not None
+    assert diagnostics['original_question'] == '分别介绍两个系统的职责。'
+    assert diagnostics['retrieval_question'] == '分别介绍两个系统的职责。'
+    assert [item['query'] for item in diagnostics['queries']] == [
+        '分别介绍两个系统的职责。', '系统甲职责', '系统乙职责',
+    ]
+    assert diagnostics['queries'][0]['evidence'][0]['chunk_id'] == str(primary.id)
+    assert diagnostics['queries'][1]['evidence'][0]['chunk_id'] == str(first_subquery.id)
+    assert diagnostics['queries'][2]['evidence'][0]['chunk_id'] == str(second_subquery.id)
+    assert diagnostics['queries'][0]['evidence'][0]['selected_for_context'] is False
+    assert diagnostics['queries'][1]['evidence'][0]['selected_for_context'] is True
+    assert repository.rag_runs[-1].model_snapshot['query_diagnostics'] == diagnostics
+
+    history = await service.get_owner_conversation(conversation.id)
+    assert history.query_diagnostics_by_message[answer.assistant.id] == diagnostics
+
+
+@pytest.mark.asyncio
+async def test_public_answer_does_not_return_owner_query_diagnostics():
+    service, repository, _, _ = build_service()
+    conversation = await service.create_public_conversation(
+        scope=PublicRetrievalScope(
+            share_link_id=uuid4(), space_id=repository.space_id, category_ids=(uuid4(),)
+        )
+    )
+
+    answer = await service.ask_public(
+        conversation_id=conversation.id,
+        scope=PublicRetrievalScope(
+            share_link_id=conversation.share_link_id,
+            space_id=repository.space_id,
+            category_ids=(uuid4(),),
+        ),
+        question='公开资料里有什么？',
+    )
+
+    assert answer.query_diagnostics is None
 
 
 @pytest.mark.asyncio

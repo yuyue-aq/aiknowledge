@@ -233,12 +233,36 @@ class OwnerCitationResponse(BaseModel):
         )
 
 
+class OwnerQueryEvidenceResponse(BaseModel):
+    chunk_id: UUID
+    document_name: str
+    ordinal: int
+    rank: int
+    score: float
+    score_kind: str
+    selected_for_context: bool
+
+
+class OwnerQueryTraceResponse(BaseModel):
+    kind: Literal['primary', 'subquery']
+    query: str
+    evidence: list[OwnerQueryEvidenceResponse]
+
+
+class OwnerQueryDiagnosticsResponse(BaseModel):
+    original_question: str
+    retrieval_question: str
+    was_rewritten: bool
+    queries: list[OwnerQueryTraceResponse]
+
+
 class OwnerAnswerResponse(BaseModel):
     message_id: UUID
     status: AnswerStatus
     answer: str
     model: str | None
     citations: list[OwnerCitationResponse]
+    query_diagnostics: OwnerQueryDiagnosticsResponse | None = None
 
     @classmethod
     def from_domain(cls, answer: ConversationAnswer) -> "OwnerAnswerResponse":
@@ -250,6 +274,11 @@ class OwnerAnswerResponse(BaseModel):
             answer=assistant.content,
             model=assistant.model,
             citations=[OwnerCitationResponse.from_domain(item) for item in answer.citations],
+            query_diagnostics=(
+                OwnerQueryDiagnosticsResponse.model_validate(answer.query_diagnostics)
+                if answer.query_diagnostics is not None
+                else None
+            ),
         )
 
 
@@ -261,6 +290,7 @@ class OwnerHistoryMessageResponse(BaseModel):
     model: str | None
     created_at: datetime
     citations: list[OwnerCitationResponse]
+    query_diagnostics: OwnerQueryDiagnosticsResponse | None = None
 
 
 class OwnerConversationDetailResponse(BaseModel):
@@ -283,6 +313,13 @@ class OwnerConversationDetailResponse(BaseModel):
                         OwnerCitationResponse.from_domain(citation)
                         for citation in detail.citations_by_message.get(message.id, ())
                     ],
+                    query_diagnostics=(
+                        OwnerQueryDiagnosticsResponse.model_validate(
+                            detail.query_diagnostics_by_message[message.id]
+                        )
+                        if message.id in detail.query_diagnostics_by_message
+                        else None
+                    ),
                 )
                 for message in detail.messages
             ],

@@ -59,6 +59,8 @@ class ConversationRepository(Protocol):
 
     async def list_citations(self, message_ids: Sequence[UUID]) -> list[CitationSnapshot]: ...
 
+    async def list_query_diagnostics(self, message_ids: Sequence[UUID]) -> dict[UUID, dict[str, object]]: ...
+
     async def delete_conversation(self, conversation_id: UUID) -> None: ...
 
     async def retrieve_owner(
@@ -288,6 +290,12 @@ class ConversationService:
             [message.id for message in messages]
         ):
             citations_by_message.setdefault(citation.message_id, []).append(citation)
+        diagnostics_reader = getattr(self._repository, 'list_query_diagnostics', None)
+        query_diagnostics_by_message = (
+            await diagnostics_reader([message.id for message in messages])
+            if callable(diagnostics_reader)
+            else {}
+        )
         return ConversationDetail(
             conversation=conversation,
             messages=messages,
@@ -295,6 +303,7 @@ class ConversationService:
                 message_id: tuple(citations)
                 for message_id, citations in citations_by_message.items()
             },
+            query_diagnostics_by_message=query_diagnostics_by_message,
         )
 
     async def list_owner_conversations(
@@ -461,6 +470,20 @@ class ConversationService:
             public_request=public_request,
             scope_check=scope_check,
         )
+        query_diagnostics = (
+            self._build_query_diagnostics(
+                original_question=normalized_question,
+                retrieval_question=rewritten_question,
+                answer=answer,
+            )
+            if not public_request
+            else None
+        )
+        if query_diagnostics is not None:
+            answer.execution_snapshot = {
+                **(answer.execution_snapshot or {}),
+                'query_diagnostics': query_diagnostics,
+            }
         assistant_message = ConversationMessage(
             id=self._id_factory(),
             conversation_id=conversation.id,
@@ -492,7 +515,8 @@ class ConversationService:
                     'execution_timings_ms':(answer.execution_snapshot or {}).get('timings_ms',{}),
                     'context_chunk_ids':(answer.execution_snapshot or {}).get('context_chunk_ids',[]),
                     'retrieved_chunks':(answer.execution_snapshot or {}).get('retrieved_chunks',[]),
-                    'retrieval_queries':(answer.execution_snapshot or {}).get('retrieval_queries',[])},
+                    'retrieval_queries':(answer.execution_snapshot or {}).get('retrieval_queries',[]),
+                    **({'query_diagnostics': query_diagnostics} if query_diagnostics is not None else {})},
                 retrieval_config_snapshot={
                     "candidate_limit": self._retrieval_candidate_limit,
                     **self._retrieval_config_snapshot,
@@ -523,6 +547,7 @@ class ConversationService:
             assistant=assistant_message,
             citations=citations,
             scope_snapshot=getattr(scope_check, 'snapshot', None),
+            query_diagnostics=query_diagnostics,
         )
 
     async def _generate_answer(
@@ -554,6 +579,7 @@ class ConversationService:
             await scope_check(())
         planning_usage = Usage()
         planned_queries = ()
+        query_evidence = []
         planning_ms = 0.
         try:
             async def fetch(vector, limit):
@@ -572,6 +598,7 @@ class ConversationService:
             else:
                 result = await self._retrieval.search(question=question, fetch=fetch, top_k=self._retrieval_candidate_limit)
             candidates = result.items
+            query_evidence.append({'kind':'primary','query':question,'items':tuple(candidates)})
             retrieval_timings=dict(result.timings_ms)
             planner=getattr(self._rag_service,'plan_retrieval',None)
             if strategy=='dense' and callable(planner) and complex_question(question):
@@ -585,6 +612,7 @@ class ConversationService:
                 leaders=[]
                 for subquery in planned_queries:
                     extra=await self._retrieval.search(question=subquery,fetch=fetch,top_k=self._retrieval_candidate_limit)
+                    query_evidence.append({'kind':'subquery','query':subquery,'items':tuple(extra.items)})
                     for key in ('embedding','search','total'):retrieval_timings[key]+=extra.timings_ms[key]
                     for index,item in enumerate(extra.items):
                         if index<2 and item.id not in leaders:leaders.append(item.id)
@@ -642,6 +670,7 @@ class ConversationService:
             'retrieval_config':config,
             'question': question,
             'retrieval_queries':list(planned_queries),
+            'query_evidence':query_evidence,
             'timings_ms': {**retrieval_timings,'retrieval_total':retrieval_timings['total'],
                 'query_planning':round(planning_ms,3),
                 'generation':round(generation_ms,3),'total':round((perf_counter()-phase_started)*1000,3)},
@@ -660,6 +689,46 @@ class ConversationService:
             answer,
             immutable_candidates,
         )
+
+    @staticmethod
+    def _build_query_diagnostics(
+        *, original_question: str, retrieval_question: str, answer: RagAnswer
+    ) -> dict[str, object]:
+        snapshot = answer.execution_snapshot or {}
+        context_ids = {str(value) for value in snapshot.get('context_chunk_ids', [])}
+        if not context_ids:
+            context_ids = {str(citation.source_chunk_id) for citation in answer.citations}
+        raw_queries = snapshot.get('query_evidence', [])
+        queries = []
+        if isinstance(raw_queries, list):
+            for raw in raw_queries:
+                if not isinstance(raw, dict) or not isinstance(raw.get('query'), str):
+                    continue
+                items = raw.get('items', ())
+                evidence = []
+                for rank, item in enumerate(items, 1):
+                    if not isinstance(item, RetrievedChunk):
+                        continue
+                    evidence.append({
+                        'chunk_id': str(item.id),
+                        'document_name': item.document_name,
+                        'ordinal': item.ordinal,
+                        'rank': rank,
+                        'score': item.score,
+                        'score_kind': item.score_kind,
+                        'selected_for_context': str(item.id) in context_ids,
+                    })
+                queries.append({
+                    'kind': raw.get('kind') if raw.get('kind') in ('primary', 'subquery') else 'primary',
+                    'query': raw['query'],
+                    'evidence': evidence,
+                })
+        return {
+            'original_question': original_question,
+            'retrieval_question': retrieval_question,
+            'was_rewritten': original_question != retrieval_question,
+            'queries': queries,
+        }
 
     def _scope_checker(self, space_id: UUID, *, owner_user_id: UUID | None = None, public_scope: PublicRetrievalScope | None = None,
         metadata_filter: RetrievalMetadataFilter | None = None):

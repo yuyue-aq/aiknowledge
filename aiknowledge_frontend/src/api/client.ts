@@ -77,12 +77,33 @@ export type Citation = {
 }
 
 export type AnswerStatus = 'ANSWERED' | 'INSUFFICIENT_EVIDENCE' | 'OUT_OF_SCOPE' | 'CONFLICT' | 'FAILED'
+export type QueryEvidence = {
+  chunk_id: string
+  document_name: string
+  ordinal: number
+  rank: number
+  score: number
+  score_kind: string
+  selected_for_context: boolean
+}
+export type QueryTrace = {
+  kind: 'primary' | 'subquery'
+  query: string
+  evidence: QueryEvidence[]
+}
+export type QueryDiagnostics = {
+  original_question: string
+  retrieval_question: string
+  was_rewritten: boolean
+  queries: QueryTrace[]
+}
 export type OwnerAnswer = {
   message_id: string
   status: AnswerStatus
   answer: string
   model: string | null
   citations: Citation[]
+  query_diagnostics?: QueryDiagnostics | null
 }
 
 export type HistoryMessage = {
@@ -93,6 +114,7 @@ export type HistoryMessage = {
   model: string | null
   created_at: string
   citations: Citation[]
+  query_diagnostics?: QueryDiagnostics | null
 }
 
 export type ConversationDetail = {
