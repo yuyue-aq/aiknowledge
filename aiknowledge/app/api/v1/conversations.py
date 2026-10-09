@@ -24,6 +24,8 @@ from app.domain.conversations import (
     ConversationNotFoundError,
 )
 from app.domain.rag import AnswerStatus
+from app.domain.retrieval import RetrievalMetadataFilter
+from app.api.v1.retrieval_filters import RetrievalMetadataFilterRequest
 from app.domain.spaces import (
     Category,
     KnowledgeSpace,
@@ -55,7 +57,8 @@ class ConversationServicePort(Protocol):
     ) -> Conversation: ...
 
     async def ask_owner(
-        self, *, conversation_id: UUID, question: str, owner_user_id: UUID | None = None
+        self, *, conversation_id: UUID, question: str, owner_user_id: UUID | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> ConversationAnswer: ...
 
     async def ask_public(
@@ -64,6 +67,7 @@ class ConversationServicePort(Protocol):
         conversation_id: UUID,
         scope: PublicRetrievalScope,
         question: str,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> ConversationAnswer: ...
 
     async def get_owner_conversation(self, conversation_id: UUID, *, owner_user_id: UUID | None = None) -> ConversationDetail: ...
@@ -206,6 +210,7 @@ class QuestionRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2_000)
     stream: bool = False
     strategy: Literal['dense','hybrid','hybrid_rerank'] | None = None
+    metadata_filter: RetrievalMetadataFilterRequest = Field(default_factory=RetrievalMetadataFilterRequest)
 
 
 class OwnerCitationResponse(BaseModel):
@@ -313,6 +318,7 @@ class PublicQueryRequest(BaseModel):
     token: str = Field(min_length=1, max_length=512)
     password: str | None = Field(default=None, min_length=4, max_length=128)
     question: str = Field(min_length=1, max_length=2_000)
+    metadata_filter: RetrievalMetadataFilterRequest = Field(default_factory=RetrievalMetadataFilterRequest)
 
 
 class PublicCategoryResponse(BaseModel):
@@ -510,6 +516,7 @@ async def ask_owner(
         if _current_user is not None:
             kwargs["owner_user_id"] = _current_user.id
         if payload.strategy is not None:kwargs["strategy"]=payload.strategy
+        kwargs['metadata_filter'] = payload.metadata_filter.to_domain()
         result = await service.ask_owner(**kwargs)
     except Exception as error:
         _translate_conversation_error(error)
@@ -662,6 +669,7 @@ async def public_query(
             conversation_id=conversation.id,
             scope=scope,
             question=payload.question,
+            metadata_filter=payload.metadata_filter.to_domain(),
         )
     except Exception as error:
         _translate_conversation_error(error)
@@ -721,6 +729,7 @@ async def ask_public(
             conversation_id=conversation_id,
             scope=scope,
             question=payload.question,
+            metadata_filter=payload.metadata_filter.to_domain(),
             **({'strategy':payload.strategy} if payload.strategy is not None else {}),
         )
     except Exception as error:

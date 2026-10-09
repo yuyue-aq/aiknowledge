@@ -26,6 +26,7 @@ from app.domain.conversations import (
 from app.domain.users import SpaceRole
 from app.domain.rag import AnswerStatus, RagAnswer
 from app.domain.evaluation import EvidenceRef
+from app.domain.retrieval import RetrievalMetadataFilter
 from app.services.evaluation_metrics import retrieval_metrics, refusal_correct
 
 
@@ -85,10 +86,11 @@ class EvaluationRepository(Protocol):
 
 
 class EvaluationAnswerPort(Protocol):
-    async def answer_owner(self, *, space_id: UUID, question: str) -> RagAnswer: ...
+    async def answer_owner(self, *, space_id: UUID, question: str, metadata_filter: RetrievalMetadataFilter | None = None) -> RagAnswer: ...
 
     async def answer_public(
-        self, *, space_id: UUID, category_ids: tuple[UUID, ...], question: str
+        self, *, space_id: UUID, category_ids: tuple[UUID, ...], question: str,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> RagAnswer: ...
 
 
@@ -212,12 +214,14 @@ class EvaluationService:
         await self._repository.delete_case(case.id)
         await self._repository.commit()
 
-    async def run(self, *, space_id: UUID, owner_user_id: UUID | None = None) -> EvaluationRunDetail:
+    async def run(self, *, space_id: UUID, owner_user_id: UUID | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None) -> EvaluationRunDetail:
         await self._require_owner_space(
             space_id, owner_user_id=owner_user_id, minimum_role=SpaceRole.EDITOR
         )
         cases = tuple(await self._repository.list_cases(space_id))
-        return await self._execute_run(space_id=space_id, cases=cases)
+        snapshot = {**self._run_snapshot, 'metadata_filter': (metadata_filter or RetrievalMetadataFilter()).snapshot()}
+        return await self._execute_run(space_id=space_id, cases=cases, snapshot=snapshot)
 
     async def _execute_run(
         self,
@@ -237,6 +241,7 @@ class EvaluationService:
             raise ValueError('至少需要一条测试题才能运行评测。')
         started_at = self._now()
         run_snapshot = dict(snapshot or self._run_snapshot)
+        run_snapshot.setdefault('metadata_filter', RetrievalMetadataFilter().snapshot())
         # Keep the exact questions and scope used by this run alongside the
         # model/retrieval settings.  This makes historical runs reproducible
         # even after the editable live test set changes or a case is deleted.
@@ -261,11 +266,13 @@ class EvaluationService:
         await self._repository.commit()
         return run
 
-    async def enqueue_run(self, *, space_id: UUID | None = None, version_id: UUID | None = None, owner_user_id: UUID | None = None, strategy: str | None = None) -> EvalRun:
+    async def enqueue_run(self, *, space_id: UUID | None = None, version_id: UUID | None = None, owner_user_id: UUID | None = None,
+        strategy: str | None = None, metadata_filter: RetrievalMetadataFilter | None = None) -> EvalRun:
         snapshot = dict(self._run_snapshot)
         if strategy is not None:
             if strategy not in ('dense','hybrid','hybrid_rerank'):raise ValueError('不支持的检索方式。')
             snapshot['retrieval_strategy']=strategy
+        snapshot['metadata_filter'] = (metadata_filter or RetrievalMetadataFilter()).snapshot()
         if version_id is not None:
             version = await self.get_version(version_id, owner_user_id=owner_user_id)
             space_id, cases = version.space_id, version.cases
@@ -342,7 +349,8 @@ class EvaluationService:
                 if case.id in completed_ids:
                     continue
                 await verify_manifest()
-                answer = await asyncio.wait_for(self._run_case(case, strategy=run_snapshot.get('retrieval_strategy')), timeout=900)
+                metadata_filter = RetrievalMetadataFilter.from_snapshot(run_snapshot.get('metadata_filter', {}))
+                answer = await asyncio.wait_for(self._run_case(case, strategy=run_snapshot.get('retrieval_strategy'), metadata_filter=metadata_filter), timeout=900)
                 await verify_manifest()
                 manifest = run_snapshot.get('knowledge_manifest') or {}
                 versions = {UUID(value) for value in manifest.get('document_versions', [])} if manifest else None
@@ -549,7 +557,8 @@ class EvaluationService:
         return version
 
     async def run_version(
-        self, version_id: UUID, *, owner_user_id: UUID | None = None
+        self, version_id: UUID, *, owner_user_id: UUID | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> EvaluationRunDetail:
         version = await self.get_version(version_id, owner_user_id=owner_user_id)
         await self._require_owner_space(
@@ -560,6 +569,7 @@ class EvaluationService:
             {
                 "eval_set_version_id": str(version.id),
                 "eval_set_version_number": version.version_number,
+                "metadata_filter": (metadata_filter or RetrievalMetadataFilter()).snapshot(),
             }
         )
         return await self._execute_run(
@@ -589,8 +599,9 @@ class EvaluationService:
         await self._repository.commit()
         return updated
 
-    async def _run_case(self, case: EvalCase, *, strategy: str | None = None) -> RagAnswer:
-        extra={'strategy':strategy} if strategy is not None else {}
+    async def _run_case(self, case: EvalCase, *, strategy: str | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None) -> RagAnswer:
+        extra={'strategy':strategy, 'metadata_filter': metadata_filter} if strategy is not None else {'metadata_filter': metadata_filter}
         if case.scope is EvalScope.OWNER:
             return await self._runner.answer_owner(
                 space_id=case.space_id, question=case.question, **extra

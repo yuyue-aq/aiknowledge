@@ -3,10 +3,12 @@ import {
   ApiRequestError, getAuthUserId, getEvalEvidence, type EvalEvidence, listEvalCases, listEvalRuns, listEvalVersions, createEvalCase, updateEvalCase, deleteEvalCase,
   createEvalVersion, enqueueEvaluation, enqueueEvalVersion, getEvalRun, retryEvalRun, reviewEvalResult,
   compareEvalRuns, searchKnowledge, listDocuments, getOwnerDocumentDetail, type KnowledgeDocument, type Category, type EvalCase, type EvalDetail, type EvalRun,
-  type EvalRunComparison, type EvalSetVersion, type EvidenceRef, type RetrievalItem,
+  type EvalRunComparison, type EvalSetVersion, type EvidenceRef, type RetrievalItem, type KnowledgeTag,
+  type RetrievalMetadataFilter, emptyRetrievalMetadataFilter,
 } from '../api/client'
 import { V2Button, V2Heading, V2Notice, V2Panel, percent } from './V2UI'
 import { ConfirmDialog } from './ConfirmDialog'
+import { RetrievalMetadataFilterControls } from './RetrievalMetadataFilterControls'
 import './v2.scss'
 
 type Page = 'cases' | 'edit' | 'select' | 'run' | 'grade' | 'compare'
@@ -28,9 +30,10 @@ function restoredDraft(spaceId: string): Draft | null {
   } catch { return null }
 }
 
-export function EvaluationView({ spaceId, categories, notify, initialQuestion = '', initialAnswer = '', onSeedConsumed }: {
-  spaceId: string; categories: Category[]; notify: (message: string) => void; initialQuestion?: string; initialAnswer?: string; onSeedConsumed?: () => void
+export function EvaluationView({ spaceId, categories, tags, notify, initialQuestion = '', initialAnswer = '', onSeedConsumed }: {
+  spaceId: string; categories: Category[]; tags: KnowledgeTag[]; notify: (message: string) => void; initialQuestion?: string; initialAnswer?: string; onSeedConsumed?: () => void
 }) {
+  const [metadataFilter, setMetadataFilter] = useState<RetrievalMetadataFilter>(emptyRetrievalMetadataFilter)
   const [page, setPage] = useState<Page>(initialQuestion || restoredDraft(spaceId) ? 'edit' : 'cases')
   const seedConsumed = useRef(false)
   useEffect(() => {
@@ -157,12 +160,14 @@ export function EvaluationView({ spaceId, categories, notify, initialQuestion = 
     setPage('select')
     setEvidence([]); setEvidenceDocumentId('')
     await perform(async () => {
-      const found = await searchKnowledge(spaceId, draft.question.trim(), 10)
+      const found = await searchKnowledge(spaceId, draft.question.trim(), 10, undefined, 'dense', metadataFilter)
       if (alive.current) setEvidence(found.items)
     })
   }
   const start = () => perform(async () => {
-    const run = versionId ? await enqueueEvalVersion(versionId,strategy) : await enqueueEvaluation(spaceId,strategy)
+    if (metadataFilter.version_min != null && metadataFilter.version_max != null && metadataFilter.version_min > metadataFilter.version_max) { setError('版本起始值不能大于结束值。'); return }
+    if (metadataFilter.valid_from && metadataFilter.valid_to && Date.parse(metadataFilter.valid_from) >= Date.parse(metadataFilter.valid_to)) { setError('有效时间范围的开始时间必须早于结束时间。'); return }
+    const run = versionId ? await enqueueEvalVersion(versionId,strategy,metadataFilter) : await enqueueEvaluation(spaceId,strategy,metadataFilter)
     if (!alive.current) return
     setActiveRun(run); setDetail(null); setRuns(items => [run, ...items.filter(item => item.id !== run.id)]); setPage('run')
   })
@@ -208,6 +213,7 @@ export function EvaluationView({ spaceId, categories, notify, initialQuestion = 
         <select data-v2-control aria-label='评测检索方式' disabled={busy} className='v2-compact-select' value={strategy} onChange={event=>setStrategy(event.target.value as 'dense' | 'hybrid' | 'hybrid_rerank')}><option value='dense'>向量检索基线</option><option value='hybrid'>混合检索 · RRF</option><option value='hybrid_rerank'>混合检索 + 模型重排</option></select>
         <V2Button kind='outline' disabled={busy || !(versionId ? versions.find(version => version.id === versionId)?.cases.length : cases.length)} onClick={() => void start()}>运行题集</V2Button>
         <V2Button kind='ghost' disabled={runs.length < 2} onClick={() => setPage('compare')}>基线与复测对比</V2Button></div>
+      <RetrievalMetadataFilterControls value={metadataFilter} categories={categories} tags={tags} disabled={busy} onChange={setMetadataFilter} />
       <div className='v2-row v2-between'><input data-v2-control aria-label='搜索测试问题' placeholder='搜索测试问题…' value={query} onChange={event => setQuery(event.target.value)} className='v2-search-input' />
         <form noValidate className='v2-row' onSubmit={event => { event.preventDefault(); if (versionLabel.trim()) void perform(async () => {
           const version = await createEvalVersion(spaceId, versionLabel.trim()); if (!alive.current) return

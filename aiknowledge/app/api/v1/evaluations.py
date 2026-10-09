@@ -26,6 +26,7 @@ from app.domain.conversations import (
 )
 from app.domain.users import User
 from app.domain.evaluation import EvidenceRef
+from app.api.v1.retrieval_filters import RetrievalMetadataFilterRequest
 
 
 router = APIRouter(tags=["evaluations"])
@@ -155,6 +156,11 @@ class EvalSetVersionResponse(BaseModel):
 
 class EvalSetVersionListResponse(BaseModel):
     items: list[EvalSetVersionResponse]
+
+
+class EvalRunRequest(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    metadata_filter: RetrievalMetadataFilterRequest = Field(default_factory=RetrievalMetadataFilterRequest)
 
 
 class EvalResultResponse(BaseModel):
@@ -487,14 +493,16 @@ async def delete_eval_case(
 )
 async def run_evaluation(
     space_id: UUID,
+    payload: EvalRunRequest | None = None,
     service: EvaluationServicePort = Depends(get_evaluation_service),
     _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
 ) -> EvalRunDetailResponse:
     try:
         if _current_user is None:
-            detail = await service.run(space_id=space_id)
+            detail = await service.run(space_id=space_id, metadata_filter=(payload or EvalRunRequest()).metadata_filter.to_domain())
         else:
-            detail = await service.run(space_id=space_id, owner_user_id=_current_user.id)
+            detail = await service.run(space_id=space_id, owner_user_id=_current_user.id,
+                metadata_filter=(payload or EvalRunRequest()).metadata_filter.to_domain())
     except Exception as error:
         _translate_evaluation_error(error)
         raise
@@ -613,11 +621,13 @@ async def get_evaluation_version(
 )
 async def run_evaluation_version(
     version_id: UUID,
+    payload: EvalRunRequest | None = None,
     service: EvaluationServicePort = Depends(get_evaluation_service),
     _current_user: Annotated[User | None, Depends(get_optional_current_user)] = None,
 ) -> EvalRunDetailResponse:
     try:
         kwargs = {"owner_user_id": _current_user.id} if _current_user is not None else {}
+        kwargs['metadata_filter'] = (payload or EvalRunRequest()).metadata_filter.to_domain()
         detail = await service.run_version(version_id, **kwargs)
     except Exception as error:
         _translate_evaluation_error(error)
@@ -662,9 +672,12 @@ async def review_evaluation_result(
 
 
 @router.post('/spaces/{space_id}/eval-runs/async', status_code=202, response_model=EvalRunResponse)
-async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service), strategy: Literal['dense','hybrid','hybrid_rerank'] | None = None):
+async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_current_user)],
+    payload: EvalRunRequest | None = None, service=Depends(get_evaluation_service),
+    strategy: Literal['dense','hybrid','hybrid_rerank'] | None = None):
     try:
-        run = await service.enqueue_run(space_id=space_id, owner_user_id=user.id, **({'strategy':strategy} if strategy else {}))
+        run = await service.enqueue_run(space_id=space_id, owner_user_id=user.id,
+            metadata_filter=(payload or EvalRunRequest()).metadata_filter.to_domain(), **({'strategy':strategy} if strategy else {}))
     except Exception as error:
         _translate_evaluation_error(error)
         raise
@@ -672,9 +685,12 @@ async def enqueue_evaluation(space_id: UUID, user: Annotated[User, Depends(get_c
 
 
 @router.post('/eval-versions/{version_id}/runs/async', status_code=202, response_model=EvalRunResponse)
-async def enqueue_version(version_id: UUID, user: Annotated[User, Depends(get_current_user)], service=Depends(get_evaluation_service), strategy: Literal['dense','hybrid','hybrid_rerank'] | None = None):
+async def enqueue_version(version_id: UUID, user: Annotated[User, Depends(get_current_user)],
+    payload: EvalRunRequest | None = None, service=Depends(get_evaluation_service),
+    strategy: Literal['dense','hybrid','hybrid_rerank'] | None = None):
     try:
-        run = await service.enqueue_run(version_id=version_id, owner_user_id=user.id, **({'strategy':strategy} if strategy else {}))
+        run = await service.enqueue_run(version_id=version_id, owner_user_id=user.id,
+            metadata_filter=(payload or EvalRunRequest()).metadata_filter.to_domain(), **({'strategy':strategy} if strategy else {}))
     except Exception as error:
         _translate_evaluation_error(error)
         raise

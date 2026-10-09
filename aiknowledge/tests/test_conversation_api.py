@@ -67,6 +67,7 @@ class FakeConversationService:
         self.owner_conversation_id = uuid4()
         self.public_conversation_id = uuid4()
         self.public_scopes = []
+        self.metadata_filters = []
         self.deleted = []
         self.now = datetime(2026, 9, 11, tzinfo=UTC)
 
@@ -93,13 +94,15 @@ class FakeConversationService:
             updated_at=self.now,
         )
 
-    async def ask_owner(self, *, conversation_id: UUID, question: str) -> ConversationAnswer:
+    async def ask_owner(self, *, conversation_id: UUID, question: str, metadata_filter=None) -> ConversationAnswer:
+        self.metadata_filters.append(metadata_filter)
         return self._answer(conversation_id, question)
 
     async def ask_public(
-        self, *, conversation_id: UUID, scope: PublicRetrievalScope, question: str
+        self, *, conversation_id: UUID, scope: PublicRetrievalScope, question: str, metadata_filter=None
     ) -> ConversationAnswer:
         self.public_scopes.append(scope)
+        self.metadata_filters.append(metadata_filter)
         return self._answer(conversation_id, question)
 
     async def get_owner_conversation(self, conversation_id: UUID) -> ConversationDetail:
@@ -227,7 +230,8 @@ async def test_owner_api_returns_source_citations_but_public_api_never_serialize
         )
         owner_answer = await client.post(
             f"/api/v1/owner/conversations/{conversations.owner_conversation_id}/messages",
-            json={"question": "访客可以访问什么？", "stream": False},
+            json={"question": "访客可以访问什么？", "stream": False,
+                  "metadata_filter": {"formats": ["pdf"], "version_min": 2}},
         )
         session = await client.post(
             "/api/v1/public/session", json={"token": "only-returned-once-token"}
@@ -236,7 +240,8 @@ async def test_owner_api_returns_source_citations_but_public_api_never_serialize
         public_created = await client.post("/api/v1/public/conversations", json={})
         public_answer = await client.post(
             f"/api/v1/public/conversations/{conversations.public_conversation_id}/messages",
-            json={"question": "访客可以访问什么？", "stream": False},
+            json={"question": "访客可以访问什么？", "stream": False,
+                  "metadata_filter": {"formats": ["markdown"]}},
         )
 
     assert owner_created.status_code == 201
@@ -248,6 +253,8 @@ async def test_owner_api_returns_source_citations_but_public_api_never_serialize
     assert public_space.json()["name"] == "产品公开知识库"
     assert public_created.status_code == 201
     assert public_answer.status_code == 200
+    assert conversations.metadata_filters[0].formats == ("pdf",)
+    assert conversations.metadata_filters[-1].formats == ("markdown",)
     serialized_public_answer = public_answer.text
     assert '"citations"' not in serialized_public_answer
     assert "document_name" not in serialized_public_answer
@@ -261,6 +268,7 @@ async def test_owner_api_returns_source_citations_but_public_api_never_serialize
 async def test_public_query_endpoint_accepts_share_token_without_browser_cookie() -> None:
     spaces = FakePublicSpaceService()
     conversations = FakeConversationService(spaces.space.id, spaces.link_id)
+    category_id = uuid4()
 
     app = create_app(
         rag_service=object(),
@@ -273,13 +281,16 @@ async def test_public_query_endpoint_accepts_share_token_without_browser_cookie(
     ) as client:
         response = await client.post(
             "/api/v1/public/query",
-            json={"token": "only-returned-once-token", "question": "公开入口能回答什么？"},
+            json={"token": "only-returned-once-token", "question": "公开入口能回答什么？",
+                  "metadata_filter": {"category_ids": [str(category_id)], "formats": ["pdf"]}},
         )
 
     assert response.status_code == 200
     assert response.json()["status"] == "ANSWERED"
     assert "citations" not in response.json()
     assert "only-returned-once-token" not in response.text
+    assert conversations.metadata_filters[-1].category_ids == (category_id,)
+    assert conversations.metadata_filters[-1].formats == ("pdf",)
 
 
 @pytest.mark.asyncio

@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import and_, exists, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domain.retrieval import RetrievalRun, RetrievalScope
+from app.domain.retrieval import RetrievalMetadataFilter, RetrievalRun, RetrievalScope
 from app.domain.users import SpaceRole
 from app.domain.spaces import SpaceKind
 from app.infrastructure.database.conversation_repository import SqlAlchemyConversationRepository
@@ -17,7 +17,7 @@ class SqlAlchemyRetrievalRepository:
         self._session = session
         self._conversations = SqlAlchemyConversationRepository(session)
 
-    async def resolve_owner_scope(self, *, space_id: UUID, user_id: UUID) -> RetrievalScope | None:
+    async def resolve_owner_scope(self, *, space_id: UUID, user_id: UUID, metadata_filter: RetrievalMetadataFilter | None = None) -> RetrievalScope | None:
         result = await self._session.execute(select(
             KnowledgeSpaceRecord.id, KnowledgeSpaceRecord.access_revision, KnowledgeSpaceRecord.knowledge_revision
         ).where(
@@ -34,16 +34,14 @@ class SqlAlchemyRetrievalRepository:
         row = result.first()
         if row is None:
             return None
-        return RetrievalScope(row.id, user_id, row.access_revision, row.knowledge_revision, datetime.now(UTC))
+        return RetrievalScope(row.id, user_id, row.access_revision, row.knowledge_revision, datetime.now(UTC), metadata_filter or RetrievalMetadataFilter())
 
     async def retrieve(self, *, scope: RetrievalScope, embedding: list[float], limit: int):
-        return await self._conversations.retrieve_owner(space_id=scope.space_id, embedding=embedding, limit=limit)
+        return await self._conversations.retrieve_owner(space_id=scope.space_id, embedding=embedding, limit=limit, metadata_filter=scope.metadata_filter)
 
     async def keyword_corpus(self, *, scope: RetrievalScope, limit: int):
-        statement=self._conversations._base_retrieval_statement(None).where(
-            ChunkRecord.space_id==scope.space_id).order_by(None).order_by(ChunkRecord.id).limit(limit)
-        rows=await self._session.execute(statement)
-        return self._conversations._map_retrieval_rows(rows.all())
+        rows=await self._conversations.keyword_corpus(space_id=scope.space_id,public_scope=None,limit=limit,metadata_filter=scope.metadata_filter)
+        return rows
 
     async def get_current_chunks(self, *, scope: RetrievalScope, chunk_ids: tuple[UUID, ...]):
         if not chunk_ids:
@@ -53,6 +51,7 @@ class SqlAlchemyRetrievalRepository:
         statement = self._conversations._base_retrieval_statement(None).where(
             ChunkRecord.space_id == scope.space_id, ChunkRecord.id.in_(chunk_ids)
         ).order_by(None)
+        statement = self._conversations._apply_metadata_filter(statement, scope.metadata_filter)
         rows = await self._session.execute(statement)
         return self._conversations._map_retrieval_rows(rows.all())
 
@@ -87,6 +86,7 @@ class SqlAlchemyRetrievalRepository:
         row = await self._session.get(RetrievalRunRecord, run_id)
         if row is None:
             return None
+        metadata_filter = RetrievalMetadataFilter.from_snapshot(row.config_snapshot.get('metadata_filter', {}))
         return RetrievalRun(row.id, RetrievalScope(row.space_id, row.user_id, row.access_revision,
-            row.knowledge_revision, row.resolved_at), row.question, row.top_k, tuple(UUID(x) for x in row.chunk_ids),
+            row.knowledge_revision, row.resolved_at, metadata_filter), row.question, row.top_k, tuple(UUID(x) for x in row.chunk_ids),
             tuple(row.scores), dict(row.timings_ms), row.model_name, row.created_at,row.strategy,dict(row.config_snapshot))

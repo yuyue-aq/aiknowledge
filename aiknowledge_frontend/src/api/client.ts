@@ -198,6 +198,18 @@ export type KnowledgeTag = {
   updated_at: string
 }
 
+export type RetrievalMetadataFilter = {
+  category_ids: string[]
+  tag_ids: string[]
+  formats: Array<'pdf' | 'docx' | 'markdown' | 'text' | 'table' | 'presentation'>
+  version_min?: number
+  version_max?: number
+  valid_from?: string
+  valid_to?: string
+}
+
+export const emptyRetrievalMetadataFilter = (): RetrievalMetadataFilter => ({ category_ids: [], tag_ids: [], formats: [] })
+
 export type SpaceMember = {
   user_id: string
   email: string
@@ -720,10 +732,10 @@ export async function getOwnerConversation(conversationId: string): Promise<Conv
   return requestJson<ConversationDetail>(`/owner/conversations/${conversationId}`)
 }
 
-export async function askOwner(conversationId: string, question: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'): Promise<OwnerAnswer> {
+export async function askOwner(conversationId: string, question: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank', metadataFilter?: RetrievalMetadataFilter): Promise<OwnerAnswer> {
   return requestJson<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, {
     method: 'POST',
-    data: { question, stream: false, ...(strategy ? { strategy } : {}) }
+    data: { question, stream: false, ...(strategy ? { strategy } : {}), ...(metadataFilter ? { metadata_filter: metadataFilter } : {}) }
   })
 }
 
@@ -733,11 +745,12 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
   onText: (text: string) => void,
   signal?: AbortSignal,
   skipAuthRefresh = false,
-  strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'
+  strategy?: 'dense' | 'hybrid' | 'hybrid_rerank',
+  metadataFilter?: RetrievalMetadataFilter
 ): Promise<T> {
   signal?.throwIfAborted()
   if (typeof fetch === 'undefined' || typeof ReadableStream === 'undefined') {
-    const data = await requestJson<T>(path, { method: 'POST', data: { question, stream: false, ...(strategy ? { strategy } : {}) } })
+    const data = await requestJson<T>(path, { method: 'POST', data: { question, stream: false, ...(strategy ? { strategy } : {}), ...(metadataFilter && !path.startsWith('/public/') ? { metadata_filter: metadataFilter } : {}) } })
     onText(data.answer)
     return data
   }
@@ -748,10 +761,10 @@ async function streamAnswer<T extends OwnerAnswer | PublicAnswer>(
     headers: { 'content-type': 'application/json', ...(isPublic ? {} : authorizationHeader()) },
     credentials: 'include',
     signal,
-    body: JSON.stringify({ question, stream: true, ...(strategy ? { strategy } : {}) })
+    body: JSON.stringify({ question, stream: true, ...(strategy ? { strategy } : {}), ...(metadataFilter && !isPublic ? { metadata_filter: metadataFilter } : {}) })
   })
   if (response.status === 401 && !isPublic && !skipAuthRefresh) {
-    if (await refreshAccessToken()) return streamAnswer<T>(path, question, onText, signal, true, strategy)
+    if (await refreshAccessToken()) return streamAnswer<T>(path, question, onText, signal, true, strategy, metadataFilter)
     if (readAuthSession() === current) clearAuthSession()
   }
   if (!response.ok) {
@@ -825,9 +838,10 @@ export async function streamOwnerAnswer(
   question: string,
   onText: (text: string) => void,
   signal?: AbortSignal,
-  strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'
+  strategy?: 'dense' | 'hybrid' | 'hybrid_rerank',
+  metadataFilter?: RetrievalMetadataFilter
 ): Promise<OwnerAnswer> {
-  return streamAnswer<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, question, onText, signal, false, strategy)
+  return streamAnswer<OwnerAnswer>(`/owner/conversations/${conversationId}/messages`, question, onText, signal, false, strategy, metadataFilter)
 }
 
 export async function createPublicSession(token: string, password?: string): Promise<PublicSpace> {
@@ -1147,20 +1161,20 @@ export function getEvalEvidence(runId: string, resultId: string, signal?: AbortS
   return requestJson(`/owner/eval-runs/${runId}/results/${resultId}/evidence`, { signal })
 }
 
-export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal, strategy?: 'dense' | 'bm25' | 'hybrid' | 'hybrid_rerank'): Promise<RetrievalRun> {
-  return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK, ...(strategy ? { strategy } : {}) }, signal, timeoutMs: 660000 })
+export async function searchKnowledge(spaceId: string, question: string, topK = 5, signal?: AbortSignal, strategy?: 'dense' | 'bm25' | 'hybrid' | 'hybrid_rerank', metadataFilter?: RetrievalMetadataFilter): Promise<RetrievalRun> {
+  return requestJson<RetrievalRun>(`/owner/spaces/${spaceId}/retrieval-runs`, { method: 'POST', data: { question, top_k: topK, ...(strategy ? { strategy } : {}), metadata_filter: metadataFilter || emptyRetrievalMetadataFilter() }, signal, timeoutMs: 660000 })
 }
 
 export async function getRetrievalRun(runId: string, signal?: AbortSignal): Promise<RetrievalRun> {
   return requestJson<RetrievalRun>(`/owner/retrieval-runs/${runId}`, { signal })
 }
 
-export async function enqueueEvaluation(spaceId: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'): Promise<EvalRun> {
-  return requestJson<EvalRun>(`/spaces/${spaceId}/eval-runs/async${strategy ? `?strategy=${strategy}` : ''}`, { method: 'POST' })
+export async function enqueueEvaluation(spaceId: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank', metadataFilter?: RetrievalMetadataFilter): Promise<EvalRun> {
+  return requestJson<EvalRun>(`/spaces/${spaceId}/eval-runs/async${strategy ? `?strategy=${strategy}` : ''}`, { method: 'POST', data: { metadata_filter: metadataFilter || emptyRetrievalMetadataFilter() } })
 }
 
-export async function enqueueEvalVersion(versionId: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank'): Promise<EvalRun> {
-  return requestJson<EvalRun>(`/eval-versions/${versionId}/runs/async${strategy ? `?strategy=${strategy}` : ''}`, { method: 'POST' })
+export async function enqueueEvalVersion(versionId: string, strategy?: 'dense' | 'hybrid' | 'hybrid_rerank', metadataFilter?: RetrievalMetadataFilter): Promise<EvalRun> {
+  return requestJson<EvalRun>(`/eval-versions/${versionId}/runs/async${strategy ? `?strategy=${strategy}` : ''}`, { method: 'POST', data: { metadata_filter: metadataFilter || emptyRetrievalMetadataFilter() } })
 }
 
 export async function getEvalRun(runId: string, signal?: AbortSignal): Promise<EvalDetail> {

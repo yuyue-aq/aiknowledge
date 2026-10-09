@@ -38,10 +38,10 @@ class Repository:
         self.chunk = RetrievedChunk(uuid4(), uuid4(), '资料.md', '证据', None, 1, .9)
         self.visible = True
 
-    async def resolve_owner_scope(self, *, space_id, user_id):
+    async def resolve_owner_scope(self, *, space_id, user_id, metadata_filter=None):
         if not self.allowed or space_id != self.space_id or user_id != self.user_id:
             return None
-        return self.scope
+        return replace(self.scope, metadata_filter=metadata_filter or self.scope.metadata_filter)
 
     async def retrieve(self, *, scope, embedding, limit):
         if self.changed:

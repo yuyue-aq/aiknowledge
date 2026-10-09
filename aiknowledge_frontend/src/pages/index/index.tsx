@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { Button } from '../../components/H5Button';
+import { RetrievalMetadataFilterControls } from '../../components/RetrievalMetadataFilterControls';
 import {
   ApiRequestError,
   publicShareUrl,
@@ -70,6 +71,8 @@ import {
   type SpaceMember,
   getSpaceUsage,
   type SpaceUsage,
+  type RetrievalMetadataFilter,
+  emptyRetrievalMetadataFilter,
   createSource,
   listSources,
   setSourceStatus,
@@ -2340,6 +2343,7 @@ export default function Index() {
   const [activePage, setActivePage] = useState<WorkspacePage>("spaces");
   const [handoffQuestion, setHandoffQuestion] = useState("");
   const [handoffStrategy,setHandoffStrategy]=useState<'dense' | 'hybrid' | 'hybrid_rerank'>('dense');
+  const [handoffMetadataFilter, setHandoffMetadataFilter] = useState<RetrievalMetadataFilter>(emptyRetrievalMetadataFilter)
   const [evalDraft, setEvalDraft] = useState<{ question: string; answer: string } | null>(null);
   const [feedbackDraft, setFeedbackDraft] = useState<{ messageId: string; rating: FeedbackRating } | null>(null);
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
@@ -2743,7 +2747,7 @@ export default function Index() {
         const id = await ensureConversation();
         if (id === "demo-conversation")
           throw new ApiRequestError("演示模式", 0);
-        const answer = await streamOwnerAnswer(id, question, setStreamingText, controller?.signal, handoffStrategy);
+        const answer = await streamOwnerAnswer(id, question, setStreamingText, controller?.signal, handoffStrategy, handoffMetadataFilter);
         setMessages((items) => [
           ...items,
           {
@@ -2789,7 +2793,7 @@ export default function Index() {
         setStreamingText("");
       }
     },
-    [currentSpace, ensureConversation, forgetConversationId, handoffStrategy],
+    [currentSpace, ensureConversation, forgetConversationId, handoffStrategy, handoffMetadataFilter],
   );
   const handleCancel = useCallback(() => {
     streamAbort.current?.abort();
@@ -3440,8 +3444,8 @@ export default function Index() {
       <View className='page-stack space-page'>
 
         {activePage === "retrieval" && (
-          <RetrievalView key={currentSpace.id} spaceId={currentSpace.id} initialQuestion={handoffQuestion}
-            onAsk={(question, strategy) => { setHandoffQuestion(question); setHandoffStrategy(strategy || 'dense'); setActivePage("qa"); }}
+          <RetrievalView key={currentSpace.id} spaceId={currentSpace.id} initialQuestion={handoffQuestion} categories={categories} tags={tags}
+            onAsk={(question, strategy, metadataFilter) => { setHandoffQuestion(question); setHandoffStrategy(strategy || 'dense'); setHandoffMetadataFilter(metadataFilter || emptyRetrievalMetadataFilter()); setActivePage("qa"); }}
           />
         )}
         {activePage === "documents" && selectedDocumentId && <DocumentDetailView key={selectedDocumentId} spaceId={currentSpace.id} documentId={selectedDocumentId} onBack={() => { setSelectedDocumentId(null); void loadSpaceData(currentSpace, "documents"); }} onAsk={() => setActivePage("qa")} onRetrieve={() => setActivePage("retrieval")} />}
@@ -3464,7 +3468,8 @@ export default function Index() {
           />
         )}
         {activePage === "qa" && handoffStrategy!=='dense' && <View className='inline-banner'><Text>本次问答使用{handoffStrategy==='hybrid_rerank' ? '混合检索 + 模型重排' : '混合检索 · RRF'}</Text><Button className='text-button' disabled={streaming} onClick={()=>setHandoffStrategy('dense')}>恢复向量检索</Button></View>}
-        {activePage === "qa" && (
+        {activePage === "qa" && <>
+          <RetrievalMetadataFilterControls value={handoffMetadataFilter} categories={categories} tags={tags} disabled={streaming} onChange={setHandoffMetadataFilter} />
           <QaView
             initialQuestion={handoffQuestion}
             onRetrieve={(question) => { setHandoffQuestion(question); setActivePage("retrieval"); }}
@@ -3479,7 +3484,7 @@ export default function Index() {
             }}
             feedbackBusy={feedbackBusy}
           />
-        )}
+        </>}
         {activePage === "feedback" && (
           <FeedbackView
             feedback={feedback}
@@ -3500,7 +3505,7 @@ export default function Index() {
         )}
         {activePage === "eval" && (
           <EvaluationView key={currentSpace.id}
-            spaceId={currentSpace.id} categories={categories}
+            spaceId={currentSpace.id} categories={categories} tags={tags}
             initialQuestion={evalDraft?.question} initialAnswer={evalDraft?.answer}
             onSeedConsumed={() => setEvalDraft(null)}
             notify={(message) => setToast({ tone: "success", message })}
@@ -3545,6 +3550,7 @@ export default function Index() {
     activePage,
     handoffQuestion,
     handoffStrategy,
+    handoffMetadataFilter,
     selectedDocumentId,
     categories,
     tags,

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies import get_current_user, get_database_session
 from app.core.errors import AppError
 from app.domain.retrieval import RetrievalError, RetrievalRun
+from app.api.v1.retrieval_filters import RetrievalMetadataFilterRequest
 from app.domain.users import User
 from app.api.v1.documents import DocumentResponse
 from app.api.v1.evaluations import get_evaluation_service, _translate_evaluation_error
@@ -21,6 +22,7 @@ class RetrievalRequest(BaseModel):
     question: str = Field(min_length=1, max_length=2000)
     top_k: int = Field(default=4, ge=1, le=20, strict=True)
     strategy: Literal['dense','bm25','hybrid','hybrid_rerank'] = 'dense'
+    metadata_filter: RetrievalMetadataFilterRequest = Field(default_factory=RetrievalMetadataFilterRequest)
 
 
 class RetrievalItem(BaseModel):
@@ -176,7 +178,8 @@ async def get_document_detail(space_id: UUID, document_id: UUID, user: Annotated
 @router.post('/owner/spaces/{space_id}/retrieval-runs', response_model=RetrievalResponse, status_code=201)
 async def search(space_id: UUID, payload: RetrievalRequest, user: Annotated[User, Depends(get_current_user)], service=Depends(get_service)):
     try:
-        run, result = await service.search(space_id=space_id, user_id=user.id, question=payload.question, top_k=payload.top_k,strategy=payload.strategy)
+        run, result = await service.search(space_id=space_id, user_id=user.id, question=payload.question, top_k=payload.top_k,
+            strategy=payload.strategy, metadata_filter=payload.metadata_filter.to_domain())
     except RetrievalError as exc:
         raise AppError(code=exc.code, message=str(exc), status_code=exc.status_code) from exc
     return RetrievalResponse.build(run, [*result.items,*[item for items in result.branches.values() for item in items]])

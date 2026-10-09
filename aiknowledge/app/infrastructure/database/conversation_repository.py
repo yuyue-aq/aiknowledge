@@ -19,6 +19,7 @@ from app.domain.conversations import (
     RetrievedChunk,
 )
 from app.domain.documents import DocumentStatus
+from app.domain.retrieval import RetrievalMetadataFilter
 from app.domain.spaces import PublicRetrievalScope, SpaceVisibility, ShareLinkStatus
 from app.infrastructure.database.models import (
     CategoryRecord,
@@ -31,6 +32,9 @@ from app.infrastructure.database.models import (
     RagRunRecord,
     SpaceMembershipRecord,
     ShareLinkRecord,
+    TagRecord,
+    DocumentVersionRecord,
+    document_tags,
     share_link_categories,
 )
 
@@ -192,11 +196,13 @@ class SqlAlchemyConversationRepository:
         await self._session.flush()
 
     async def retrieve_owner(
-        self, *, space_id: UUID, embedding: list[float], limit: int
+        self, *, space_id: UUID, embedding: list[float], limit: int,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> list[RetrievedChunk]:
         statement = self._base_retrieval_statement(embedding).where(
             ChunkRecord.space_id == space_id,
         )
+        statement = self._apply_metadata_filter(statement, metadata_filter or RetrievalMetadataFilter())
         result = await self._session.execute(statement.limit(limit))
         return self._map_retrieval_rows(result.all())
 
@@ -206,6 +212,7 @@ class SqlAlchemyConversationRepository:
         scope: PublicRetrievalScope,
         embedding: list[float],
         limit: int,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> list[RetrievedChunk]:
         # An inner category join intentionally excludes unclassified data.
         # The remaining predicates execute in the same SQL statement as the
@@ -222,10 +229,12 @@ class SqlAlchemyConversationRepository:
                 KnowledgeSpaceRecord.visibility == SpaceVisibility.PUBLIC,
             )
         )
+        statement = self._apply_metadata_filter(statement, metadata_filter or RetrievalMetadataFilter())
         result = await self._session.execute(statement.limit(limit))
         return self._map_retrieval_rows(result.all())
 
-    async def keyword_corpus(self,*,space_id: UUID,public_scope: PublicRetrievalScope | None,limit: int):
+    async def keyword_corpus(self,*,space_id: UUID,public_scope: PublicRetrievalScope | None,limit: int,
+        metadata_filter: RetrievalMetadataFilter | None = None):
         statement=self._base_retrieval_statement(None).where(ChunkRecord.space_id==space_id).order_by(None).order_by(ChunkRecord.id)
         if public_scope is not None:
             if public_scope.space_id!=space_id:return []
@@ -233,6 +242,7 @@ class SqlAlchemyConversationRepository:
                 ChunkRecord.category_id.in_(public_scope.category_ids),CategoryRecord.space_id==space_id,
                 CategoryRecord.is_open.is_(True),CategoryRecord.deleted_at.is_(None),
                 KnowledgeSpaceRecord.visibility==SpaceVisibility.PUBLIC)
+        statement=self._apply_metadata_filter(statement,metadata_filter or RetrievalMetadataFilter())
         result=await self._session.execute(statement.limit(limit))
         return self._map_retrieval_rows(result.all())
 
@@ -314,7 +324,8 @@ class SqlAlchemyConversationRepository:
         row = (await self._session.execute(statement)).first()
         return tuple(row) if row is not None else None
 
-    async def validate_generation_chunks(self, *, space_id: UUID, public_scope: PublicRetrievalScope | None, chunk_ids: tuple[UUID, ...]) -> bool:
+    async def validate_generation_chunks(self, *, space_id: UUID, public_scope: PublicRetrievalScope | None,
+        chunk_ids: tuple[UUID, ...], metadata_filter: RetrievalMetadataFilter | None = None) -> bool:
         if not chunk_ids:
             return True
         statement = self._base_retrieval_statement(None).where(ChunkRecord.space_id == space_id, ChunkRecord.id.in_(chunk_ids)).order_by(None)
@@ -322,8 +333,60 @@ class SqlAlchemyConversationRepository:
             statement = statement.join(CategoryRecord, CategoryRecord.id == ChunkRecord.category_id).where(
                 ChunkRecord.category_id.in_(public_scope.category_ids), CategoryRecord.is_open.is_(True),
                 CategoryRecord.deleted_at.is_(None), CategoryRecord.space_id == space_id)
+        statement = self._apply_metadata_filter(statement, metadata_filter or RetrievalMetadataFilter())
         rows = (await self._session.execute(statement)).all()
         return {row.id for row in rows} == set(chunk_ids)
+
+    @staticmethod
+    def _apply_metadata_filter(statement, metadata_filter: RetrievalMetadataFilter):
+        if metadata_filter.category_ids:
+            category_exists = exists(select(CategoryRecord.id).where(
+                CategoryRecord.id == ChunkRecord.category_id,
+                CategoryRecord.space_id == ChunkRecord.space_id,
+                CategoryRecord.deleted_at.is_(None),
+            ))
+            statement = statement.where(ChunkRecord.category_id.in_(metadata_filter.category_ids), category_exists)
+
+        if metadata_filter.tag_ids:
+            tag_match = exists(select(document_tags.c.document_id).join(
+                TagRecord, TagRecord.id == document_tags.c.tag_id,
+            ).where(
+                document_tags.c.document_id == ChunkRecord.document_id,
+                TagRecord.space_id == ChunkRecord.space_id,
+                document_tags.c.tag_id.in_(metadata_filter.tag_ids),
+            ))
+            statement = statement.where(tag_match)
+
+        if metadata_filter.formats:
+            extensions = {
+                "pdf": ("pdf",), "docx": ("docx",),
+                "markdown": ("md", "markdown"), "text": ("txt",),
+                "table": ("csv", "tsv", "xlsx"), "presentation": ("pptx",),
+            }
+            suffixes = [f"%.{suffix}" for kind in metadata_filter.formats for suffix in extensions[kind]]
+            statement = statement.where(or_(*(func.lower(DocumentRecord.original_filename).like(suffix) for suffix in suffixes)))
+
+        if metadata_filter.version_min is not None or metadata_filter.version_max is not None:
+            version = select(DocumentVersionRecord.id).where(
+                DocumentVersionRecord.id == DocumentRecord.active_version_id,
+            )
+            if metadata_filter.version_min is not None:
+                version = version.where(DocumentVersionRecord.version_number >= metadata_filter.version_min)
+            if metadata_filter.version_max is not None:
+                version = version.where(DocumentVersionRecord.version_number <= metadata_filter.version_max)
+            statement = statement.where(exists(version))
+
+        if metadata_filter.valid_to is not None:
+            statement = statement.where(or_(
+                DocumentRecord.effective_at.is_(None),
+                DocumentRecord.effective_at <= metadata_filter.valid_to,
+            ))
+        if metadata_filter.valid_from is not None:
+            statement = statement.where(or_(
+                DocumentRecord.expires_at.is_(None),
+                DocumentRecord.expires_at > metadata_filter.valid_from,
+            ))
+        return statement
 
     @staticmethod
     def _map_retrieval_rows(rows: Sequence[object]) -> list[RetrievedChunk]:

@@ -90,6 +90,7 @@ class FakeEvaluationService:
             completed_at=self.now,
         )
         self.reviewed = None
+        self.run_kwargs = None
         self.version = EvalSetVersion(
             id=uuid4(),
             space_id=self.space_id,
@@ -111,8 +112,9 @@ class FakeEvaluationService:
     async def delete_case(self, _case_id: UUID) -> None:
         return None
 
-    async def run(self, *, space_id: UUID) -> EvaluationRunDetail:
+    async def run(self, *, space_id: UUID, **kwargs: object) -> EvaluationRunDetail:
         assert space_id == self.space_id
+        self.run_kwargs = kwargs
         return self._detail()
 
     async def get_run(self, _run_id: UUID) -> EvaluationRunDetail:
@@ -174,7 +176,10 @@ async def test_evaluation_api_exposes_cases_run_snapshot_security_summary_and_ma
             },
         )
         listed = await client.get(f"/api/v1/spaces/{service.space_id}/eval-cases")
-        run = await client.post(f"/api/v1/spaces/{service.space_id}/eval-runs")
+        run = await client.post(
+            f"/api/v1/spaces/{service.space_id}/eval-runs",
+            json={"metadata_filter": {"formats": ["pdf"], "version_min": 2}},
+        )
         fetched = await client.get(f"/api/v1/eval-runs/{service.run_id}")
         history = await client.get(f"/api/v1/spaces/{service.space_id}/eval-runs")
         compared = await client.get(
@@ -199,6 +204,8 @@ async def test_evaluation_api_exposes_cases_run_snapshot_security_summary_and_ma
     assert listed.json()["items"][0]["scope"] == "OUT_OF_SCOPE"
     assert run.status_code == 201
     assert run.json()["run"]["retrieval_config_snapshot"]["chat_model"] == "deepseek-v4-flash"
+    assert service.run_kwargs["metadata_filter"].formats == ("pdf",)
+    assert service.run_kwargs["metadata_filter"].version_min == 2
     assert run.json()["summary"]["out_of_scope_violations"] == 1
     assert fetched.status_code == 200
     assert history.status_code == 200

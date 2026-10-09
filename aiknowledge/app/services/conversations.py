@@ -23,6 +23,7 @@ from app.domain.conversations import (
 )
 from app.domain.rag import AnswerStatus, RagAnswer, RankedSourceChunk, SourceChunk, Usage
 from app.domain.spaces import PublicRetrievalScope
+from app.domain.retrieval import RetrievalMetadataFilter
 from app.services.usage import UsageService
 from app.services.retrieval import RetrievalService
 from app.services.hybrid_retrieval import HybridRetriever, branch_snapshot
@@ -61,7 +62,8 @@ class ConversationRepository(Protocol):
     async def delete_conversation(self, conversation_id: UUID) -> None: ...
 
     async def retrieve_owner(
-        self, *, space_id: UUID, embedding: list[float], limit: int
+        self, *, space_id: UUID, embedding: list[float], limit: int,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> list[RetrievedChunk]: ...
 
     async def retrieve_public(
@@ -70,6 +72,7 @@ class ConversationRepository(Protocol):
         scope: PublicRetrievalScope,
         embedding: list[float],
         limit: int,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> list[RetrievedChunk]: ...
 
     async def commit(self) -> None: ...
@@ -245,7 +248,8 @@ class ConversationService:
         return conversation
 
     async def ask_owner(
-        self, *, conversation_id: UUID, question: str, owner_user_id: UUID | None = None, strategy: str | None = None
+        self, *, conversation_id: UUID, question: str, owner_user_id: UUID | None = None, strategy: str | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> ConversationAnswer:
         conversation = await self._require_conversation(conversation_id)
         if conversation.kind is not ConversationKind.OWNER:
@@ -262,11 +266,13 @@ class ConversationService:
                 space_id=conversation.space_id,
                 embedding=vector,
                 limit=limit,
+                metadata_filter=metadata_filter,
             ),
             public_request=False,
             strategy=strategy,
-            corpus=lambda limit:self._repository.keyword_corpus(space_id=conversation.space_id,public_scope=None,limit=limit),
-            scope_check=self._scope_checker(conversation.space_id, owner_user_id=owner_user_id),
+            corpus=lambda limit:self._repository.keyword_corpus(space_id=conversation.space_id,public_scope=None,limit=limit,metadata_filter=metadata_filter),
+            metadata_filter=metadata_filter,
+            scope_check=self._scope_checker(conversation.space_id, owner_user_id=owner_user_id, metadata_filter=metadata_filter),
         )
 
     async def get_owner_conversation(
@@ -327,6 +333,7 @@ class ConversationService:
         scope: PublicRetrievalScope,
         question: str,
         strategy: str | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> ConversationAnswer:
         conversation = await self._require_conversation(conversation_id)
         if (
@@ -346,14 +353,17 @@ class ConversationService:
                 scope=scope,
                 embedding=vector,
                 limit=limit,
+                metadata_filter=metadata_filter,
             ),
             public_request=True,
             strategy=strategy,
-            corpus=lambda limit:self._repository.keyword_corpus(space_id=scope.space_id,public_scope=scope,limit=limit),
-            scope_check=self._scope_checker(scope.space_id, public_scope=scope),
+            corpus=lambda limit:self._repository.keyword_corpus(space_id=scope.space_id,public_scope=scope,limit=limit,metadata_filter=metadata_filter),
+            metadata_filter=metadata_filter,
+            scope_check=self._scope_checker(scope.space_id, public_scope=scope, metadata_filter=metadata_filter),
         )
 
-    async def answer_owner(self, *, space_id: UUID, question: str, strategy: str | None = None) -> RagAnswer:
+    async def answer_owner(self, *, space_id: UUID, question: str, strategy: str | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None) -> RagAnswer:
         """Internal evaluation entry point; unlike ``ask_owner`` it stores no history."""
 
         await self._require_active_space(space_id)
@@ -363,11 +373,13 @@ class ConversationService:
                 space_id=space_id,
                 embedding=vector,
                 limit=limit,
+                metadata_filter=metadata_filter,
             ),
             public_request=False,
             strategy=strategy,
-            corpus=lambda limit:self._repository.keyword_corpus(space_id=space_id,public_scope=None,limit=limit),
-            scope_check=self._scope_checker(space_id),
+            corpus=lambda limit:self._repository.keyword_corpus(space_id=space_id,public_scope=None,limit=limit,metadata_filter=metadata_filter),
+            metadata_filter=metadata_filter,
+            scope_check=self._scope_checker(space_id, metadata_filter=metadata_filter),
         )
         return answer
 
@@ -378,6 +390,7 @@ class ConversationService:
         category_ids: tuple[UUID, ...],
         question: str,
         strategy: str | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None,
     ) -> RagAnswer:
         """Internal evaluation entry point using the identical public SQL scope."""
 
@@ -397,11 +410,13 @@ class ConversationService:
                 scope=scope,
                 embedding=vector,
                 limit=limit,
+                metadata_filter=metadata_filter,
             ),
             public_request=True,
             strategy=strategy,
-            corpus=lambda limit:self._repository.keyword_corpus(space_id=space_id,public_scope=scope,limit=limit),
-            scope_check=self._scope_checker(space_id, public_scope=scope),
+            corpus=lambda limit:self._repository.keyword_corpus(space_id=space_id,public_scope=scope,limit=limit,metadata_filter=metadata_filter),
+            metadata_filter=metadata_filter,
+            scope_check=self._scope_checker(space_id, public_scope=scope, metadata_filter=metadata_filter),
         )
         return answer
 
@@ -413,6 +428,7 @@ class ConversationService:
         retrieve: Callable,
         corpus: Callable | None = None,
         strategy: str | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None,
         public_request: bool,
         scope_check: Callable | None = None,
     ) -> ConversationAnswer:
@@ -481,6 +497,7 @@ class ConversationService:
                     "candidate_limit": self._retrieval_candidate_limit,
                     **self._retrieval_config_snapshot,
                     **(answer.execution_snapshot or {}).get('retrieval_config',{}),
+                    'metadata_filter': (metadata_filter or RetrievalMetadataFilter()).snapshot(),
                 },
                 retrieved_chunk_ids=tuple(candidate.id for candidate in candidates),
                 selected_chunk_ids=tuple(
@@ -515,12 +532,14 @@ class ConversationService:
         retrieve: Callable,
         corpus: Callable | None = None,
         strategy: str | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None,
         public_request: bool,
         scope_check: Callable | None = None,
     ) -> tuple[RagAnswer, tuple[RetrievedChunk, ...]]:
         strategy=strategy or self._strategy
         if strategy not in ('dense','hybrid','hybrid_rerank'):raise ConversationQuestionError('不支持的检索方式。')
         config=(RerankedRetriever(self._hybrid,self._reranker).config if self._reranker is not None else {'strategy':'hybrid_rerank'}) if strategy=='hybrid_rerank' else self._hybrid.config if strategy=='hybrid' else {'strategy':'dense','score_kind':'cosine'}
+        config = {**config, 'metadata_filter': (metadata_filter or RetrievalMetadataFilter()).snapshot()}
         phase_started = perf_counter()
         if public_request and self._is_public_recovery_request(question):
             return (
@@ -642,7 +661,8 @@ class ConversationService:
             immutable_candidates,
         )
 
-    def _scope_checker(self, space_id: UUID, *, owner_user_id: UUID | None = None, public_scope: PublicRetrievalScope | None = None):
+    def _scope_checker(self, space_id: UUID, *, owner_user_id: UUID | None = None, public_scope: PublicRetrievalScope | None = None,
+        metadata_filter: RetrievalMetadataFilter | None = None):
         reader = getattr(self._repository, 'generation_scope_snapshot', None)
         validator = getattr(self._repository, 'validate_generation_chunks', None)
         if reader is None or validator is None:
@@ -658,7 +678,7 @@ class ConversationService:
             if initial is None:
                 initial = snapshot
                 check.snapshot = snapshot
-            if not await validator(space_id=space_id, public_scope=public_scope, chunk_ids=tuple(x.id for x in chunks)):
+            if not await validator(space_id=space_id, public_scope=public_scope, chunk_ids=tuple(x.id for x in chunks), metadata_filter=metadata_filter):
                 raise ConversationAccessDeniedError('引用资料已不可用，请重新提问。')
             await self._repository.commit()
         return check

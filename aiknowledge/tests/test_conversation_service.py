@@ -16,6 +16,7 @@ from app.domain.conversations import (
     RetrievedChunk,
 )
 from app.domain.rag import AnswerStatus, Citation, RagAnswer
+from app.domain.retrieval import RetrievalMetadataFilter
 from app.domain.spaces import PublicRetrievalScope
 from app.services.conversations import ConversationService
 
@@ -26,6 +27,7 @@ class FakeConversationRepository:
         self.conversations: dict[UUID, Conversation] = {}
         self.messages: list[ConversationMessage] = []
         self.citations = []
+        self.metadata_filters = []
         self.owner_queries: list[tuple[UUID, list[float], int]] = []
         self.public_queries: list[tuple[PublicRetrievalScope, list[float], int]] = []
         self.commits = 0
@@ -88,15 +90,17 @@ class FakeConversationRepository:
         self.conversations.pop(conversation_id, None)
 
     async def retrieve_owner(
-        self, *, space_id: UUID, embedding: list[float], limit: int
+        self, *, space_id: UUID, embedding: list[float], limit: int, metadata_filter=None
     ) -> list[RetrievedChunk]:
         self.owner_queries.append((space_id, embedding, limit))
+        self.metadata_filters.append(metadata_filter)
         return list(self.candidates)
 
     async def retrieve_public(
-        self, *, scope: PublicRetrievalScope, embedding: list[float], limit: int
+        self, *, scope: PublicRetrievalScope, embedding: list[float], limit: int, metadata_filter=None
     ) -> list[RetrievedChunk]:
         self.public_queries.append((scope, embedding, limit))
+        self.metadata_filters.append(metadata_filter)
         return list(self.candidates)
 
     async def commit(self) -> None:
@@ -241,15 +245,18 @@ async def test_internal_evaluation_keeps_actual_retrieval_snapshot_even_if_model
 async def test_owner_question_only_retrieves_current_space_and_persists_verifiable_citation() -> None:
     service, repository, embedding, rag = build_service()
     conversation = await service.create_owner_conversation(space_id=repository.space_id)
+    metadata_filter = RetrievalMetadataFilter(formats=("pdf",), version_min=2)
 
     answer = await service.ask_owner(
         conversation_id=conversation.id,
         question="访客可以访问哪些资料？",
+        metadata_filter=metadata_filter,
     )
 
     assert embedding.questions == ["访客可以访问哪些资料？"]
     assert repository.owner_queries == [(repository.space_id, [1.0, 0.0, 0.0], 12)]
     assert repository.public_queries == []
+    assert repository.metadata_filters == [metadata_filter]
     assert rag.calls[0][1][0].source.id == str(repository.candidate.id)
     assert answer.assistant.answer_status is AnswerStatus.ANSWERED
     assert answer.citations[0].chunk_id == repository.candidate.id
@@ -267,7 +274,10 @@ async def test_owner_question_only_retrieves_current_space_and_persists_verifiab
     assert phases['embedding'] >= 0
     assert phases['generation'] >= 0
     assert phases['total'] >= phases['generation']
-    assert run.retrieval_config_snapshot == {"candidate_limit": 12, "top_k": 4, "strategy":"dense", "score_kind":"cosine"}
+    assert run.retrieval_config_snapshot == {
+        "candidate_limit": 12, "top_k": 4, "strategy": "dense", "score_kind": "cosine",
+        "metadata_filter": metadata_filter.snapshot(),
+    }
     assert run.total_latency_ms >= 0
 
 

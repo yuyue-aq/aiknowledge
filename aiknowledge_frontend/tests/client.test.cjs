@@ -184,15 +184,17 @@ test('embed and copied share link resolve to the same public page', () => {
 
 test('V2 retrieval sends question and K to authenticated diagnostics without generation', async () => {
   const calls = []
+  const metadataFilter = { category_ids: ['category-1'], tag_ids: ['tag-1'], formats: ['pdf'] }
   const { client } = loadClient(async (request) => {
     calls.push(request)
     return { statusCode: 201, data: { run_id: 'actual-run', items: [] } }
   })
-  const run = await client.searchKnowledge('space-id', '范围规则', 5)
+  const run = await client.searchKnowledge('space-id', '范围规则', 5, undefined, 'dense', metadataFilter)
   assert.equal(run.run_id, 'actual-run')
   assert.ok(calls[0].url.endsWith('/owner/spaces/space-id/retrieval-runs'))
   assert.equal(calls[0].data.question, '范围规则')
   assert.equal(calls[0].data.top_k, 5)
+  assert.deepEqual(calls[0].data.metadata_filter, metadataFilter)
   assert.equal(calls.length, 1)
 })
 
@@ -207,11 +209,14 @@ test('keyword diagnostics transmit BM25 strategy without changing chat requests'
 
 test('explicit hybrid handoff reaches owner generation and evaluation requests', async () => {
   const calls=[]
+  const metadataFilter = { category_ids: [], tag_ids: ['tag-2'], formats: ['markdown'] }
   const {client}=loadClient(async options=>{calls.push(options);return {statusCode:201,data:{answer:'真实响应',run_id:'run'}}})
-  await client.streamOwnerAnswer('conversation','问题',()=>{},undefined,'hybrid')
+  await client.streamOwnerAnswer('conversation','问题',()=>{},undefined,'hybrid',metadataFilter)
   assert.equal(calls[0].data.strategy,'hybrid')
-  await client.enqueueEvaluation('space','hybrid')
+  assert.deepEqual(calls[0].data.metadata_filter, metadataFilter)
+  await client.enqueueEvaluation('space','hybrid',metadataFilter)
   assert.ok(calls[1].url.endsWith('/eval-runs/async?strategy=hybrid'))
+  assert.deepEqual(calls[1].data.metadata_filter, metadataFilter)
 })
 
 test('V2 evaluation uses immediate async endpoints and polls the saved run', async () => {

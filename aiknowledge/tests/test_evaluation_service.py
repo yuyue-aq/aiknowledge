@@ -14,6 +14,7 @@ from app.domain.conversations import (
     EvalSetVersion,
 )
 from app.domain.rag import AnswerStatus, Citation, RagAnswer
+from app.domain.retrieval import RetrievalMetadataFilter
 from app.services.evaluations import EvaluationService
 from app.domain.evaluation import EvidenceRef
 
@@ -168,9 +169,11 @@ class FakeEvaluationRunner:
     def __init__(self) -> None:
         self.owner_calls = []
         self.public_calls = []
+        self.metadata_filters = []
 
-    async def answer_owner(self, *, space_id: UUID, question: str) -> RagAnswer:
+    async def answer_owner(self, *, space_id: UUID, question: str, metadata_filter=None) -> RagAnswer:
         self.owner_calls.append((space_id, question))
+        self.metadata_filters.append(metadata_filter)
         return RagAnswer(
             status=AnswerStatus.ANSWERED,
             answer="私密空间回答。",
@@ -178,9 +181,10 @@ class FakeEvaluationRunner:
         )
 
     async def answer_public(
-        self, *, space_id: UUID, category_ids: tuple[UUID, ...], question: str
+        self, *, space_id: UUID, category_ids: tuple[UUID, ...], question: str, metadata_filter=None
     ) -> RagAnswer:
         self.public_calls.append((space_id, category_ids, question))
+        self.metadata_filters.append(metadata_filter)
         return RagAnswer(
             status=AnswerStatus.INSUFFICIENT_EVIDENCE,
             answer="当前资料中没有足够依据回答这个问题。",
@@ -228,10 +232,13 @@ async def test_evaluation_run_reuses_owner_and_public_answer_paths_and_records_s
         category_ids=(public_category_id,),
     )
 
-    detail = await service.run(space_id=repository.space_id)
+    metadata_filter = RetrievalMetadataFilter(formats=("pdf",), version_min=2)
+    detail = await service.run(space_id=repository.space_id, metadata_filter=metadata_filter)
 
     assert detail.run.status is EvalRunStatus.COMPLETED
     assert detail.run.retrieval_config_snapshot["chat_model"] == "deepseek-v4-flash"
+    assert detail.run.retrieval_config_snapshot["metadata_filter"] == metadata_filter.snapshot()
+    assert runner.metadata_filters == [metadata_filter, metadata_filter]
     assert runner.owner_calls == [(repository.space_id, owner_case.question)]
     assert runner.public_calls == [
         (repository.space_id, (public_category_id,), public_case.question)

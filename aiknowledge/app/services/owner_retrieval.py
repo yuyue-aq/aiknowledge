@@ -5,7 +5,7 @@ from typing import Protocol
 from uuid import UUID, uuid4
 
 from app.domain.conversations import RetrievedChunk
-from app.domain.retrieval import RetrievalError, RetrievalResult, RetrievalRun, RetrievalScope
+from app.domain.retrieval import RetrievalError, RetrievalMetadataFilter, RetrievalResult, RetrievalRun, RetrievalScope
 from app.services.retrieval import RetrievalService
 from app.services.bm25 import Bm25Retriever
 from app.services.hybrid_retrieval import HybridRetriever, branch_snapshot
@@ -13,7 +13,7 @@ from app.services.reranked_retrieval import RerankedRetriever
 
 
 class OwnerRetrievalRepository(Protocol):
-    async def resolve_owner_scope(self, *, space_id: UUID, user_id: UUID) -> RetrievalScope | None: ...
+    async def resolve_owner_scope(self, *, space_id: UUID, user_id: UUID, metadata_filter: RetrievalMetadataFilter | None = None) -> RetrievalScope | None: ...
     async def retrieve(self, *, scope: RetrievalScope, embedding: list[float], limit: int) -> list[RetrievedChunk]: ...
     async def get_current_chunks(self, *, scope: RetrievalScope, chunk_ids: tuple[UUID, ...]) -> list[RetrievedChunk]: ...
     async def add_run(self, run: RetrievalRun) -> None: ...
@@ -27,19 +27,21 @@ class OwnerRetrievalService:
         self._bm25=bm25 or Bm25Retriever()
         self._reranker=reranker
 
-    async def _scope(self, space_id: UUID, user_id: UUID) -> RetrievalScope:
-        scope = await self._repository.resolve_owner_scope(space_id=space_id, user_id=user_id)
+    async def _scope(self, space_id: UUID, user_id: UUID, metadata_filter: RetrievalMetadataFilter | None = None) -> RetrievalScope:
+        scope = await self._repository.resolve_owner_scope(space_id=space_id, user_id=user_id, metadata_filter=metadata_filter)
         if scope is None:
             raise RetrievalError('RETRIEVAL_NOT_FOUND', '空间或检索记录不存在。', 404)
         return scope
 
-    async def search(self, *, space_id: UUID, user_id: UUID, question: str, top_k: int = 4, strategy: str = 'dense') -> tuple[RetrievalRun, RetrievalResult]:
+    async def search(self, *, space_id: UUID, user_id: UUID, question: str, top_k: int = 4, strategy: str = 'dense',
+        metadata_filter: RetrievalMetadataFilter | None = None) -> tuple[RetrievalRun, RetrievalResult]:
         if strategy not in ('dense','bm25','hybrid','hybrid_rerank'):raise RetrievalError('RETRIEVAL_INPUT_INVALID','不支持的检索方式。',422)
         if not isinstance(question,str) or not question.strip() or len(question.strip())>2000:
             raise RetrievalError('RETRIEVAL_INPUT_INVALID','请输入1—2000字的问题。',422)
         if isinstance(top_k,bool) or not isinstance(top_k,int) or not 1<=top_k<=20:
             raise RetrievalError('RETRIEVAL_INPUT_INVALID','Top K必须为1—20的整数。',422)
-        scope = await self._scope(space_id, user_id)
+        metadata_filter = metadata_filter or RetrievalMetadataFilter()
+        scope = await self._scope(space_id, user_id, metadata_filter)
 
         async def fetch(vector, limit):
             return await self._repository.retrieve(scope=scope, embedding=vector, limit=limit)
@@ -48,7 +50,7 @@ class OwnerRetrievalService:
         if strategy=='hybrid_rerank':
             async def corpus(limit):return await self._repository.keyword_corpus(scope=scope,limit=limit)
             async def validate(items):
-                latest=await self._scope(space_id,user_id)
+                latest=await self._scope(space_id,user_id,metadata_filter)
                 current=await self._repository.get_current_chunks(scope=latest,chunk_ids=tuple(item.id for item in items))
                 if not scope.same_access(latest) or {item.id for item in current}!={item.id for item in items}:
                     raise RetrievalError('RETRIEVAL_SCOPE_CHANGED','资料范围已变化，请重新检索。',409)
@@ -69,17 +71,19 @@ class OwnerRetrievalService:
             result=RetrievalResult(question.strip(),top_k,items,{'embedding':0.,'corpus':round((fetched-started)*1000,3),
                 'ranking':round((ranked-fetched)*1000,3),'total':round((ranked-started)*1000,3)})
         else:result = await self._retrieval.search(question=question, fetch=fetch, top_k=top_k)
-        current_scope = await self._scope(space_id, user_id)
+        current_scope = await self._scope(space_id, user_id, metadata_filter)
         candidate_ids=tuple(dict.fromkeys(x.id for items in [result.items,*result.branches.values()] for x in items))
         current = await self._repository.get_current_chunks(scope=current_scope, chunk_ids=candidate_ids)
         if not scope.same_access(current_scope) or {x.id for x in current} != set(candidate_ids):
             raise RetrievalError('RETRIEVAL_SCOPE_CHANGED', '资料范围已变化，请重新检索。', 409)
+        config_snapshot = result.config_snapshot if strategy=='hybrid_rerank' else \
+            {**hybrid.config,'branches':branch_snapshot(result)} if strategy=='hybrid' else \
+            self._bm25.config if strategy=='bm25' else {'score_kind':'cosine'}
+        config_snapshot = {**config_snapshot, 'metadata_filter': metadata_filter.snapshot()}
         run = RetrievalRun(uuid4(), scope, result.question, top_k, tuple(x.id for x in result.items),
                            tuple(x.score for x in result.items), result.timings_ms,
                            'bm25-zh-bigram-v1' if strategy=='bm25' else self._model, datetime.now(UTC),strategy,
-                           result.config_snapshot if strategy=='hybrid_rerank' else
-                           {**hybrid.config,'branches':branch_snapshot(result)} if strategy=='hybrid' else
-                           self._bm25.config if strategy=='bm25' else {'score_kind':'cosine'})
+                           config_snapshot)
         await self._repository.add_run(run)
         return run, result
 
@@ -87,7 +91,7 @@ class OwnerRetrievalService:
         run = await self._repository.get_run(run_id)
         if run is None or run.scope.user_id != user_id:
             raise RetrievalError('RETRIEVAL_NOT_FOUND', '空间或检索记录不存在。', 404)
-        scope = await self._scope(run.scope.space_id, user_id)
+        scope = await self._scope(run.scope.space_id, user_id, run.scope.metadata_filter)
         ids=tuple(dict.fromkeys([*run.chunk_ids,*[UUID(item['chunk_id']) for items in run.config_snapshot.get('branches',{}).values() for item in items]]))
         current = await self._repository.get_current_chunks(scope=scope, chunk_ids=ids)
         latest=await self._scope(run.scope.space_id,user_id)
