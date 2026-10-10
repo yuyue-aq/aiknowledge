@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID, uuid4
@@ -536,6 +537,27 @@ async def test_owner_query_diagnostics_track_subquery_hits_and_selected_context(
 
     history = await service.get_owner_conversation(conversation.id)
     assert history.query_diagnostics_by_message[answer.assistant.id] == diagnostics
+
+
+@pytest.mark.asyncio
+async def test_owner_retrieval_execution_snapshot_is_json_serializable():
+    service, repository, _, _ = build_service()
+
+    answer = await service.answer_owner(
+        space_id=repository.space_id,
+        question="依据是什么？",
+    )
+
+    assert answer.execution_snapshot is not None
+    json.dumps(answer.execution_snapshot)
+    diagnostics = service._build_query_diagnostics(
+        original_question="依据是什么？",
+        retrieval_question="依据是什么？",
+        answer=answer,
+    )
+    assert diagnostics["queries"][0]["evidence"][0]["chunk_id"] == str(
+        repository.candidate.id
+    )
 
 
 @pytest.mark.asyncio

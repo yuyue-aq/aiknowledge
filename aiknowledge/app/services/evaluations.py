@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import Protocol
 from uuid import UUID, uuid4
 import asyncio
+import logging
 
 from app.domain.conversations import (
     EvalAccessDeniedError,
@@ -36,6 +37,8 @@ from app.services.evaluation_judge import (
     EvaluationJudgeError,
     EvaluationJudgePort,
 )
+
+logger = logging.getLogger(__name__)
 
 
 _UNSET = object()
@@ -469,6 +472,11 @@ class EvaluationService:
                 cases_by_id={case.id: case for case in cases},
             )
         except Exception as exc:
+            logger.error(
+                "Evaluation run %s failed with %s",
+                run_id,
+                type(exc).__name__,
+            )
             rollback = getattr(self._repository, 'rollback', None)
             if rollback is not None:
                 await rollback()

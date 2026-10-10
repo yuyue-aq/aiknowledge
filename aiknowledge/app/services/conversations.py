@@ -620,7 +620,11 @@ class ConversationService:
             else:
                 result = await self._retrieval.search(question=question, fetch=fetch, top_k=self._retrieval_candidate_limit)
             candidates = result.items
-            query_evidence.append({'kind':'primary','query':question,'items':tuple(candidates)})
+            query_evidence.append({
+                'kind': 'primary',
+                'query': question,
+                'items': self._query_evidence_snapshot(candidates),
+            })
             retrieval_timings=dict(result.timings_ms)
             planner=getattr(self._rag_service,'plan_retrieval',None)
             if strategy=='dense' and callable(planner) and complex_question(question):
@@ -634,7 +638,11 @@ class ConversationService:
                 leaders=[]
                 for subquery in planned_queries:
                     extra=await self._retrieval.search(question=subquery,fetch=fetch,top_k=self._retrieval_candidate_limit)
-                    query_evidence.append({'kind':'subquery','query':subquery,'items':tuple(extra.items)})
+                    query_evidence.append({
+                        'kind': 'subquery',
+                        'query': subquery,
+                        'items': self._query_evidence_snapshot(extra.items),
+                    })
                     for key in ('embedding','search','total'):retrieval_timings[key]+=extra.timings_ms[key]
                     for index,item in enumerate(extra.items):
                         if index<2 and item.id not in leaders:leaders.append(item.id)
@@ -729,16 +737,30 @@ class ConversationService:
                 items = raw.get('items', ())
                 evidence = []
                 for rank, item in enumerate(items, 1):
-                    if not isinstance(item, RetrievedChunk):
+                    if isinstance(item, RetrievedChunk):
+                        chunk_id = str(item.id)
+                        document_name = item.document_name
+                        ordinal = item.ordinal
+                        score = item.score
+                        score_kind = item.score_kind
+                    elif isinstance(item, dict):
+                        chunk_id = item.get('chunk_id')
+                        document_name = item.get('document_name')
+                        ordinal = item.get('ordinal')
+                        score = item.get('score')
+                        score_kind = item.get('score_kind')
+                    else:
+                        continue
+                    if not isinstance(chunk_id, str):
                         continue
                     evidence.append({
-                        'chunk_id': str(item.id),
-                        'document_name': item.document_name,
-                        'ordinal': item.ordinal,
+                        'chunk_id': chunk_id,
+                        'document_name': document_name,
+                        'ordinal': ordinal,
                         'rank': rank,
-                        'score': item.score,
-                        'score_kind': item.score_kind,
-                        'selected_for_context': str(item.id) in context_ids,
+                        'score': score,
+                        'score_kind': score_kind,
+                        'selected_for_context': chunk_id in context_ids,
                     })
                 queries.append({
                     'kind': raw.get('kind') if raw.get('kind') in ('primary', 'subquery') else 'primary',
@@ -751,6 +773,27 @@ class ConversationService:
             'was_rewritten': original_question != retrieval_question,
             'queries': queries,
         }
+
+    @staticmethod
+    def _query_evidence_snapshot(items: Sequence[RetrievedChunk]) -> list[dict[str, object]]:
+        """Return JSON-safe, content-free references for retrieval diagnostics."""
+        return [
+            {
+                'chunk_id': str(item.id),
+                'document_id': str(item.document_id),
+                'document_version_id': (
+                    str(item.document_version_id) if item.document_version_id else None
+                ),
+                'document_name': item.document_name,
+                'ordinal': item.ordinal,
+                'score': item.score,
+                'score_kind': item.score_kind,
+                'source_block_id': item.source_block_id,
+                'char_start': item.char_start,
+                'char_end': item.char_end,
+            }
+            for item in items
+        ]
 
     def _scope_checker(self, space_id: UUID, *, owner_user_id: UUID | None = None, public_scope: PublicRetrievalScope | None = None,
         metadata_filter: RetrievalMetadataFilter | None = None):
