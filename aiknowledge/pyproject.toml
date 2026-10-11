@@ -1,6 +1,6 @@
 [project]
 name = "aiknowledge"
-version = "2.0.0"
+version = "2.1.0"
 requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.18.0",
